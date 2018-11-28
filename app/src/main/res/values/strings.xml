@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">My ApplicationTest</string>
+    <string name="edit_message">Enter message</string>
+    <string name="button_send">Send</string>
+    <string name="login">login</string>
+    <string name="password">password</string>
+    <string name="BtnLogin">Login</string>
+    <string name="BtnSettings">Settings</string>
+    <string name="BtnSave">Save</string>
+    <string name="db_name">Server Name</string>
+    <string name="db_user">DB User</string>
+    <string name="db_password">DB Password</string>
+    <string name="btnDBSetingsSave">Save</string>
+</resources>
