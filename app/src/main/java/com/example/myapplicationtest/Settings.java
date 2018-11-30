@@ -48,7 +48,7 @@ public class Settings extends AppCompatActivity implements View.OnClickListener{
 
     private void saveDBSettings(){
         e = sPrefDBName.edit();
-        e.putString(SAVED_DBName, dbUser.getText().toString());
+        e.putString(SAVED_DBName, dbName.getText().toString());
         e.apply();
         e = sPrefDBPassword.edit();
         e.putString(SAVED_DBPassword, dbPassword.getText().toString());

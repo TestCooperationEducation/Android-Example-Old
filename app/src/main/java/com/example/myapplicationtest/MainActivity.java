@@ -20,8 +20,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 public class MainActivity extends AppCompatActivity {
-    public static final String EXTRA_MESSAGE = "com.example.myfirstapp.MESSAGE";
-    public static final String EXTRA_MESSAGE2 = "com.example.myfirstapp.MESSAGE2";
+    public static final String EXTRA_MESSAGE = "com.example.myapplicationtest.MESSAGE";
+    public static final String EXTRA_MESSAGE2 = "com.example.myapplicationtest.MESSAGE2";
     ListView listView;
 
     @Override
