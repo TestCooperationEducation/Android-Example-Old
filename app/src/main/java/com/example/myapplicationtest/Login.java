@@ -37,8 +37,8 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
     final String SAVED_DBUser = "dbUser";
     final String SAVED_DBPassword = "dbPassword";
     SharedPreferences.Editor e;
-    String loginUrl = "https://caiman.ru.com/php/test1.php", attribute, dbName, dbUser, dbPassword;
-    public static final String EXTRA_ATTRIBUTE = "com.example.myapplicationtest.ATTRIBUTE";
+    String loginUrl = "https://caiman.ru.com/php/test1.php", agentName, dbName, dbUser, dbPassword;
+    public static final String EXTRA_AGENTNAME = "com.example.myapplicationtest.AGENTNAME";
 
 
     @Override
@@ -104,14 +104,25 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
             @Override
             public void onResponse(String response) {
                 try{
-                    JSONObject jsonObject = new JSONObject(response);
-                    if(jsonObject.names().get(0).equals("success")){
+                    //JSONObject jsonObject = new JSONObject(response);
+                    JSONArray jsonArray = new JSONArray(response);
+                    Toast.makeText(getApplicationContext(), "Login successfull", Toast.LENGTH_SHORT).show();
+                    /*if(!jsonObject.names().get(0).equals("failed")){
                         Toast.makeText(getApplicationContext(), "Login successfull", Toast.LENGTH_SHORT).show();
-                        attribute = jsonObject.getString("success");
-                        Intent intent = new Intent(getApplicationContext(), DisplayMessageActivity.class);
+                        agentName = jsonObject.getString("secondname") + " " +
+                                     jsonObject.getString("firstname") + " " +
+                                     jsonObject.getString("middlename");*/
+                    String[] agentName = new String[jsonArray.length()];
+                    if (jsonArray.length() == 1){
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            JSONObject obj = jsonArray.getJSONObject(i);
+                            agentName[i] = obj.getString("secondname") + " " + obj.getString("firstname")
+                                    + " " + obj.getString("middlename");
+                        }
+                        Intent intent = new Intent(getApplicationContext(), MainMenu.class);
                         //EditText editText = (EditText) findViewById(R.id.editText2);
                         //String message = editText.getText().toString();
-                        intent.putExtra(EXTRA_ATTRIBUTE, attribute);
+                        intent.putExtra(EXTRA_AGENTNAME, agentName[0]);
                         startActivity(intent);
                     }else{
                         Toast.makeText(getApplicationContext(), "Login failed", Toast.LENGTH_SHORT).show();
