@@ -10,10 +10,10 @@
     <EditText
         android:id="@+id/editTextLogin"
         android:layout_width="271dp"
-        android:layout_height="34dp"
+        android:layout_height="50dp"
         android:layout_marginStart="16dp"
         android:layout_marginLeft="16dp"
-        android:layout_marginTop="117dp"
+        android:layout_marginTop="50dp"
         android:layout_marginEnd="16dp"
         android:layout_marginRight="16dp"
         android:autofillHints=""
@@ -28,7 +28,7 @@
     <EditText
         android:id="@+id/editTextPassword"
         android:layout_width="271dp"
-        android:layout_height="34dp"
+        android:layout_height="50dp"
         android:layout_marginStart="16dp"
         android:layout_marginLeft="16dp"
         android:layout_marginTop="16dp"

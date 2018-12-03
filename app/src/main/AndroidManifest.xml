@@ -46,7 +46,7 @@
         </activity>
         <activity android:name=".Settings" />
         <activity android:name=".MainMenu" />
-        <activity android:name=".CreateInvoiceActivity"></activity>
+        <activity android:name=".CreateInvoiceFilterFirstActivity"></activity>
     </application>
 
 </manifest>
