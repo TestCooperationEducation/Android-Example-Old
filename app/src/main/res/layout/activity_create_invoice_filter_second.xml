@@ -4,7 +4,16 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".CreateInvoiceFilterFirstActivity">
+    tools:context=".CreateInvoiceFilterSecondActivity">
+
+    <ListView
+        android:id="@+id/listViewSalesPartners"
+        android:layout_width="wrap_content"
+        android:layout_height="50dp"
+        android:layout_marginTop="48dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewAgent" />
 
     <TextView
         android:id="@+id/textViewAgent"
@@ -16,40 +25,21 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <ListView
-        android:id="@+id/listViewArea"
-        android:layout_width="wrap_content"
-        android:layout_height="50dp"
-        android:layout_marginTop="50dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textViewAgent"
-        android:choiceMode="singleChoice" />
-
-    <ListView
         android:id="@+id/listViewAccountingType"
         android:layout_width="wrap_content"
         android:layout_height="50dp"
         android:layout_marginTop="16dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/listViewArea" />
-
-    <ListView
-        android:id="@+id/listViewDayOfTheWeek"
-        android:layout_width="wrap_content"
-        android:layout_height="50dp"
-        android:layout_marginTop="16dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/listViewAccountingType" />
+        app:layout_constraintTop_toBottomOf="@+id/listViewSalesPartners" />
 
     <Button
         android:id="@+id/buttonNext"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="25dp"
-        android:text="@string/btnNext"
+        android:text="@string/btnNextFilterSecond"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/listViewDayOfTheWeek" />
+        app:layout_constraintTop_toBottomOf="@+id/listViewAccountingType" />
 </android.support.constraint.ConstraintLayout>
