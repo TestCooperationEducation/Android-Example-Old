@@ -1,6 +1,7 @@
 package com.example.myapplicationtest;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -17,6 +18,13 @@ public class CreateInvoiceFilterFirstActivity extends AppCompatActivity implemen
 
     ListView listViewArea, listViewAccountingType, listViewDayOfTheWeek;
     Button btnNext;
+    SharedPreferences sPrefArea, sPrefAccountingType, sPrefDayOfTheWeek;
+    final String SAVED_AREA = "Area";
+    final String SAVED_ACCOUNTINGTYPE = "AccountingType";
+    final String SAVED_DAYOFTHEWEEK = "DayOfTheWeek";
+    SharedPreferences.Editor e;
+    public static final String EXTRA_AGENT = "com.example.myapplicationtest.AGENT";
+    String area, dayOfTheWeek, accountingType;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,12 +52,22 @@ public class CreateInvoiceFilterFirstActivity extends AppCompatActivity implemen
         listViewArea.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view,
                                     int position, long id) {
-
-                // selected item
-                String product = ((TextView) view).getText().toString();
-
-                Toast.makeText(getApplicationContext(), "Selected Item :" +product, Toast.LENGTH_SHORT).show();
-
+                area = ((TextView) view).getText().toString();
+                Toast.makeText(getApplicationContext(), "Selected Item :" + area, Toast.LENGTH_SHORT).show();
+            }
+        });
+        listViewDayOfTheWeek.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            public void onItemClick(AdapterView<?> parent, View view,
+                                    int position, long id) {
+                dayOfTheWeek = ((TextView) view).getText().toString();
+                Toast.makeText(getApplicationContext(), "Selected Item :" + dayOfTheWeek, Toast.LENGTH_SHORT).show();
+            }
+        });
+        listViewAccountingType.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            public void onItemClick(AdapterView<?> parent, View view,
+                                    int position, long id) {
+                accountingType = ((TextView) view).getText().toString();
+                Toast.makeText(getApplicationContext(), "Selected Item :" + accountingType, Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -93,7 +111,14 @@ public class CreateInvoiceFilterFirstActivity extends AppCompatActivity implemen
     }
 
     private void filterFirst(){
-
-
+        e = sPrefArea.edit();
+        e.putString(SAVED_AREA, area);
+        e.apply();
+        e = sPrefDayOfTheWeek.edit();
+        e.putString(SAVED_DAYOFTHEWEEK, dayOfTheWeek);
+        e.apply();
+        e = sPrefAccountingType.edit();
+        e.putString(SAVED_ACCOUNTINGTYPE, accountingType);
+        e.apply();
     }
 }
