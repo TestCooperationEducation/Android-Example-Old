@@ -1,5 +1,6 @@
 package com.example.myapplicationtest;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
@@ -24,7 +25,7 @@ public class CreateInvoiceFilterFirstActivity extends AppCompatActivity implemen
     final String SAVED_DAYOFTHEWEEK = "DayOfTheWeek";
     SharedPreferences.Editor e;
     public static final String EXTRA_AGENT = "com.example.myapplicationtest.AGENT";
-    String area, dayOfTheWeek, accountingType;
+    String areaStr, dayOfTheWeek, accountingType;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,6 +33,11 @@ public class CreateInvoiceFilterFirstActivity extends AppCompatActivity implemen
         setContentView(R.layout.activity_create_invoice_filter_first);
 
         btnNext = findViewById(R.id.buttonNext);
+        btnNext.setOnClickListener(this);
+
+        sPrefArea = getSharedPreferences(SAVED_AREA, Context.MODE_PRIVATE);
+        sPrefAccountingType = getSharedPreferences(SAVED_ACCOUNTINGTYPE, Context.MODE_PRIVATE);
+        sPrefDayOfTheWeek = getSharedPreferences(SAVED_DAYOFTHEWEEK, Context.MODE_PRIVATE);
 
         //Get the Intent that started this activity and extract the string
         Intent intent = getIntent();
@@ -52,8 +58,8 @@ public class CreateInvoiceFilterFirstActivity extends AppCompatActivity implemen
         listViewArea.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view,
                                     int position, long id) {
-                area = ((TextView) view).getText().toString();
-                Toast.makeText(getApplicationContext(), "Selected Item :" + area, Toast.LENGTH_SHORT).show();
+                areaStr = ((TextView) view).getText().toString();
+                Toast.makeText(getApplicationContext(), "Selected Item :" + areaStr, Toast.LENGTH_SHORT).show();
             }
         });
         listViewDayOfTheWeek.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -73,20 +79,20 @@ public class CreateInvoiceFilterFirstActivity extends AppCompatActivity implemen
     }
 
     private void loadListArea(){
-        String[] areas = new String[5];
+        Integer[] area = new Integer[5];
         for (int i = 0; i < 5; i++) {
 
-            areas[i] = "Район № " + (i + 1);
+            area[i] = (i + 1);
         }
-        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, areas);
+        ArrayAdapter<Integer> arrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, area);
         listViewArea.setAdapter(arrayAdapter);
     }
 
     private void loadListAccountingType(){
-        String[] accountingTypes = new String[2];
-        accountingTypes[0] = "Тип учёта ПРОВОД";
-        accountingTypes[1] = "Тип учёта НЕпровод";
-        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, accountingTypes);
+        String[] accountingType = new String[2];
+        accountingType[0] = "провод";
+        accountingType[1] = "непровод";
+        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, accountingType);
         listViewAccountingType.setAdapter(arrayAdapter);
     }
 
@@ -112,7 +118,7 @@ public class CreateInvoiceFilterFirstActivity extends AppCompatActivity implemen
 
     private void filterFirst(){
         e = sPrefArea.edit();
-        e.putString(SAVED_AREA, area);
+        e.putString(SAVED_AREA, areaStr);
         e.apply();
         e = sPrefDayOfTheWeek.edit();
         e.putString(SAVED_DAYOFTHEWEEK, dayOfTheWeek);

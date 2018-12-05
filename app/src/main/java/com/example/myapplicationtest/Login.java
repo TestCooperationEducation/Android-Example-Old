@@ -37,7 +37,7 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
     final String SAVED_DBUser = "dbUser";
     final String SAVED_DBPassword = "dbPassword";
     SharedPreferences.Editor e;
-    String loginUrl = "https://caiman.ru.com/php/test1.php", agentName, dbName, dbUser, dbPassword;
+    String loginUrl = "https://caiman.ru.com/php/login.php", agentName, dbName, dbUser, dbPassword;
     public static final String EXTRA_AGENTNAME = "com.example.myapplicationtest.AGENTNAME";
 
 

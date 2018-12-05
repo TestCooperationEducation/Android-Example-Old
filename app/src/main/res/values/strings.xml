@@ -15,6 +15,6 @@
     <string name="btnInvoice">Накладная</string>
     <string name="btnPayments">Платежи</string>
     <string name="btnSalesPartners">Контрагенты</string>
-    <string name="btnNext">Далее</string>
-    <string name="btnNextFilterSecond">Далее</string>
+    <string name="btnNext">Фильтр</string>
+    <string name="btnNextFilterSecond">Создать</string>
 </resources>
