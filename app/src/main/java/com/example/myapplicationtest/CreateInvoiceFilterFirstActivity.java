@@ -120,5 +120,11 @@ public class CreateInvoiceFilterFirstActivity extends AppCompatActivity implemen
         e = sPrefAccountingType.edit();
         e.putString(SAVED_ACCOUNTINGTYPE, accountingType);
         e.apply();
+
+        Intent intent = new Intent(getApplicationContext(), CreateInvoiceFilterSecondActivity.class);
+        TextView textView = findViewById(R.id.textViewAgent);
+        String agentName = textView.getText().toString();
+        intent.putExtra(EXTRA_AGENT, agentName);
+        startActivity(intent);
     }
 }
