@@ -17,4 +17,8 @@
     <string name="btnSalesPartners">Контрагенты</string>
     <string name="btnNext">Фильтр</string>
     <string name="btnNextFilterSecond">Создать</string>
+    <string name="editTextQuantity">Количество</string>
+    <string name="editTextExchange">Обмен</string>
+    <string name="editTextReturn">Возврат</string>
+
 </resources>
