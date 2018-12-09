@@ -20,5 +20,9 @@
     <string name="editTextQuantity">Количество</string>
     <string name="editTextExchange">Обмен</string>
     <string name="editTextReturn">Возврат</string>
+    <string name="btnAddItem">Добавить</string>
+    <string name="btnRemoveItem">Удалить</string>
+    <string name="btnMakePayment">Оплатить</string>
+    <string name="btnSaveRecord">Записать</string>
 
 </resources>
