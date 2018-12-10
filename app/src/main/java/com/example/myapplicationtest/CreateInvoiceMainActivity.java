@@ -5,8 +5,13 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -22,15 +27,22 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-public class CreateInvoiceMainActivity extends AppCompatActivity {
+public class CreateInvoiceMainActivity extends AppCompatActivity implements View.OnClickListener {
 
     RequestQueue requestQueue;
+    Button btnAddItem;
+    ArrayList<String> arrItems, arrTotal;
+    ArrayList<Double> arrQuantity, arrExchange, arrReturn;
+    Integer sum, i = -1;
     String requestUrl = "https://caiman.ru.com/php/items.php", dbName, dbUser, dbPassword,
-            accountingType, salesPartner;
-    ListView listViewItems;
+            accountingType, salesPartner, items;
+    ListView listViewItems, listViewItemsTotal;
+    EditText editTextQuantity, editTextExchange, editTextReturn;
     TextView textViewAccountingType, textViewSalesPartner;
     SharedPreferences sPrefDBName, sPrefDBPassword, sPrefDBUser, sPrefAccountingType,
             sPrefSalesPartner;
@@ -45,10 +57,23 @@ public class CreateInvoiceMainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_invoice_main);
 
+        btnAddItem = findViewById(R.id.buttonAddItem);
+        btnAddItem.setOnClickListener(this);
+
+        arrItems = new ArrayList<>();
+        arrTotal = new ArrayList<>();
+        arrQuantity = new ArrayList<>();
+        arrExchange = new ArrayList<>();
+        arrReturn = new ArrayList<>();
+
         requestQueue = Volley.newRequestQueue((getApplicationContext()));
         listViewItems = findViewById(R.id.listViewItems);
+        listViewItemsTotal = findViewById(R.id.listViewItemsTotal);
         textViewSalesPartner = findViewById(R.id.textViewSalesPartner);
         textViewAccountingType = findViewById(R.id.textViewAccountingType);
+        editTextQuantity = findViewById(R.id.editTextQuantity);
+        editTextExchange = findViewById(R.id.editTextExchange);
+        editTextReturn = findViewById(R.id.editTextReturn);
 
         requestQueue = Volley.newRequestQueue((getApplicationContext()));
 
@@ -76,6 +101,14 @@ public class CreateInvoiceMainActivity extends AppCompatActivity {
         textViewAccountingType.setText(accountingType);
 
         receiveItemsList();
+
+        listViewItems.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            public void onItemClick(AdapterView<?> parent, View view,
+                                    int position, long id) {
+                items = ((TextView) view).getText().toString();
+                Toast.makeText(getApplicationContext(), "Selected Item :" + items, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void receiveItemsList(){
@@ -120,5 +153,37 @@ public class CreateInvoiceMainActivity extends AppCompatActivity {
             }
         };
         requestQueue.add(request);
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.buttonAddItem:
+                addItem();
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void addItem(){
+        if (!TextUtils.isEmpty(items) && editTextQuantity.getText().toString().trim().length() > 0
+                && editTextExchange.getText().toString().trim().length() > 0
+                && editTextReturn.getText().toString().trim().length() > 0){
+            i = i + 1;
+            arrItems.add(items);
+            arrQuantity.add(Double.parseDouble(editTextQuantity.getText().toString()));
+            arrExchange.add(Double.parseDouble(editTextExchange.getText().toString()));
+            arrReturn.add(Double.parseDouble(editTextReturn.getText().toString()));
+
+            arrTotal.add((i + 1) + ". " + arrItems.get(i) + " || Кол-во: " + arrQuantity.get(i)
+            + " || Обмен: " + arrExchange.get(i) + " || Возврат: " + arrReturn.get(i));
+        }
+//        String[] tmpItemsList = new String[ar.size()];
+//        for (int i = 0; i < ar.size(); i ++ ) {
+//            tmpItemsList[i] = ar.get(i);
+//        }
+        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_list_item_1, arrTotal);
+        listViewItemsTotal.setAdapter(arrayAdapter);
     }
 }
