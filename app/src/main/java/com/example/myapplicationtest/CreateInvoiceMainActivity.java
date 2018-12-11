@@ -39,8 +39,10 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
     ArrayList<String> arrItems, arrTotal;
     ArrayList<Double> arrQuantity, arrExchange, arrReturn;
     Integer sum, i = -1;
+    String[] itemPrice, discountValue, discountType;
     String requestUrl = "https://caiman.ru.com/php/items.php", dbName, dbUser, dbPassword,
-            accountingType, salesPartner, items;
+            accountingType, salesPartner, items,
+            requestUrlFinalPrice = "https://caiman.ru.com/php/price.php";
     ListView listViewItems, listViewItemsTotal;
     EditText editTextQuantity, editTextExchange, editTextReturn;
     TextView textViewAccountingType, textViewSalesPartner;
@@ -155,10 +157,61 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
         requestQueue.add(request);
     }
 
+    private void receivePrice(){
+        StringRequest request = new StringRequest(Request.Method.POST,
+                requestUrlFinalPrice, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                try{
+                    JSONArray jsonArray = new JSONArray(response);
+                    Toast.makeText(getApplicationContext(), "Query successful", Toast.LENGTH_SHORT).show();
+                    itemPrice = new String[jsonArray.length()];
+                    discountType = new String[jsonArray.length()];
+                    discountValue = new String[jsonArray.length()];
+                    if (jsonArray.length() > 0){
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            JSONObject obj = jsonArray.getJSONObject(i);
+                            itemPrice[i] = obj.getString("Цена");
+                            discountValue[i] = obj.getString("Скидка");
+                            discountType[i] = obj.getString("Тип_скидки");
+                        }
+                    }else{
+                        Toast.makeText(getApplicationContext(), "Something went wrong with DB query", Toast.LENGTH_SHORT).show();
+                    }
+                    Toast.makeText(getApplicationContext(), itemPrice[0], Toast.LENGTH_SHORT).show();
+//                    ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_1, itemsList);
+//                    listViewItems.setAdapter(arrayAdapter);
+                }
+                catch (JSONException e1) {
+                    e1.printStackTrace();
+                }
+            }
+        }, new Response.ErrorListener(){
+            @Override
+            public void onErrorResponse(VolleyError error){
+                Toast.makeText(getApplicationContext(), "Response Error, fuck!", Toast.LENGTH_SHORT).show();
+                Log.e("TAG", "Error " + error.getMessage());
+            }
+        }){
+            @Override
+            protected Map<String, String> getParams() {
+                Map<String, String> parameters = new HashMap<>();
+                parameters.put("dbName", dbName);
+                parameters.put("dbUser", dbUser);
+                parameters.put("dbPassword", dbPassword);
+                parameters.put("ItemName", items);
+                parameters.put("SalesPartner", salesPartner);
+                return parameters;
+            }
+        };
+        requestQueue.add(request);
+    }
+
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.buttonAddItem:
+                receivePrice();
                 addItem();
                 break;
             default:
