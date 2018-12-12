@@ -9,11 +9,11 @@
     <ListView
         android:id="@+id/listViewSalesPartners"
         android:layout_width="wrap_content"
-        android:layout_height="50dp"
-        android:layout_marginTop="48dp"
+        android:layout_height="187dp"
+        android:layout_marginTop="16dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textViewAgent" />
+        app:layout_constraintTop_toBottomOf="@+id/editTextSearch" />
 
     <TextView
         android:id="@+id/textViewAgent"
@@ -42,4 +42,20 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/listViewAccountingType" />
+
+    <EditText
+        android:id="@+id/editTextSearch"
+        android:layout_width="wrap_content"
+        android:layout_height="50dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
+        android:hint="@string/editTextSearch"
+        android:inputType="text"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewAgent"
+        android:importantForAutofill="no" />
 </android.support.constraint.ConstraintLayout>

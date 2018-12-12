@@ -5,11 +5,14 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -36,6 +39,7 @@ public class CreateInvoiceFilterSecondActivity extends AppCompatActivity impleme
     RequestQueue requestQueue;
     SharedPreferences sPrefArea, sPrefAccountingType, sPrefDBName, sPrefDBPassword, sPrefDBUser,
             sPrefDayOfTheWeek, sPrefSalesPartner;
+    ArrayAdapter<String> arrayAdapter;
     final String SAVED_AREA = "Area";
     final String SAVED_ACCOUNTINGTYPE = "AccountingType";
     final String SAVED_DBName = "dbName";
@@ -60,6 +64,7 @@ public class CreateInvoiceFilterSecondActivity extends AppCompatActivity impleme
 
         btnNext = findViewById(R.id.buttonNext);
         btnNext.setOnClickListener(this);
+        EditText search = findViewById(R.id.editTextSearch);
 
         sPrefSalesPartner = getSharedPreferences(SAVED_SALESPARTNER, Context.MODE_PRIVATE);
 
@@ -104,6 +109,23 @@ public class CreateInvoiceFilterSecondActivity extends AppCompatActivity impleme
                 Toast.makeText(getApplicationContext(), "Selected Item :" + salesPartner, Toast.LENGTH_SHORT).show();
             }
         });
+
+        search.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                arrayAdapter.getFilter().filter(charSequence);
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+            }
+        });
     }
 
     @Override
@@ -135,7 +157,7 @@ public class CreateInvoiceFilterSecondActivity extends AppCompatActivity impleme
                         Toast.makeText(getApplicationContext(), "Something went wrong with DB query", Toast.LENGTH_SHORT).show();
                     }
 
-                    ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_1, salesPartners);
+                    arrayAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_1, salesPartners);
                     listViewSalesPartners.setAdapter(arrayAdapter);
                 }
                 catch (JSONException e1) {

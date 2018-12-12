@@ -24,5 +24,6 @@
     <string name="btnRemoveItem">Удалить</string>
     <string name="btnMakePayment">Оплатить</string>
     <string name="btnSaveRecord">Записать</string>
+    <string name="editTextSearch">Поиск по списку</string>
 
 </resources>
