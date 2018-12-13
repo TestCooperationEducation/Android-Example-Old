@@ -37,7 +37,7 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
     RequestQueue requestQueue;
     Button btnAddItem;
     ArrayList<String> arrItems, arrTotal;
-    ArrayList<Double> arrQuantity, arrExchange, arrReturn;
+    ArrayList<Double> arrQuantity, arrExchange, arrReturn, arrPrice;
     Integer sum, i = -1;
     String[] itemPrice, discountValue, discountType;
     String requestUrl = "https://caiman.ru.com/php/items.php", dbName, dbUser, dbPassword,
@@ -67,6 +67,7 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
         arrQuantity = new ArrayList<>();
         arrExchange = new ArrayList<>();
         arrReturn = new ArrayList<>();
+        arrPrice = new ArrayList<>();
 
         requestQueue = Volley.newRequestQueue((getApplicationContext()));
         listViewItems = findViewById(R.id.listViewItems);
@@ -172,13 +173,20 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
                         for (int i = 0; i < jsonArray.length(); i++) {
                             JSONObject obj = jsonArray.getJSONObject(i);
                             itemPrice[i] = obj.getString("Цена");
+                            arrPrice.add(Double.parseDouble(itemPrice[0]));
                             discountValue[i] = obj.getString("Скидка");
                             discountType[i] = obj.getString("Тип_скидки");
+                            if (obj.getString("Скидка").length() == 0
+                                    && obj.getString("Тип_скидки").length() == 0) {
+                                discountValue[i] = String.valueOf(0);
+                                discountType[i] = String.valueOf(0);
+                                Toast.makeText(getApplicationContext(), "ПУСТО", Toast.LENGTH_SHORT).show();
+                            }
                         }
                     }else{
                         Toast.makeText(getApplicationContext(), "Something went wrong with DB query", Toast.LENGTH_SHORT).show();
                     }
-                    Toast.makeText(getApplicationContext(), itemPrice[0], Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), arrPrice.get(0).toString(), Toast.LENGTH_SHORT).show();
 //                    ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_1, itemsList);
 //                    listViewItems.setAdapter(arrayAdapter);
                 }
@@ -211,7 +219,7 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.buttonAddItem:
-                receivePrice();
+
                 addItem();
                 break;
             default:
@@ -225,12 +233,17 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
                 && editTextReturn.getText().toString().trim().length() > 0){
             i = i + 1;
             arrItems.add(items);
+//            arrPrice.add(Double.parseDouble(itemPrice[0]));
+//            Toast.makeText(getApplicationContext(), itemPrice[0], Toast.LENGTH_SHORT).show();
             arrQuantity.add(Double.parseDouble(editTextQuantity.getText().toString()));
             arrExchange.add(Double.parseDouble(editTextExchange.getText().toString()));
             arrReturn.add(Double.parseDouble(editTextReturn.getText().toString()));
 
-            arrTotal.add((i + 1) + ". " + arrItems.get(i) + " || Кол-во: " + arrQuantity.get(i)
-            + " || Обмен: " + arrExchange.get(i) + " || Возврат: " + arrReturn.get(i));
+            arrTotal.add((i + 1) + ". " + arrItems.get(i)
+                    + " || Цена: " + arrPrice.get(i)
+                    + " || Кол-во: " + arrQuantity.get(i)
+//                    + " || Сумма: " + (arrQuantity.get(i) * arrPrice.get(i))
+                    + " || Обмен: " + arrExchange.get(i) + " || Возврат: " + arrReturn.get(i));
         }
 //        String[] tmpItemsList = new String[ar.size()];
 //        for (int i = 0; i < ar.size(); i ++ ) {
