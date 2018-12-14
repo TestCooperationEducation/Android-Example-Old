@@ -35,7 +35,7 @@ import java.util.Map;
 public class CreateInvoiceMainActivity extends AppCompatActivity implements View.OnClickListener {
 
     RequestQueue requestQueue;
-    Button btnAddItem;
+    Button btnAddItem, btnReceivePrice;
     ArrayList<String> arrItems, arrTotal;
     ArrayList<Double> arrQuantity, arrExchange, arrReturn, arrPrice;
     Integer sum, i = -1;
@@ -61,6 +61,8 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
 
         btnAddItem = findViewById(R.id.buttonAddItem);
         btnAddItem.setOnClickListener(this);
+        btnReceivePrice = findViewById(R.id.buttonReceivePrice);
+        btnReceivePrice.setOnClickListener(this);
 
         arrItems = new ArrayList<>();
         arrTotal = new ArrayList<>();
@@ -219,8 +221,11 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.buttonAddItem:
-
+                receivePrice();
                 addItem();
+                break;
+            case R.id.buttonReceivePrice:
+                receivePrice();
                 break;
             default:
                 break;
@@ -230,7 +235,10 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
     private void addItem(){
         if (!TextUtils.isEmpty(items) && editTextQuantity.getText().toString().trim().length() > 0
                 && editTextExchange.getText().toString().trim().length() > 0
-                && editTextReturn.getText().toString().trim().length() > 0){
+                && editTextReturn.getText().toString().trim().length() > 0
+                && (itemPrice[0] != null || itemPrice.length > 0)
+                && (discountType[0] != null || discountType.length > 0)
+                && (discountValue[0] != null || discountValue.length > 0)){
             i = i + 1;
             arrItems.add(items);
 //            arrPrice.add(Double.parseDouble(itemPrice[0]));
@@ -240,7 +248,7 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
             arrReturn.add(Double.parseDouble(editTextReturn.getText().toString()));
 
             arrTotal.add((i + 1) + ". " + arrItems.get(i)
-                    + " || Цена: " + arrPrice.get(i)
+//                    + " || Цена: " + arrPrice.get(i)
                     + " || Кол-во: " + arrQuantity.get(i)
 //                    + " || Сумма: " + (arrQuantity.get(i) * arrPrice.get(i))
                     + " || Обмен: " + arrExchange.get(i) + " || Возврат: " + arrReturn.get(i));
