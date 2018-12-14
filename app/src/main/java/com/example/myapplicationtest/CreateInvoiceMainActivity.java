@@ -44,7 +44,7 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
             requestUrlFinalPrice = "https://caiman.ru.com/php/price.php";
     ListView listViewItems, listViewItemsTotal;
     EditText editTextQuantity, editTextExchange, editTextReturn;
-    TextView textViewAccountingType, textViewSalesPartner;
+    TextView textViewAccountingType, textViewSalesPartner, textViewPrice;
     SharedPreferences sPrefDBName, sPrefDBPassword, sPrefDBUser, sPrefAccountingType,
             sPrefSalesPartner;
     final String SAVED_DBName = "dbName";
@@ -79,6 +79,7 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
         editTextQuantity = findViewById(R.id.editTextQuantity);
         editTextExchange = findViewById(R.id.editTextExchange);
         editTextReturn = findViewById(R.id.editTextReturn);
+        textViewPrice = findViewById(R.id.textViewPrice);
 
         requestQueue = Volley.newRequestQueue((getApplicationContext()));
 
@@ -175,20 +176,25 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
                         for (int i = 0; i < jsonArray.length(); i++) {
                             JSONObject obj = jsonArray.getJSONObject(i);
                             itemPrice[i] = obj.getString("Цена");
-                            arrPrice.add(Double.parseDouble(itemPrice[0]));
-                            discountValue[i] = obj.getString("Скидка");
-                            discountType[i] = obj.getString("Тип_скидки");
+//                            arrPrice.add(Double.parseDouble(itemPrice[0]));
                             if (obj.getString("Скидка").length() == 0
                                     && obj.getString("Тип_скидки").length() == 0) {
                                 discountValue[i] = String.valueOf(0);
                                 discountType[i] = String.valueOf(0);
-                                Toast.makeText(getApplicationContext(), "ПУСТО", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(getApplicationContext(), "Нет", Toast.LENGTH_SHORT).show();
+                            }
+                            if (obj.getString("Скидка").length() > 0
+                                    && obj.getString("Тип_скидки").length() > 0) {
+                                discountValue[i] = obj.getString("Скидка");
+                                discountType[i] = obj.getString("Тип_скидки");
+                                Toast.makeText(getApplicationContext(), "Есть", Toast.LENGTH_SHORT).show();
                             }
                         }
+                        textViewPrice.setText(itemPrice[0]);
                     }else{
                         Toast.makeText(getApplicationContext(), "Something went wrong with DB query", Toast.LENGTH_SHORT).show();
                     }
-                    Toast.makeText(getApplicationContext(), arrPrice.get(0).toString(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), textViewPrice.getText().toString(), Toast.LENGTH_SHORT).show();
 //                    ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_1, itemsList);
 //                    listViewItems.setAdapter(arrayAdapter);
                 }
@@ -221,7 +227,6 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.buttonAddItem:
-                receivePrice();
                 addItem();
                 break;
             case R.id.buttonReceivePrice:
@@ -245,7 +250,7 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
             arrReturn.add(Double.parseDouble(editTextReturn.getText().toString()));
 
             arrTotal.add((iteration + 1) + ". " + arrItems.get(iteration)
-//                    + " || Цена: " + arrPrice.get(iteration)
+                    + " || Цена: " + textViewPrice.getText().toString()
                     + " || Кол-во: " + arrQuantity.get(iteration)
 //                    + " || Сумма: " + (arrQuantity.get(iteration) * arrPrice.get(iteration))
                     + " || Обмен: " + arrExchange.get(iteration) + " || Возврат: " + arrReturn.get(iteration));
