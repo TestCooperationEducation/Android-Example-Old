@@ -14,7 +14,6 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
@@ -37,7 +36,7 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
     final String SAVED_DBUser = "dbUser";
     final String SAVED_DBPassword = "dbPassword";
     SharedPreferences.Editor e;
-    String loginUrl = "https://caiman.ru.com/php/login.php", agentName, dbName, dbUser, dbPassword;
+    String loginUrl = "https://caiman.ru.com/php/login.php", dbName, dbUser, dbPassword;
     public static final String EXTRA_AGENTNAME = "com.example.myapplicationtest.AGENTNAME";
 
 
@@ -158,8 +157,8 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
             public void onResponse(JSONObject response) {
                 try{
                     JSONArray dbUsers = response.getJSONArray("security");
-                    for (int i = 0; i < dbUsers.length(); i++){
-                        JSONObject dbUser = dbUsers.getJSONObject(i);
+                    for (int iteration = 0; iteration < dbUsers.length(); iteration++){
+                        JSONObject dbUser = dbUsers.getJSONObject(iteration);
 
                         attribute = dbUser.getString("attribute");
 

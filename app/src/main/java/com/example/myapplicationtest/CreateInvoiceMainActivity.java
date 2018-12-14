@@ -28,7 +28,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,7 +37,7 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
     Button btnAddItem, btnReceivePrice;
     ArrayList<String> arrItems, arrTotal;
     ArrayList<Double> arrQuantity, arrExchange, arrReturn, arrPrice;
-    Integer sum, i = -1;
+    Integer iteration;
     String[] itemPrice, discountValue, discountType;
     String requestUrl = "https://caiman.ru.com/php/items.php", dbName, dbUser, dbPassword,
             accountingType, salesPartner, items,
@@ -59,6 +58,7 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_invoice_main);
 
+        iteration = -1;
         btnAddItem = findViewById(R.id.buttonAddItem);
         btnAddItem.setOnClickListener(this);
         btnReceivePrice = findViewById(R.id.buttonReceivePrice);
@@ -235,11 +235,8 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
     private void addItem(){
         if (!TextUtils.isEmpty(items) && editTextQuantity.getText().toString().trim().length() > 0
                 && editTextExchange.getText().toString().trim().length() > 0
-                && editTextReturn.getText().toString().trim().length() > 0
-                && (itemPrice[0] != null || itemPrice.length > 0)
-                && (discountType[0] != null || discountType.length > 0)
-                && (discountValue[0] != null || discountValue.length > 0)){
-            i = i + 1;
+                && editTextReturn.getText().toString().trim().length() > 0){
+            iteration = iteration + 1;
             arrItems.add(items);
 //            arrPrice.add(Double.parseDouble(itemPrice[0]));
 //            Toast.makeText(getApplicationContext(), itemPrice[0], Toast.LENGTH_SHORT).show();
@@ -247,17 +244,17 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
             arrExchange.add(Double.parseDouble(editTextExchange.getText().toString()));
             arrReturn.add(Double.parseDouble(editTextReturn.getText().toString()));
 
-            arrTotal.add((i + 1) + ". " + arrItems.get(i)
-//                    + " || Цена: " + arrPrice.get(i)
-                    + " || Кол-во: " + arrQuantity.get(i)
-//                    + " || Сумма: " + (arrQuantity.get(i) * arrPrice.get(i))
-                    + " || Обмен: " + arrExchange.get(i) + " || Возврат: " + arrReturn.get(i));
+            arrTotal.add((iteration + 1) + ". " + arrItems.get(iteration)
+//                    + " || Цена: " + arrPrice.get(iteration)
+                    + " || Кол-во: " + arrQuantity.get(iteration)
+//                    + " || Сумма: " + (arrQuantity.get(iteration) * arrPrice.get(iteration))
+                    + " || Обмен: " + arrExchange.get(iteration) + " || Возврат: " + arrReturn.get(iteration));
         }
 //        String[] tmpItemsList = new String[ar.size()];
-//        for (int i = 0; i < ar.size(); i ++ ) {
-//            tmpItemsList[i] = ar.get(i);
+//        for (int iteration = 0; iteration < ar.size(); iteration ++ ) {
+//            tmpItemsList[iteration] = ar.get(iteration);
 //        }
-        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_list_item_1, arrTotal);
+        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_1, arrTotal);
         listViewItemsTotal.setAdapter(arrayAdapter);
     }
 }
