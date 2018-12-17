@@ -44,7 +44,8 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
             requestUrlFinalPrice = "https://caiman.ru.com/php/price.php";
     ListView listViewItems, listViewItemsTotal;
     EditText editTextQuantity, editTextExchange, editTextReturn;
-    TextView textViewAccountingType, textViewSalesPartner, textViewPrice;
+    TextView textViewAccountingType, textViewSalesPartner, textViewPrice, textViewDiscountValue,
+            textViewDiscountType;
     SharedPreferences sPrefDBName, sPrefDBPassword, sPrefDBUser, sPrefAccountingType,
             sPrefSalesPartner;
     final String SAVED_DBName = "dbName";
@@ -80,6 +81,8 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
         editTextExchange = findViewById(R.id.editTextExchange);
         editTextReturn = findViewById(R.id.editTextReturn);
         textViewPrice = findViewById(R.id.textViewPrice);
+        textViewDiscountType = findViewById(R.id.textViewDiscountType);
+        textViewDiscountValue = findViewById(R.id.textViewDiscountValue);
 
         requestQueue = Volley.newRequestQueue((getApplicationContext()));
 
@@ -189,6 +192,8 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
                             }
                         }
                         textViewPrice.setText(itemPrice[0]);
+                        textViewDiscountType.setText(discountType[0]);
+                        textViewDiscountValue.setText(discountValue[0]);
                     }else{
                         Toast.makeText(getApplicationContext(), "Something went wrong with DB query", Toast.LENGTH_SHORT).show();
                     }
