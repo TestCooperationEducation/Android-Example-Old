@@ -177,14 +177,12 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
                             JSONObject obj = jsonArray.getJSONObject(i);
                             itemPrice[i] = obj.getString("Цена");
 //                            arrPrice.add(Double.parseDouble(itemPrice[0]));
-                            if (obj.getString("Скидка").length() == 0
-                                    && obj.getString("Тип_скидки").length() == 0) {
+                            if (obj.isNull("Скидка") && obj.isNull("Тип_скидки")) {
                                 discountValue[i] = String.valueOf(0);
                                 discountType[i] = String.valueOf(0);
                                 Toast.makeText(getApplicationContext(), "Нет", Toast.LENGTH_SHORT).show();
                             }
-                            if (obj.getString("Скидка").length() > 0
-                                    && obj.getString("Тип_скидки").length() > 0) {
+                            else {
                                 discountValue[i] = obj.getString("Скидка");
                                 discountType[i] = obj.getString("Тип_скидки");
                                 Toast.makeText(getApplicationContext(), "Есть", Toast.LENGTH_SHORT).show();
