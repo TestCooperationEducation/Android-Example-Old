@@ -36,8 +36,9 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
     RequestQueue requestQueue;
     Button btnAddItem, btnReceivePrice;
     ArrayList<String> arrItems, arrTotal;
-    ArrayList<Double> arrQuantity, arrExchange, arrReturn, arrPrice;
+    ArrayList<Double> arrQuantity, arrExchange, arrReturn, arrPrice, arrSum;
     Integer iteration;
+    Double finalPrice;
     String[] itemPrice, discountValue, discountType;
     String requestUrl = "https://caiman.ru.com/php/items.php", dbName, dbUser, dbPassword,
             accountingType, salesPartner, items,
@@ -45,7 +46,7 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
     ListView listViewItems, listViewItemsTotal;
     EditText editTextQuantity, editTextExchange, editTextReturn;
     TextView textViewAccountingType, textViewSalesPartner, textViewPrice, textViewDiscountValue,
-            textViewDiscountType;
+            textViewDiscountType, textViewTotalSum;
     SharedPreferences sPrefDBName, sPrefDBPassword, sPrefDBUser, sPrefAccountingType,
             sPrefSalesPartner;
     final String SAVED_DBName = "dbName";
@@ -71,6 +72,7 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
         arrExchange = new ArrayList<>();
         arrReturn = new ArrayList<>();
         arrPrice = new ArrayList<>();
+        arrSum = new ArrayList<>();
 
         requestQueue = Volley.newRequestQueue((getApplicationContext()));
         listViewItems = findViewById(R.id.listViewItems);
@@ -83,6 +85,8 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
         textViewPrice = findViewById(R.id.textViewPrice);
         textViewDiscountType = findViewById(R.id.textViewDiscountType);
         textViewDiscountValue = findViewById(R.id.textViewDiscountValue);
+        textViewTotalSum = findViewById(R.id.textViewTotalSum);
+        textViewTotalSum.setText("0");
 
         requestQueue = Volley.newRequestQueue((getApplicationContext()));
 
@@ -194,6 +198,18 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
                         textViewPrice.setText(itemPrice[0]);
                         textViewDiscountType.setText(discountType[0]);
                         textViewDiscountValue.setText(discountValue[0]);
+                        if (Double.parseDouble(discountType[0]) == 0){
+                            textViewPrice.setText(itemPrice[0]);
+                            finalPrice = Double.parseDouble(textViewPrice.getText().toString());
+                        }
+                        if (Double.parseDouble(discountType[0]) == 1){
+                            finalPrice = Double.parseDouble(itemPrice[0]) - Double.parseDouble(discountValue[0]);
+                            textViewPrice.setText(finalPrice.toString());
+                        }
+                        if (Double.parseDouble(discountType[0]) == 2){
+                            finalPrice = Double.parseDouble(itemPrice[0]) - (Double.parseDouble(itemPrice[0]) / 10);
+                            textViewPrice.setText(finalPrice.toString());
+                        }
                     }else{
                         Toast.makeText(getApplicationContext(), "Something went wrong with DB query", Toast.LENGTH_SHORT).show();
                     }
@@ -246,17 +262,21 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
                 && editTextReturn.getText().toString().trim().length() > 0){
             iteration = iteration + 1;
             arrItems.add(items);
-//            arrPrice.add(Double.parseDouble(itemPrice[0]));
-//            Toast.makeText(getApplicationContext(), itemPrice[0], Toast.LENGTH_SHORT).show();
+            arrPrice.add(Double.parseDouble(String.valueOf(finalPrice)));
             arrQuantity.add(Double.parseDouble(editTextQuantity.getText().toString()));
             arrExchange.add(Double.parseDouble(editTextExchange.getText().toString()));
             arrReturn.add(Double.parseDouble(editTextReturn.getText().toString()));
+            arrSum.add(Double.parseDouble(String.format("%.3g%n", finalPrice * arrQuantity.get(iteration))));
+
+            Double tmp = (arrSum.get(iteration) + Double.parseDouble(textViewTotalSum.getText().toString()));
+            textViewTotalSum.setText(tmp.toString());
 
             arrTotal.add((iteration + 1) + ". " + arrItems.get(iteration)
                     + " || Цена: " + textViewPrice.getText().toString()
                     + " || Кол-во: " + arrQuantity.get(iteration)
-//                    + " || Сумма: " + (arrQuantity.get(iteration) * arrPrice.get(iteration))
-                    + " || Обмен: " + arrExchange.get(iteration) + " || Возврат: " + arrReturn.get(iteration));
+                    + " || Сумма: " + arrSum.get(iteration)
+                    + " || Обмен: " + arrExchange.get(iteration)
+                    + " || Возврат: " + arrReturn.get(iteration));
         }
 //        String[] tmpItemsList = new String[ar.size()];
 //        for (int iteration = 0; iteration < ar.size(); iteration ++ ) {
