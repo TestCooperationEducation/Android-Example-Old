@@ -34,7 +34,7 @@ import java.util.Map;
 public class CreateInvoiceMainActivity extends AppCompatActivity implements View.OnClickListener {
 
     RequestQueue requestQueue;
-    Button btnAddItem, btnReceivePrice;
+    Button btnAddItem, btnReceivePrice, btnRemove;
     ArrayList<String> arrItems, arrTotal;
     ArrayList<Double> arrQuantity, arrExchange, arrReturn, arrPrice, arrSum;
     Integer iteration;
@@ -65,6 +65,8 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
         btnAddItem.setOnClickListener(this);
         btnReceivePrice = findViewById(R.id.buttonReceivePrice);
         btnReceivePrice.setOnClickListener(this);
+        btnRemove = findViewById(R.id.buttonRemove);
+        btnRemove.setOnClickListener(this);
 
         arrItems = new ArrayList<>();
         arrTotal = new ArrayList<>();
@@ -251,38 +253,100 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
             case R.id.buttonReceivePrice:
                 receivePrice();
                 break;
+            case R.id.buttonRemove:
+                delItem();
+                break;
             default:
                 break;
         }
     }
 
     private void addItem(){
-        if (!TextUtils.isEmpty(items) && editTextQuantity.getText().toString().trim().length() > 0
-                && editTextExchange.getText().toString().trim().length() > 0
-                && editTextReturn.getText().toString().trim().length() > 0){
-            iteration = iteration + 1;
-            arrItems.add(items);
-            arrPrice.add(Double.parseDouble(String.valueOf(finalPrice)));
-            arrQuantity.add(Double.parseDouble(editTextQuantity.getText().toString()));
-            arrExchange.add(Double.parseDouble(editTextExchange.getText().toString()));
-            arrReturn.add(Double.parseDouble(editTextReturn.getText().toString()));
-            arrSum.add(Double.parseDouble(String.format("%.3g%n", finalPrice * arrQuantity.get(iteration))));
+        if (!TextUtils.isEmpty(items) && !textViewPrice.getText().toString().equals("Цена")){
+            if (editTextQuantity.getText().toString().trim().equals("Количество")) {
+                editTextQuantity.setText("0");
+            }
+            if (editTextExchange.getText().toString().trim().equals("Обмен")) {
+                editTextExchange.setText("0");
+            }
+            if (editTextReturn.getText().toString().trim().equals("Возврат")) {
+                editTextReturn.setText("0");
+            }
+            if (editTextQuantity.getText().toString().equals("0")
+                    && editTextExchange.getText().toString().equals("0")
+                    && editTextReturn.getText().toString().equals("0")) {
+                Toast.makeText(getApplicationContext(), "Все не может быть пустым!", Toast.LENGTH_SHORT).show();
+            } else {
+                if (Double.parseDouble(editTextQuantity.getText().toString())
+                        % Math.floor(Double.parseDouble(editTextQuantity.getText().toString())) > 0
+                        || Double.parseDouble(editTextExchange.getText().toString())
+                        % Math.floor(Double.parseDouble(editTextExchange.getText().toString())) > 0
+                        || Double.parseDouble(editTextReturn.getText().toString())
+                        % Math.floor(Double.parseDouble(editTextReturn.getText().toString())) > 0) {
+                    if (items.equals("Ким-ча весовая") || items.equals("Редька по-восточному весовая")) {
+                        iteration = iteration + 1;
+                        arrItems.add(items);
+                        arrPrice.add(Double.parseDouble(textViewPrice.getText().toString()));
+                        arrQuantity.add(Double.parseDouble(editTextQuantity.getText().toString()));
+                        arrExchange.add(Double.parseDouble(editTextExchange.getText().toString()));
+                        arrReturn.add(Double.parseDouble(editTextReturn.getText().toString()));
+                        arrSum.add(Double.parseDouble(String.format("%.3g%n", Double.parseDouble(textViewPrice.getText().toString())
+                                * arrQuantity.get(iteration))));
 
-            Double tmp = (arrSum.get(iteration) + Double.parseDouble(textViewTotalSum.getText().toString()));
-            textViewTotalSum.setText(tmp.toString());
+                        Double tmp = (arrSum.get(iteration) + Double.parseDouble(textViewTotalSum.getText().toString()));
+                        textViewTotalSum.setText(tmp.toString());
 
-            arrTotal.add((iteration + 1) + ". " + arrItems.get(iteration)
-                    + " || Цена: " + textViewPrice.getText().toString()
-                    + " || Кол-во: " + arrQuantity.get(iteration)
-                    + " || Сумма: " + arrSum.get(iteration)
-                    + " || Обмен: " + arrExchange.get(iteration)
-                    + " || Возврат: " + arrReturn.get(iteration));
+                        arrTotal.add((iteration + 1) + ". " + arrItems.get(iteration)
+                                + " || Цена: " + textViewPrice.getText().toString()
+                                + " || Кол-во: " + arrQuantity.get(iteration)
+                                + " || Сумма: " + arrSum.get(iteration)
+                                + " || Обмен: " + arrExchange.get(iteration)
+                                + " || Возврат: " + arrReturn.get(iteration));
+
+                        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_1, arrTotal);
+                        listViewItemsTotal.setAdapter(arrayAdapter);
+                    } else {
+                        Toast.makeText(getApplicationContext(), "Этот товар продается только целыми упаковками!", Toast.LENGTH_SHORT).show();
+                    }
+                }
+                if (Double.parseDouble(editTextQuantity.getText().toString())
+                        % Math.floor(Double.parseDouble(editTextQuantity.getText().toString())) == 0
+                        && Double.parseDouble(editTextExchange.getText().toString())
+                        % Math.floor(Double.parseDouble(editTextExchange.getText().toString())) == 0
+                        && Double.parseDouble(editTextReturn.getText().toString())
+                        % Math.floor(Double.parseDouble(editTextReturn.getText().toString())) == 0) {
+                    iteration = iteration + 1;
+                    arrItems.add(items);
+                    arrPrice.add(Double.parseDouble(textViewPrice.getText().toString()));
+                    arrQuantity.add(Double.parseDouble(editTextQuantity.getText().toString()));
+                    arrExchange.add(Double.parseDouble(editTextExchange.getText().toString()));
+                    arrReturn.add(Double.parseDouble(editTextReturn.getText().toString()));
+                    arrSum.add(Double.parseDouble(String.format("%.3g%n", Double.parseDouble(textViewPrice.getText().toString())
+                            * arrQuantity.get(iteration))));
+
+                    Double tmp = (arrSum.get(iteration) + Double.parseDouble(textViewTotalSum.getText().toString()));
+                    textViewTotalSum.setText(tmp.toString());
+
+                    arrTotal.add((iteration + 1) + ". " + arrItems.get(iteration)
+                            + " || Цена: " + textViewPrice.getText().toString()
+                            + " || Кол-во: " + arrQuantity.get(iteration)
+                            + " || Сумма: " + arrSum.get(iteration)
+                            + " || Обмен: " + arrExchange.get(iteration)
+                            + " || Возврат: " + arrReturn.get(iteration));
+
+                    ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_1, arrTotal);
+                    listViewItemsTotal.setAdapter(arrayAdapter);
+                }
+            }
         }
-//        String[] tmpItemsList = new String[ar.size()];
-//        for (int iteration = 0; iteration < ar.size(); iteration ++ ) {
-//            tmpItemsList[iteration] = ar.get(iteration);
-//        }
-        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_1, arrTotal);
-        listViewItemsTotal.setAdapter(arrayAdapter);
+    }
+
+    private void delItem(){
+        if (arrTotal.size() > 0){
+            arrTotal.remove(arrTotal.size() - 1);
+            ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_1, arrTotal);
+            listViewItemsTotal.setAdapter(arrayAdapter);
+            iteration = iteration - 1;
+        }
     }
 }
