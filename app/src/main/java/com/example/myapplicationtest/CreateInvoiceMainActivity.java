@@ -37,8 +37,8 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
     Button btnAddItem, btnReceivePrice, btnRemove;
     ArrayList<String> arrItems, arrTotal;
     ArrayList<Double> arrQuantity, arrExchange, arrReturn, arrPrice, arrSum;
-    Integer iteration;
-    Double finalPrice;
+    Integer iteration, itemsCheck;
+    Double finalPrice, tmpQuantityType, tmpExchangeType, tmpReturnType;
     String[] itemPrice, discountValue, discountType;
     String requestUrl = "https://caiman.ru.com/php/items.php", dbName, dbUser, dbPassword,
             accountingType, salesPartner, items,
@@ -262,27 +262,87 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
     }
 
     private void addItem(){
-        if (!TextUtils.isEmpty(items) && !textViewPrice.getText().toString().equals("Цена")){
-            if (editTextQuantity.getText().toString().trim().equals("Количество")) {
+        if (arrItems.size() > 0 && !TextUtils.isEmpty(items)) {
+            if (arrItems.contains(items)){
+                Toast.makeText(getApplicationContext(), "Этот товар уже есть в списке", Toast.LENGTH_SHORT).show();
+                itemsCheck = 1;
+                textViewPrice.setText("Цена");
+                textViewDiscountType.setText("Тип скидки");
+                textViewDiscountValue.setText("Скидка");
+            } else {
+                itemsCheck = 0;
+            }
+        }
+        if (arrItems.size() == 0) {
+            itemsCheck = 0;
+        }
+        if (!TextUtils.isEmpty(items) && !textViewPrice.getText().toString().equals("Цена") && itemsCheck == 0){
+            if (editTextQuantity.getText().toString().trim().length() == 0) {
                 editTextQuantity.setText("0");
             }
-            if (editTextExchange.getText().toString().trim().equals("Обмен")) {
+            if (editTextExchange.getText().toString().trim().length() == 0) {
                 editTextExchange.setText("0");
             }
-            if (editTextReturn.getText().toString().trim().equals("Возврат")) {
+            if (editTextReturn.getText().toString().trim().length() == 0) {
                 editTextReturn.setText("0");
             }
             if (editTextQuantity.getText().toString().equals("0")
                     && editTextExchange.getText().toString().equals("0")
                     && editTextReturn.getText().toString().equals("0")) {
                 Toast.makeText(getApplicationContext(), "Все не может быть пустым!", Toast.LENGTH_SHORT).show();
+                items = null;
             } else {
-                if (Double.parseDouble(editTextQuantity.getText().toString())
-                        % Math.floor(Double.parseDouble(editTextQuantity.getText().toString())) > 0
-                        || Double.parseDouble(editTextExchange.getText().toString())
-                        % Math.floor(Double.parseDouble(editTextExchange.getText().toString())) > 0
-                        || Double.parseDouble(editTextReturn.getText().toString())
-                        % Math.floor(Double.parseDouble(editTextReturn.getText().toString())) > 0) {
+                if (Double.parseDouble(editTextQuantity.getText().toString()) >= 1) {
+                    tmpQuantityType = Double.parseDouble(editTextQuantity.getText().toString())
+                            % Math.floor(Double.parseDouble(editTextQuantity.getText().toString()));
+                    if (tmpQuantityType > 0) {
+                        tmpQuantityType = 1.5d;
+                    } else {
+                        tmpQuantityType = 1d;
+                    }
+                }
+                if (Double.parseDouble(editTextQuantity.getText().toString()) < 1 &&
+                        Double.parseDouble(editTextQuantity.getText().toString()) > 0) {
+                    tmpQuantityType = 1.5d;
+                }
+                if (Double.parseDouble(editTextQuantity.getText().toString()) == 0) {
+                    tmpQuantityType = 1d;
+                }
+                if (Double.parseDouble(editTextExchange.getText().toString()) >= 1) {
+                    tmpExchangeType = Double.parseDouble(editTextExchange.getText().toString())
+                            % Math.floor(Double.parseDouble(editTextExchange.getText().toString()));
+                    if (tmpExchangeType > 0) {
+                        tmpExchangeType = 1.5d;
+                    } else {
+                        tmpExchangeType = 1d;
+                    }
+                }
+                if (Double.parseDouble(editTextExchange.getText().toString()) < 1 &&
+                        Double.parseDouble(editTextExchange.getText().toString()) > 0) {
+                    tmpExchangeType = 1.5d;
+                }
+                if (Double.parseDouble(editTextExchange.getText().toString()) == 0) {
+                    tmpExchangeType = 1d;
+                }
+                if (Double.parseDouble(editTextReturn.getText().toString()) >= 1) {
+                    tmpReturnType = Double.parseDouble(editTextReturn.getText().toString())
+                            % Math.floor(Double.parseDouble(editTextReturn.getText().toString()));
+                    if (tmpReturnType > 0) {
+                        tmpReturnType = 1.5d;
+                    } else {
+                        tmpReturnType = 1d;
+                    }
+                }
+                if (Double.parseDouble(editTextReturn.getText().toString()) < 1 &&
+                        Double.parseDouble(editTextReturn.getText().toString()) > 0) {
+                    tmpReturnType = 1.5d;
+                }
+                if (Double.parseDouble(editTextReturn.getText().toString()) == 0) {
+                    tmpReturnType = 1d;
+                }
+                if (tmpQuantityType % Math.floor(tmpQuantityType) > 0
+                        || tmpExchangeType % Math.floor(tmpExchangeType) > 0
+                        || tmpReturnType % Math.floor(tmpReturnType) > 0) {
                     if (items.equals("Ким-ча весовая") || items.equals("Редька по-восточному весовая")) {
                         iteration = iteration + 1;
                         arrItems.add(items);
@@ -290,8 +350,10 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
                         arrQuantity.add(Double.parseDouble(editTextQuantity.getText().toString()));
                         arrExchange.add(Double.parseDouble(editTextExchange.getText().toString()));
                         arrReturn.add(Double.parseDouble(editTextReturn.getText().toString()));
-                        arrSum.add(Double.parseDouble(String.format("%.3g%n", Double.parseDouble(textViewPrice.getText().toString())
-                                * arrQuantity.get(iteration))));
+                        arrSum.add((double) Math.round(Double.parseDouble(textViewPrice.getText().toString())
+                                * arrQuantity.get(iteration)));
+//                        arrSum.add(Double.parseDouble(String.format("%.3g%n", Double.parseDouble(textViewPrice.getText().toString())
+//                                * arrQuantity.get(iteration))));
 
                         Double tmp = (arrSum.get(iteration) + Double.parseDouble(textViewTotalSum.getText().toString()));
                         textViewTotalSum.setText(tmp.toString());
@@ -305,24 +367,30 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
 
                         ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_1, arrTotal);
                         listViewItemsTotal.setAdapter(arrayAdapter);
+                        items = null;
+                        textViewPrice.setText("Цена");
+                        textViewDiscountType.setText("Тип скидки");
+                        textViewDiscountValue.setText("Скидка");
                     } else {
                         Toast.makeText(getApplicationContext(), "Этот товар продается только целыми упаковками!", Toast.LENGTH_SHORT).show();
+                        items = null;
+                        textViewPrice.setText("Цена");
+                        textViewDiscountType.setText("Тип скидки");
+                        textViewDiscountValue.setText("Скидка");
                     }
                 }
-                if (Double.parseDouble(editTextQuantity.getText().toString())
-                        % Math.floor(Double.parseDouble(editTextQuantity.getText().toString())) == 0
-                        && Double.parseDouble(editTextExchange.getText().toString())
-                        % Math.floor(Double.parseDouble(editTextExchange.getText().toString())) == 0
-                        && Double.parseDouble(editTextReturn.getText().toString())
-                        % Math.floor(Double.parseDouble(editTextReturn.getText().toString())) == 0) {
+                if (tmpQuantityType % Math.floor(tmpQuantityType) == 0
+                        && tmpExchangeType % Math.floor(tmpExchangeType) == 0
+                        && tmpReturnType % Math.floor(tmpReturnType) == 0) {
+                    Toast.makeText(getApplicationContext(), "Бля3", Toast.LENGTH_SHORT).show();
                     iteration = iteration + 1;
                     arrItems.add(items);
                     arrPrice.add(Double.parseDouble(textViewPrice.getText().toString()));
                     arrQuantity.add(Double.parseDouble(editTextQuantity.getText().toString()));
                     arrExchange.add(Double.parseDouble(editTextExchange.getText().toString()));
                     arrReturn.add(Double.parseDouble(editTextReturn.getText().toString()));
-                    arrSum.add(Double.parseDouble(String.format("%.3g%n", Double.parseDouble(textViewPrice.getText().toString())
-                            * arrQuantity.get(iteration))));
+                    arrSum.add((double) Math.round(Double.parseDouble(textViewPrice.getText().toString())
+                            * arrQuantity.get(iteration)));
 
                     Double tmp = (arrSum.get(iteration) + Double.parseDouble(textViewTotalSum.getText().toString()));
                     textViewTotalSum.setText(tmp.toString());
@@ -336,6 +404,12 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
 
                     ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_1, arrTotal);
                     listViewItemsTotal.setAdapter(arrayAdapter);
+                    items = null;
+                    textViewPrice.setText("Цена");
+                    textViewDiscountType.setText("Тип скидки");
+                    textViewDiscountValue.setText("Скидка");
+
+
                 }
             }
         }
@@ -343,10 +417,24 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
 
     private void delItem(){
         if (arrTotal.size() > 0){
+            Double tmpSum = Double.parseDouble(textViewTotalSum.getText().toString()) - arrSum.get(arrSum.size() - 1);
+            textViewTotalSum.setText(tmpSum.toString());
             arrTotal.remove(arrTotal.size() - 1);
+            arrItems.remove(arrItems.size() - 1);
+            arrQuantity.remove(arrQuantity.size() - 1);
+            arrSum.remove(arrSum.size() - 1);
+            arrExchange.remove(arrExchange.size() - 1);
+            arrReturn.remove(arrReturn.size() -1);
             ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_1, arrTotal);
             listViewItemsTotal.setAdapter(arrayAdapter);
             iteration = iteration - 1;
+            items = null;
+            textViewPrice.setText("Цена");
+            textViewDiscountType.setText("Тип скидки");
+            textViewDiscountValue.setText("Скидка");
+            editTextQuantity.setText("");
+            editTextExchange.setText("");
+            editTextReturn.setText("");
         }
     }
 }
