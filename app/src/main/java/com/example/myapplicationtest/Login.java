@@ -54,7 +54,7 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
         btnSave.setOnClickListener(this);
         btnSettings.setOnClickListener(this);
 
-        requestQueue = Volley.newRequestQueue((getApplicationContext()));
+//        requestQueue = Volley.newRequestQueue((getApplicationContext()));
 
         sPrefLogin = getSharedPreferences(SAVED_LOGIN, Context.MODE_PRIVATE);
         sPrefPassword = getSharedPreferences(SAVED_PASSWORD, Context.MODE_PRIVATE);
@@ -149,7 +149,8 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
                 return parameters;
             }
         };
-        requestQueue.add(request);
+//        requestQueue.add(request);
+        VolleySingleton.getInstance(this).getRequestQueue().add(request);
 
         /*JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST,
                 loginUrl, new Response.Listener<JSONObject>() {

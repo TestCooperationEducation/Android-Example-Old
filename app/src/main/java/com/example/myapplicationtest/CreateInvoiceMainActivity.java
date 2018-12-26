@@ -1,8 +1,10 @@
 package com.example.myapplicationtest;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -29,12 +31,13 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class CreateInvoiceMainActivity extends AppCompatActivity implements View.OnClickListener {
 
     RequestQueue requestQueue;
-    Button btnAddItem, btnReceivePrice, btnRemove;
+    Button btnAddItem, btnReceivePrice, btnRemove, btnSaveRecord;
     ArrayList<String> arrItems, arrTotal;
     ArrayList<Double> arrQuantity, arrExchange, arrReturn, arrPrice, arrSum;
     Integer iteration, itemsCheck;
@@ -54,12 +57,14 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
     final String SAVED_DBPassword = "dbPassword";
     final String SAVED_ACCOUNTINGTYPE = "AccountingType";
     final String SAVED_SALESPARTNER = "SalesPartner";
+    List<Data> dataArray;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_invoice_main);
 
+        dataArray = new ArrayList<Data>();
         iteration = -1;
         btnAddItem = findViewById(R.id.buttonAddItem);
         btnAddItem.setOnClickListener(this);
@@ -67,6 +72,8 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
         btnReceivePrice.setOnClickListener(this);
         btnRemove = findViewById(R.id.buttonRemove);
         btnRemove.setOnClickListener(this);
+        btnSaveRecord = findViewById(R.id.buttonSaveRecord);
+        btnSaveRecord.setOnClickListener(this);
 
         arrItems = new ArrayList<>();
         arrTotal = new ArrayList<>();
@@ -241,7 +248,8 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
                 return parameters;
             }
         };
-        requestQueue.add(request);
+//        requestQueue.add(request);
+        VolleySingleton.getInstance(this).getRequestQueue().add(request);
     }
 
     @Override
@@ -255,6 +263,9 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
                 break;
             case R.id.buttonRemove:
                 delItem();
+                break;
+            case R.id.buttonSaveRecord:
+                saveRecordPromt();
                 break;
             default:
                 break;
@@ -436,5 +447,25 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
             editTextExchange.setText("");
             editTextReturn.setText("");
         }
+    }
+
+    private void saveRecordPromt(){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Важное сообщение!")
+                .setMessage("Покормите кота!")
+                .setCancelable(true)
+                .setNegativeButton("ОК, иду на кухню",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                saveRecord();
+//                                dialog.cancel();
+                            }
+                        });
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+    private void saveRecord(){
+        Toast.makeText(getApplicationContext(), "Ура", Toast.LENGTH_SHORT).show();
     }
 }

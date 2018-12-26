@@ -71,7 +71,7 @@ public class CreateInvoiceFilterSecondActivity extends AppCompatActivity impleme
         listViewSalesPartners = findViewById(R.id.listViewSalesPartners);
         listViewAccountingType = findViewById(R.id.listViewAccountingType);
 
-        requestQueue = Volley.newRequestQueue((getApplicationContext()));
+//        requestQueue = Volley.newRequestQueue((getApplicationContext()));
 
         sPrefDBName = getSharedPreferences(SAVED_DBName, Context.MODE_PRIVATE);
         sPrefDBUser = getSharedPreferences(SAVED_DBUser, Context.MODE_PRIVATE);
@@ -183,7 +183,8 @@ public class CreateInvoiceFilterSecondActivity extends AppCompatActivity impleme
                 return parameters;
             }
         };
-        requestQueue.add(request);
+//        requestQueue.add(request);
+        VolleySingleton.getInstance(this).getRequestQueue().add(request);
     }
 
     private void loadListAccountingType(){
