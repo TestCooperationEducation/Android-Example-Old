@@ -23,7 +23,7 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
+import com.google.gson.Gson;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -37,15 +37,17 @@ import java.util.Map;
 public class CreateInvoiceMainActivity extends AppCompatActivity implements View.OnClickListener {
 
     RequestQueue requestQueue;
-    Button btnAddItem, btnReceivePrice, btnRemove, btnSaveRecord;
+    Button btnAddItem, btnReceivePrice, btnRemove, btnSaveRecord, btnPay;
     ArrayList<String> arrItems, arrTotal;
     ArrayList<Double> arrQuantity, arrExchange, arrReturn, arrPrice, arrSum;
     Integer iteration, itemsCheck;
     Double finalPrice, tmpQuantityType, tmpExchangeType, tmpReturnType;
     String[] itemPrice, discountValue, discountType;
     String requestUrl = "https://caiman.ru.com/php/items.php", dbName, dbUser, dbPassword,
-            accountingType, salesPartner, items,
-            requestUrlFinalPrice = "https://caiman.ru.com/php/price.php";
+            accountingType, salesPartner, items, agentNameGlobal,
+            requestUrlFinalPrice = "https://caiman.ru.com/php/price.php",
+            requestUrlSaveRecord = "https://caiman.ru.com/php/saveNewInvoice.php",
+            requestUrlMakePayment = "https://caiman.ru.com/php/makePayment.php";
     ListView listViewItems, listViewItemsTotal;
     EditText editTextQuantity, editTextExchange, editTextReturn;
     TextView textViewAccountingType, textViewSalesPartner, textViewPrice, textViewDiscountValue,
@@ -57,14 +59,14 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
     final String SAVED_DBPassword = "dbPassword";
     final String SAVED_ACCOUNTINGTYPE = "AccountingType";
     final String SAVED_SALESPARTNER = "SalesPartner";
-    List<Data> dataArray;
+    List<DataInvoice> dataArray;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_invoice_main);
 
-        dataArray = new ArrayList<Data>();
+        dataArray = new ArrayList<>();
         iteration = -1;
         btnAddItem = findViewById(R.id.buttonAddItem);
         btnAddItem.setOnClickListener(this);
@@ -74,6 +76,8 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
         btnRemove.setOnClickListener(this);
         btnSaveRecord = findViewById(R.id.buttonSaveRecord);
         btnSaveRecord.setOnClickListener(this);
+        btnPay = findViewById(R.id.buttonPay);
+        btnPay.setOnClickListener(this);
 
         arrItems = new ArrayList<>();
         arrTotal = new ArrayList<>();
@@ -83,7 +87,6 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
         arrPrice = new ArrayList<>();
         arrSum = new ArrayList<>();
 
-        requestQueue = Volley.newRequestQueue((getApplicationContext()));
         listViewItems = findViewById(R.id.listViewItems);
         listViewItemsTotal = findViewById(R.id.listViewItemsTotal);
         textViewSalesPartner = findViewById(R.id.textViewSalesPartner);
@@ -97,7 +100,7 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
         textViewTotalSum = findViewById(R.id.textViewTotalSum);
         textViewTotalSum.setText("0");
 
-        requestQueue = Volley.newRequestQueue((getApplicationContext()));
+//        requestQueue = Volley.newRequestQueue((getApplicationContext()));
 
         sPrefDBName = getSharedPreferences(SAVED_DBName, Context.MODE_PRIVATE);
         sPrefDBUser = getSharedPreferences(SAVED_DBUser, Context.MODE_PRIVATE);
@@ -118,6 +121,7 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
         String agentName = intent.getStringExtra(CreateInvoiceFilterSecondActivity.EXTRA_AGENTNAMENEXT);
         TextView textView = findViewById(R.id.textViewAgent);
         textView.setText(agentName);
+        agentNameGlobal = intent.getStringExtra(CreateInvoiceFilterSecondActivity.EXTRA_AGENTNAMENEXT);
 
         textViewSalesPartner.setText(salesPartner);
         textViewAccountingType.setText(accountingType);
@@ -174,7 +178,7 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
                 return parameters;
             }
         };
-        requestQueue.add(request);
+        VolleySingleton.getInstance(this).getRequestQueue().add(request);
     }
 
     private void receivePrice(){
@@ -265,7 +269,10 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
                 delItem();
                 break;
             case R.id.buttonSaveRecord:
-                saveRecordPromt();
+                saveRecordPrompt();
+                break;
+            case R.id.buttonPay:
+                makePaymentPrompt();
                 break;
             default:
                 break;
@@ -393,7 +400,7 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
                 if (tmpQuantityType % Math.floor(tmpQuantityType) == 0
                         && tmpExchangeType % Math.floor(tmpExchangeType) == 0
                         && tmpReturnType % Math.floor(tmpReturnType) == 0) {
-                    Toast.makeText(getApplicationContext(), "Бля3", Toast.LENGTH_SHORT).show();
+//                    Toast.makeText(getApplicationContext(), "Бля3", Toast.LENGTH_SHORT).show();
                     iteration = iteration + 1;
                     arrItems.add(items);
                     arrPrice.add(Double.parseDouble(textViewPrice.getText().toString()));
@@ -449,12 +456,12 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
         }
     }
 
-    private void saveRecordPromt(){
+    private void saveRecordPrompt(){
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Важное сообщение!")
-                .setMessage("Покормите кота!")
+        builder.setTitle("Сохранение накладной")
+                .setMessage("Вы собираетесь сохранить накладную!!!")
                 .setCancelable(true)
-                .setNegativeButton("ОК, иду на кухню",
+                .setNegativeButton("Да, я хочу сохранить накладную",
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
                                 saveRecord();
@@ -466,6 +473,61 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
     }
 
     private void saveRecord(){
-        Toast.makeText(getApplicationContext(), "Ура", Toast.LENGTH_SHORT).show();
+//        Toast.makeText(getApplicationContext(), "Ура", Toast.LENGTH_SHORT).show();
+
+        for (int i = 0; i < arrTotal.size(); i ++){
+            DataInvoice dt = new DataInvoice(agentNameGlobal, salesPartner, accountingType, arrItems.get(i),
+                    arrPrice.get(i), arrQuantity.get(i), arrSum.get(i), arrExchange.get(i),
+                    arrReturn.get(i));
+            dataArray.add(dt);
+        }
+        Gson gson = new Gson();
+        final String newDataArray = gson.toJson(dataArray);
+
+        StringRequest request = new StringRequest(Request.Method.POST,
+                requestUrlSaveRecord, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                Log.d("response", "result: " + response);
+                dataArray.clear();
+            }
+        }, new Response.ErrorListener(){
+            @Override
+            public void onErrorResponse(VolleyError error){
+                Toast.makeText(getApplicationContext(), "Response Error, fuck!", Toast.LENGTH_SHORT).show();
+                Log.e("TAG", "Error " + error.getMessage());
+            }
+        }){
+            @Override
+            protected Map<String, String> getParams() {
+                Map<String, String> parameters = new HashMap<>();
+                parameters.put("dbName", dbName);
+                parameters.put("dbUser", dbUser);
+                parameters.put("dbPassword", dbPassword);
+                parameters.put("array", newDataArray);
+                return parameters;
+            }
+        };
+        VolleySingleton.getInstance(this).getRequestQueue().add(request);
+    }
+
+    private void makePaymentPrompt(){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Внесение денег")
+                .setMessage("Убедитесь, что вы взяли деньги!")
+                .setCancelable(true)
+                .setNegativeButton("Да, я хочу внести деньги",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                makePayment();
+//                                dialog.cancel();
+                            }
+                        });
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+    private void makePayment(){
+
     }
 }

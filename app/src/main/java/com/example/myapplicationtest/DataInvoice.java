@@ -1,12 +1,12 @@
 package com.example.myapplicationtest;
 
-public class Data {
-    String agentName, salesPartner, accountingType, item, price, quantity, totalCost,
-            exchange, returns;
+public class DataInvoice {
+    private String agentName, salesPartner, accountingType, item;
+    private Double price, quantity, totalCost, exchange, returns;
 
-    public Data(String agentName, String salesPartner, String accountingType, String item,
-                String price, String quantity, String totalCost, String exchange,
-                String returns) {
+    DataInvoice(String agentName, String salesPartner, String accountingType, String item,
+                Double price, Double quantity, Double totalCost, Double exchange,
+                Double returns) {
         this.agentName = agentName;
         this.salesPartner = salesPartner;
         this.accountingType = accountingType;
@@ -50,43 +50,43 @@ public class Data {
         this.item = item;
     }
 
-    public String getPrice() {
+    public Double getPrice() {
         return price;
     }
 
-    public void setPrice(String price) {
+    public void setPrice(Double price) {
         this.price = price;
     }
 
-    public String getQuantity() {
+    public Double getQuantity() {
         return quantity;
     }
 
-    public void setQuantity(String quantity) {
+    public void setQuantity(Double quantity) {
         this.quantity = quantity;
     }
 
-    public String getTotalCost() {
+    public Double getTotalCost() {
         return totalCost;
     }
 
-    public void setTotalCost(String totalCost) {
+    public void setTotalCost(Double totalCost) {
         this.totalCost = totalCost;
     }
 
-    public String getExchange() {
+    public Double getExchange() {
         return exchange;
     }
 
-    public void setExchange(String exchange) {
+    public void setExchange(Double exchange) {
         this.exchange = exchange;
     }
 
-    public String getReturns() {
+    public Double getReturns() {
         return returns;
     }
 
-    public void setReturns(String returns) {
+    public void setReturns(Double returns) {
         this.returns = returns;
     }
 }
