@@ -4,9 +4,9 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -44,7 +44,7 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
     Double finalPrice, tmpQuantityType, tmpExchangeType, tmpReturnType;
     String[] itemPrice, discountValue, discountType;
     String requestUrl = "https://caiman.ru.com/php/items.php", dbName, dbUser, dbPassword,
-            accountingType, salesPartner, items, agentNameGlobal,
+            accountingType, salesPartner, items, agentNameGlobal, area, dayOfTheWeek,
             requestUrlFinalPrice = "https://caiman.ru.com/php/price.php",
             requestUrlSaveRecord = "https://caiman.ru.com/php/saveNewInvoice.php",
             requestUrlMakePayment = "https://caiman.ru.com/php/makePayment.php";
@@ -53,12 +53,15 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
     TextView textViewAccountingType, textViewSalesPartner, textViewPrice, textViewDiscountValue,
             textViewDiscountType, textViewTotalSum;
     SharedPreferences sPrefDBName, sPrefDBPassword, sPrefDBUser, sPrefAccountingType,
-            sPrefSalesPartner;
+            sPrefSalesPartner, sPrefLogin, sPrefArea, sPrefDayOfTheWeek;
     final String SAVED_DBName = "dbName";
     final String SAVED_DBUser = "dbUser";
     final String SAVED_DBPassword = "dbPassword";
+    final String SAVED_LOGIN = "Login";
     final String SAVED_ACCOUNTINGTYPE = "AccountingType";
     final String SAVED_SALESPARTNER = "SalesPartner";
+    final String SAVED_AREA = "Area";
+    final String SAVED_DayOfTheWeek = "DayOfTheWeek";
     List<DataInvoice> dataArray;
 
     @Override
@@ -107,21 +110,27 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
         sPrefDBPassword = getSharedPreferences(SAVED_DBPassword, Context.MODE_PRIVATE);
         sPrefAccountingType = getSharedPreferences(SAVED_ACCOUNTINGTYPE, Context.MODE_PRIVATE);
         sPrefSalesPartner = getSharedPreferences(SAVED_SALESPARTNER, Context.MODE_PRIVATE);
+        sPrefLogin = getSharedPreferences(SAVED_LOGIN, Context.MODE_PRIVATE);
+        sPrefArea = getSharedPreferences(SAVED_AREA, Context.MODE_PRIVATE);
+        sPrefDayOfTheWeek = getSharedPreferences(SAVED_DayOfTheWeek, Context.MODE_PRIVATE);
 
         if (sPrefDBName.contains(SAVED_DBName) && sPrefDBUser.contains(SAVED_DBUser) && sPrefDBPassword.contains(SAVED_DBPassword)
-                && sPrefSalesPartner.contains(SAVED_SALESPARTNER) && sPrefAccountingType.contains(SAVED_ACCOUNTINGTYPE)){
+                && sPrefSalesPartner.contains(SAVED_SALESPARTNER) && sPrefAccountingType.contains(SAVED_ACCOUNTINGTYPE)
+                && sPrefArea.contains(SAVED_AREA) && sPrefDayOfTheWeek.contains(SAVED_DayOfTheWeek)){
             dbName = sPrefDBName.getString(SAVED_DBName, "");
             dbUser = sPrefDBUser.getString(SAVED_DBUser, "");
             dbPassword = sPrefDBPassword.getString(SAVED_DBPassword, "");
             accountingType = sPrefAccountingType.getString(SAVED_ACCOUNTINGTYPE, "");
             salesPartner = sPrefSalesPartner.getString(SAVED_SALESPARTNER, "");
+            area = sPrefSalesPartner.getString(SAVED_AREA, "");
+            dayOfTheWeek = sPrefSalesPartner.getString(SAVED_DayOfTheWeek, "");
         }
 
         Intent intent = getIntent();
         String agentName = intent.getStringExtra(CreateInvoiceFilterSecondActivity.EXTRA_AGENTNAMENEXT);
         TextView textView = findViewById(R.id.textViewAgent);
         textView.setText(agentName);
-        agentNameGlobal = intent.getStringExtra(CreateInvoiceFilterSecondActivity.EXTRA_AGENTNAMENEXT);
+//        agentNameGlobal = intent.getStringExtra(CreateInvoiceFilterSecondActivity.EXTRA_AGENTNAMENEXT);
 
         textViewSalesPartner.setText(salesPartner);
         textViewAccountingType.setText(accountingType);
@@ -473,10 +482,8 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
     }
 
     private void saveRecord(){
-//        Toast.makeText(getApplicationContext(), "Ура", Toast.LENGTH_SHORT).show();
-
         for (int i = 0; i < arrTotal.size(); i ++){
-            DataInvoice dt = new DataInvoice(agentNameGlobal, salesPartner, accountingType, arrItems.get(i),
+            DataInvoice dt = new DataInvoice(sPrefLogin.getString(SAVED_LOGIN, ""), salesPartner, accountingType, arrItems.get(i),
                     arrPrice.get(i), arrQuantity.get(i), arrSum.get(i), arrExchange.get(i),
                     arrReturn.get(i));
             dataArray.add(dt);
@@ -528,6 +535,39 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
     }
 
     private void makePayment(){
+        for (int i = 0; i < arrTotal.size(); i ++){
+            DataInvoice dt = new DataInvoice(agentNameGlobal, salesPartner, accountingType, arrItems.get(i),
+                    arrPrice.get(i), arrQuantity.get(i), arrSum.get(i), arrExchange.get(i),
+                    arrReturn.get(i));
+            dataArray.add(dt);
+        }
+        Gson gson = new Gson();
+        final String newDataArray = gson.toJson(dataArray);
 
+        StringRequest request = new StringRequest(Request.Method.POST,
+                requestUrlSaveRecord, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                Log.d("response", "result: " + response);
+                dataArray.clear();
+            }
+        }, new Response.ErrorListener(){
+            @Override
+            public void onErrorResponse(VolleyError error){
+                Toast.makeText(getApplicationContext(), "Response Error, fuck!", Toast.LENGTH_SHORT).show();
+                Log.e("TAG", "Error " + error.getMessage());
+            }
+        }){
+            @Override
+            protected Map<String, String> getParams() {
+                Map<String, String> parameters = new HashMap<>();
+                parameters.put("dbName", dbName);
+                parameters.put("dbUser", dbUser);
+                parameters.put("dbPassword", dbPassword);
+                parameters.put("array", newDataArray);
+                return parameters;
+            }
+        };
+        VolleySingleton.getInstance(this).getRequestQueue().add(request);
     }
 }

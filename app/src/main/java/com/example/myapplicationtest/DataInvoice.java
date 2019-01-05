@@ -1,13 +1,13 @@
 package com.example.myapplicationtest;
 
 public class DataInvoice {
-    private String agentName, salesPartner, accountingType, item;
+    private String login, salesPartner, accountingType, item;
     private Double price, quantity, totalCost, exchange, returns;
 
-    DataInvoice(String agentName, String salesPartner, String accountingType, String item,
+    DataInvoice(String login, String salesPartner, String accountingType, String item,
                 Double price, Double quantity, Double totalCost, Double exchange,
                 Double returns) {
-        this.agentName = agentName;
+        this.login = login;
         this.salesPartner = salesPartner;
         this.accountingType = accountingType;
         this.item = item;
@@ -18,12 +18,12 @@ public class DataInvoice {
         this.returns = returns;
     }
 
-    public String getAgentName() {
-        return agentName;
+    public String getLogin() {
+        return login;
     }
 
-    public void setAgentName(String agentName) {
-        this.agentName = agentName;
+    public void setLogin(String login) {
+        this.login = login;
     }
 
     public String getSalesPartner() {
