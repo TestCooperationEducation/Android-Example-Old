@@ -39,7 +39,9 @@
         <activity android:name=".MainMenu" />
         <activity android:name=".CreateInvoiceFilterFirstActivity" />
         <activity android:name=".CreateInvoiceFilterSecondActivity" />
-        <activity android:name=".CreateInvoiceMainActivity"></activity>
+        <activity android:name=".CreateInvoiceMainActivity" />
+        <activity android:name=".MakePaymentsActivity" />
+        <activity android:name=".ManageSalesPartnersActivity"></activity>
     </application>
 
 </manifest>

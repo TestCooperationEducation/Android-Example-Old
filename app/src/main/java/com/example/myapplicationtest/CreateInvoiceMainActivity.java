@@ -41,15 +41,15 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
     ArrayList<String> arrItems, arrTotal;
     ArrayList<Double> arrQuantity, arrExchange, arrReturn, arrPrice, arrSum;
     Integer iteration, itemsCheck;
-    Double finalPrice, tmpQuantityType, tmpExchangeType, tmpReturnType;
+    Double finalPrice, tmpQuantityType, tmpExchangeType, tmpReturnType, paymentAmount;
     String[] itemPrice, discountValue, discountType;
     String requestUrl = "https://caiman.ru.com/php/items.php", dbName, dbUser, dbPassword,
-            accountingType, salesPartner, items, agentNameGlobal, area, dayOfTheWeek,
+            accountingType, salesPartner, items, area, dayOfTheWeek,
             requestUrlFinalPrice = "https://caiman.ru.com/php/price.php",
             requestUrlSaveRecord = "https://caiman.ru.com/php/saveNewInvoice.php",
-            requestUrlMakePayment = "https://caiman.ru.com/php/makePayment.php";
+            requestUrlMakePayment = "https://caiman.ru.com/php/makePayment.php", loginSecurity, invoiceNumber;
     ListView listViewItems, listViewItemsTotal;
-    EditText editTextQuantity, editTextExchange, editTextReturn;
+    EditText editTextQuantity, editTextExchange, editTextReturn, editTextPaymentAmount;
     TextView textViewAccountingType, textViewSalesPartner, textViewPrice, textViewDiscountValue,
             textViewDiscountType, textViewTotalSum;
     SharedPreferences sPrefDBName, sPrefDBPassword, sPrefDBUser, sPrefAccountingType,
@@ -63,6 +63,7 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
     final String SAVED_AREA = "Area";
     final String SAVED_DayOfTheWeek = "DayOfTheWeek";
     List<DataInvoice> dataArray;
+    List<DataPay> dataPay;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,6 +71,7 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
         setContentView(R.layout.activity_create_invoice_main);
 
         dataArray = new ArrayList<>();
+        dataPay = new ArrayList<>();
         iteration = -1;
         btnAddItem = findViewById(R.id.buttonAddItem);
         btnAddItem.setOnClickListener(this);
@@ -97,6 +99,7 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
         editTextQuantity = findViewById(R.id.editTextQuantity);
         editTextExchange = findViewById(R.id.editTextExchange);
         editTextReturn = findViewById(R.id.editTextReturn);
+        editTextPaymentAmount = findViewById(R.id.editTextPaymentAmount);
         textViewPrice = findViewById(R.id.textViewPrice);
         textViewDiscountType = findViewById(R.id.textViewDiscountType);
         textViewDiscountValue = findViewById(R.id.textViewDiscountValue);
@@ -116,14 +119,17 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
 
         if (sPrefDBName.contains(SAVED_DBName) && sPrefDBUser.contains(SAVED_DBUser) && sPrefDBPassword.contains(SAVED_DBPassword)
                 && sPrefSalesPartner.contains(SAVED_SALESPARTNER) && sPrefAccountingType.contains(SAVED_ACCOUNTINGTYPE)
-                && sPrefArea.contains(SAVED_AREA) && sPrefDayOfTheWeek.contains(SAVED_DayOfTheWeek)){
+                && sPrefArea.contains(SAVED_AREA) ){
+//            && sPrefDayOfTheWeek.contains(SAVED_DayOfTheWeek)
+
             dbName = sPrefDBName.getString(SAVED_DBName, "");
             dbUser = sPrefDBUser.getString(SAVED_DBUser, "");
             dbPassword = sPrefDBPassword.getString(SAVED_DBPassword, "");
             accountingType = sPrefAccountingType.getString(SAVED_ACCOUNTINGTYPE, "");
             salesPartner = sPrefSalesPartner.getString(SAVED_SALESPARTNER, "");
-            area = sPrefSalesPartner.getString(SAVED_AREA, "");
-            dayOfTheWeek = sPrefSalesPartner.getString(SAVED_DayOfTheWeek, "");
+            area = sPrefArea.getString(SAVED_AREA, "");
+//            dayOfTheWeek = sPrefSalesPartner.getString(SAVED_DayOfTheWeek, "");
+            loginSecurity = sPrefLogin.getString(SAVED_LOGIN, "");
         }
 
         Intent intent = getIntent();
@@ -483,7 +489,7 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
 
     private void saveRecord(){
         for (int i = 0; i < arrTotal.size(); i ++){
-            DataInvoice dt = new DataInvoice(sPrefLogin.getString(SAVED_LOGIN, ""), salesPartner, accountingType, arrItems.get(i),
+            DataInvoice dt = new DataInvoice(salesPartner, accountingType, arrItems.get(i),
                     arrPrice.get(i), arrQuantity.get(i), arrSum.get(i), arrExchange.get(i),
                     arrReturn.get(i));
             dataArray.add(dt);
@@ -496,6 +502,8 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
             @Override
             public void onResponse(String response) {
                 Log.d("response", "result: " + response);
+                invoiceNumber = response;
+                Toast.makeText(getApplicationContext(), invoiceNumber, Toast.LENGTH_SHORT).show();
                 dataArray.clear();
             }
         }, new Response.ErrorListener(){
@@ -511,6 +519,10 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
                 parameters.put("dbName", dbName);
                 parameters.put("dbUser", dbUser);
                 parameters.put("dbPassword", dbPassword);
+                parameters.put("area", area);
+                parameters.put("accountingType", accountingType);
+                parameters.put("loginSecurity", loginSecurity);
+//                parameters.put("dayOfTheWeek", dayOfTheWeek);
                 parameters.put("array", newDataArray);
                 return parameters;
             }
@@ -526,7 +538,7 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
                 .setNegativeButton("Да, я хочу внести деньги",
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
-                                makePayment();
+                                checkPaymentPrompt();
 //                                dialog.cancel();
                             }
                         });
@@ -534,22 +546,56 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
         alert.show();
     }
 
-    private void makePayment(){
-        for (int i = 0; i < arrTotal.size(); i ++){
-            DataInvoice dt = new DataInvoice(agentNameGlobal, salesPartner, accountingType, arrItems.get(i),
-                    arrPrice.get(i), arrQuantity.get(i), arrSum.get(i), arrExchange.get(i),
-                    arrReturn.get(i));
-            dataArray.add(dt);
+    private void checkPaymentPrompt(){
+        if (editTextPaymentAmount.getText().toString().trim().length() == 0
+                || Double.parseDouble(editTextPaymentAmount.getText().toString())
+                == Double.parseDouble(textViewTotalSum.getText().toString())) {
+            paymentAmount = Double.parseDouble(textViewTotalSum.getText().toString());
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Проверьте сумму")
+                    .setMessage("Хотите внести всю сумму?")
+                    .setCancelable(true)
+                    .setNegativeButton("Да, я хочу внести всю сумму",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    makePayment();
+//                                dialog.cancel();
+                                }
+                            });
+            AlertDialog alert = builder.create();
+            alert.show();
+        } else {
+            paymentAmount = Double.parseDouble(editTextPaymentAmount.getText().toString());
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Проверьте сумму")
+                    .setMessage("Сумма внесения отличается от суммы накладной!")
+                    .setCancelable(true)
+                    .setNegativeButton("Да, все равно внести",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    makePayment();
+//                                dialog.cancel();
+                                }
+                            });
+            AlertDialog alert = builder.create();
+            alert.show();
         }
+    }
+
+    private void makePayment(){
+        DataPay dt = new DataPay(paymentAmount);
+        dataPay.add(dt);
+
         Gson gson = new Gson();
-        final String newDataArray = gson.toJson(dataArray);
+        final String newDataArray = gson.toJson(dataPay);
 
         StringRequest request = new StringRequest(Request.Method.POST,
-                requestUrlSaveRecord, new Response.Listener<String>() {
+                requestUrlMakePayment, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
                 Log.d("response", "result: " + response);
-                dataArray.clear();
+                Toast.makeText(getApplicationContext(), response, Toast.LENGTH_SHORT).show();
+                dataPay.clear();
             }
         }, new Response.ErrorListener(){
             @Override
@@ -559,12 +605,13 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
             }
         }){
             @Override
-            protected Map<String, String> getParams() {
+            protected Map<String, String> getParams(){
                 Map<String, String> parameters = new HashMap<>();
                 parameters.put("dbName", dbName);
                 parameters.put("dbUser", dbUser);
                 parameters.put("dbPassword", dbPassword);
-                parameters.put("array", newDataArray);
+                parameters.put("invoiceNumber", invoiceNumber);
+                parameters.put("paymentAmount", newDataArray);
                 return parameters;
             }
         };

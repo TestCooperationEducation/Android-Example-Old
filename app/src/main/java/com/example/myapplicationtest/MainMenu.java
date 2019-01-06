@@ -43,11 +43,11 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                 //Toast.makeText(this, "saved", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.buttonPayments:
-                //makePayments();
+                makePayments();
                 //Toast.makeText(this, dbName + " " + dbUser + " " + dbPassword, Toast.LENGTH_SHORT).show();
                 break;
             case R.id.buttonSalesPartners:
-                //addSalesPartner();
+                manageSalesPartners();
                 break;
             default:
                 break;
@@ -56,6 +56,24 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
 
     private void createInvoice(){
         Intent intent = new Intent(getApplicationContext(), CreateInvoiceFilterFirstActivity.class);
+        TextView textView = findViewById(R.id.textViewAgent);
+        String agentName = textView.getText().toString();
+        intent.putExtra(EXTRA_AGENTNAMENEXT, agentName);
+        Toast.makeText(this, agentName, Toast.LENGTH_SHORT).show();
+        startActivity(intent);
+    }
+
+    private void makePayments(){
+        Intent intent = new Intent(getApplicationContext(), MakePaymentsActivity.class);
+        TextView textView = findViewById(R.id.textViewAgent);
+        String agentName = textView.getText().toString();
+        intent.putExtra(EXTRA_AGENTNAMENEXT, agentName);
+        Toast.makeText(this, agentName, Toast.LENGTH_SHORT).show();
+        startActivity(intent);
+    }
+
+    private void manageSalesPartners(){
+        Intent intent = new Intent(getApplicationContext(), ManageSalesPartnersActivity.class);
         TextView textView = findViewById(R.id.textViewAgent);
         String agentName = textView.getText().toString();
         intent.putExtra(EXTRA_AGENTNAMENEXT, agentName);

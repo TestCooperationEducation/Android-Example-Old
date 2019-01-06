@@ -4,9 +4,9 @@
     <string name="button_send">Send</string>
     <string name="login">login</string>
     <string name="password">password</string>
-    <string name="BtnLogin">Login</string>
-    <string name="BtnSettings">Settings</string>
-    <string name="BtnSave">Save</string>
+    <string name="BtnLogin">Войти</string>
+    <string name="BtnSettings">Настройки Базы Данных</string>
+    <string name="BtnSave">Сохранить</string>
     <string name="db_name">Server Name</string>
     <string name="db_user">DB User</string>
     <string name="db_password">DB Password</string>
@@ -29,5 +29,11 @@
     <string name="textViewDiscountType">Тип Скидки</string>
     <string name="btnReceivePrice">Получить информацию о цене и скидке</string>
     <string name="textViewLabelTotalSum">Всего:</string>
+    <string name="editTextPaymentAmount">Сумма Внесения</string>
+    <string name="dateStart">Начало</string>
+    <string name="dateEnd">Конец</string>
+    <string name="btnRecieveListOfDebtors">Получить список должников</string>
+    <string name="btnClearListOfDebtors">Очистить список</string>
+    <string name="btnMakePaymentDebtor">Внести платёж</string>
 
 </resources>

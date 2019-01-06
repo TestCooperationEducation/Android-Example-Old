@@ -3,7 +3,7 @@ package com.example.myapplicationtest;
 public class DataPay {
     private Double payment;
 
-    public DataPay(Double payment) {
+    DataPay(Double payment) {
         this.payment = payment;
     }
 
