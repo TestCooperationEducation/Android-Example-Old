@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -13,19 +14,30 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MakePaymentsActivity extends AppCompatActivity implements View.OnClickListener{
 
     ListView listViewAccountingType, listViewDebtors;
-    String accountingType, dbName, dbUser, dbPassword, debtor,
-            requestUrl = "https://caiman.ru.com/php/loadDebtors.php";
-    SharedPreferences sPrefDBName, sPrefDBPassword, sPrefDBUser;
+    String accountingType, dbName, dbUser, dbPassword, debtor, loginSecurity, dateStart, dateEnd,
+            requestUrlLoadDebtors = "https://caiman.ru.com/php/loadDebtors.php";
+    SharedPreferences sPrefDBName, sPrefDBPassword, sPrefDBUser, sPrefLogin;
     final String SAVED_DBName = "dbName";
     final String SAVED_DBUser = "dbUser";
     final String SAVED_DBPassword = "dbPassword";
+    final String SAVED_LOGIN = "Login";
     Button btnReceiveList;
-    Date dateStart, dateEnd;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +61,9 @@ public class MakePaymentsActivity extends AppCompatActivity implements View.OnCl
 
         listViewAccountingType = findViewById(R.id.listViewAccountingType);
         listViewDebtors  = findViewById(R.id.listViewDebtors);
+
+        sPrefLogin = getSharedPreferences(SAVED_LOGIN, Context.MODE_PRIVATE);
+        loginSecurity = sPrefLogin.getString(SAVED_LOGIN, "");
 
         loadListAccountingType();
 
@@ -93,6 +108,79 @@ public class MakePaymentsActivity extends AppCompatActivity implements View.OnCl
     }
 
     private void receiveList(){
-
+        StringRequest request = new StringRequest(Request.Method.POST,
+                requestUrlLoadDebtors, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                Log.d("response", "result: " + response);
+                try{
+                    JSONArray jsonArray = new JSONArray(response);
+                    Toast.makeText(getApplicationContext(), "Запрос выполнен удачно", Toast.LENGTH_SHORT).show();
+//                    itemPrice = new String[jsonArray.length()];
+//                    discountType = new String[jsonArray.length()];
+//                    discountValue = new String[jsonArray.length()];
+                    if (jsonArray.length() > 0){
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            JSONObject obj = jsonArray.getJSONObject(i);
+//                            itemPrice[i] = obj.getString("Цена");
+//                            arrPrice.add(Double.parseDouble(itemPrice[0]));
+                            if (obj.isNull("Скидка") && obj.isNull("Тип_скидки")) {
+//                                discountValue[i] = String.valueOf(0);
+//                                discountType[i] = String.valueOf(0);
+                                Toast.makeText(getApplicationContext(), "Нет", Toast.LENGTH_SHORT).show();
+                            }
+                            else {
+//                                discountValue[i] = obj.getString("Скидка");
+//                                discountType[i] = obj.getString("Тип_скидки");
+                                Toast.makeText(getApplicationContext(), "Есть", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+//                        textViewPrice.setText(itemPrice[0]);
+//                        textViewDiscountType.setText(discountType[0]);
+//                        textViewDiscountValue.setText(discountValue[0]);
+//                        if (Double.parseDouble(discountType[0]) == 0){
+//                            textViewPrice.setText(itemPrice[0]);
+//                            finalPrice = Double.parseDouble(textViewPrice.getText().toString());
+//                        }
+//                        if (Double.parseDouble(discountType[0]) == 1){
+//                            finalPrice = Double.parseDouble(itemPrice[0]) - Double.parseDouble(discountValue[0]);
+//                            textViewPrice.setText(finalPrice.toString());
+//                        }
+//                        if (Double.parseDouble(discountType[0]) == 2){
+//                            finalPrice = Double.parseDouble(itemPrice[0]) - (Double.parseDouble(itemPrice[0]) / 10);
+//                            textViewPrice.setText(finalPrice.toString());
+//                        }
+                    }else{
+                        Toast.makeText(getApplicationContext(), "Что-то пошло не так", Toast.LENGTH_SHORT).show();
+                    }
+//                    Toast.makeText(getApplicationContext(), textViewPrice.getText().toString(), Toast.LENGTH_SHORT).show();
+//                    ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_1, itemsList);
+//                    listViewItems.setAdapter(arrayAdapter);
+                }
+                catch (JSONException e1) {
+                    e1.printStackTrace();
+                }
+            }
+        }, new Response.ErrorListener(){
+            @Override
+            public void onErrorResponse(VolleyError error){
+                Toast.makeText(getApplicationContext(), "Response Error, fuck!", Toast.LENGTH_SHORT).show();
+                Log.e("TAG", "Error " + error.getMessage());
+            }
+        }){
+            @Override
+            protected Map<String, String> getParams() {
+                Map<String, String> parameters = new HashMap<>();
+                parameters.put("dbName", dbName);
+                parameters.put("dbUser", dbUser);
+                parameters.put("dbPassword", dbPassword);
+                parameters.put("dateStart", dateStart);
+                parameters.put("dateEnd", dateEnd);
+                parameters.put("accountingType", accountingType);
+                parameters.put("loginSecurity", loginSecurity);
+                return parameters;
+            }
+        };
+        VolleySingleton.getInstance(this).getRequestQueue().add(request);
     }
 }

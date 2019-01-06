@@ -82,7 +82,7 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
                 break;
             case R.id.buttonLogin:
                 login();
-                Toast.makeText(this, dbName + " " + dbUser + " " + dbPassword, Toast.LENGTH_SHORT).show();
+//                Toast.makeText(this, dbName + " " + dbUser + " " + dbPassword, Toast.LENGTH_SHORT).show();
                 break;
             case R.id.buttonSettings:
                 serverSettings();
