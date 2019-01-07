@@ -10,6 +10,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -30,6 +31,7 @@ import java.util.Map;
 public class MakePaymentsActivity extends AppCompatActivity implements View.OnClickListener{
 
     ListView listViewAccountingType, listViewDebtors;
+    String[] invoiceNumber, total;
     String accountingType, dbName, dbUser, dbPassword, debtor, loginSecurity, dateStart, dateEnd,
             requestUrlLoadDebtors = "https://caiman.ru.com/php/loadDebtors.php";
     SharedPreferences sPrefDBName, sPrefDBPassword, sPrefDBUser, sPrefLogin;
@@ -38,6 +40,7 @@ public class MakePaymentsActivity extends AppCompatActivity implements View.OnCl
     final String SAVED_DBPassword = "dbPassword";
     final String SAVED_LOGIN = "Login";
     Button btnReceiveList;
+    EditText editTextDateStart, editTextDateEnd;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +54,9 @@ public class MakePaymentsActivity extends AppCompatActivity implements View.OnCl
 
         btnReceiveList = findViewById(R.id.buttonReceiveList);
         btnReceiveList.setOnClickListener(this);
+
+        editTextDateStart = findViewById(R.id.editTextDateStart);
+        editTextDateEnd = findViewById(R.id.editTextDateEnd);
 
         sPrefDBName = getSharedPreferences(SAVED_DBName, Context.MODE_PRIVATE);
         sPrefDBUser = getSharedPreferences(SAVED_DBUser, Context.MODE_PRIVATE);
@@ -108,6 +114,9 @@ public class MakePaymentsActivity extends AppCompatActivity implements View.OnCl
     }
 
     private void receiveList(){
+        dateStart = editTextDateStart.getText().toString();
+        dateEnd = editTextDateEnd.getText().toString();
+
         StringRequest request = new StringRequest(Request.Method.POST,
                 requestUrlLoadDebtors, new Response.Listener<String>() {
             @Override
@@ -117,22 +126,22 @@ public class MakePaymentsActivity extends AppCompatActivity implements View.OnCl
                     JSONArray jsonArray = new JSONArray(response);
                     Toast.makeText(getApplicationContext(), "Запрос выполнен удачно", Toast.LENGTH_SHORT).show();
 //                    itemPrice = new String[jsonArray.length()];
-//                    discountType = new String[jsonArray.length()];
-//                    discountValue = new String[jsonArray.length()];
+                    total = new String[jsonArray.length()];
+                    invoiceNumber = new String[jsonArray.length()];
                     if (jsonArray.length() > 0){
                         for (int i = 0; i < jsonArray.length(); i++) {
                             JSONObject obj = jsonArray.getJSONObject(i);
 //                            itemPrice[i] = obj.getString("Цена");
 //                            arrPrice.add(Double.parseDouble(itemPrice[0]));
-                            if (obj.isNull("Скидка") && obj.isNull("Тип_скидки")) {
+                            if (obj.isNull("InvoiceNumber") && obj.isNull("Total")) {
 //                                discountValue[i] = String.valueOf(0);
 //                                discountType[i] = String.valueOf(0);
                                 Toast.makeText(getApplicationContext(), "Нет", Toast.LENGTH_SHORT).show();
                             }
                             else {
-//                                discountValue[i] = obj.getString("Скидка");
-//                                discountType[i] = obj.getString("Тип_скидки");
-                                Toast.makeText(getApplicationContext(), "Есть", Toast.LENGTH_SHORT).show();
+                                invoiceNumber[i] = obj.getString("InvoiceNumber");
+                                total[i] = obj.getString("Total");
+                                Toast.makeText(getApplicationContext(), invoiceNumber[i], Toast.LENGTH_SHORT).show();
                             }
                         }
 //                        textViewPrice.setText(itemPrice[0]);

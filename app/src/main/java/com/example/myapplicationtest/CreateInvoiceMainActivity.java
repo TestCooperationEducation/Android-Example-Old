@@ -44,7 +44,7 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
     Double finalPrice, tmpQuantityType, tmpExchangeType, tmpReturnType, paymentAmount;
     String[] itemPrice, discountValue, discountType;
     String requestUrl = "https://caiman.ru.com/php/items.php", dbName, dbUser, dbPassword,
-            accountingType, salesPartner, items, area, dayOfTheWeek,
+            accountingType, salesPartner, items, area, dayOfTheWeek, author,
             requestUrlFinalPrice = "https://caiman.ru.com/php/price.php",
             requestUrlSaveRecord = "https://caiman.ru.com/php/saveNewInvoice.php",
             requestUrlMakePayment = "https://caiman.ru.com/php/makePayment.php", loginSecurity, invoiceNumber;
@@ -136,6 +136,7 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
         String agentName = intent.getStringExtra(CreateInvoiceFilterSecondActivity.EXTRA_AGENTNAMENEXT);
         TextView textView = findViewById(R.id.textViewAgent);
         textView.setText(agentName);
+        author = agentName;
 //        agentNameGlobal = intent.getStringExtra(CreateInvoiceFilterSecondActivity.EXTRA_AGENTNAMENEXT);
 
         textViewSalesPartner.setText(salesPartner);
@@ -611,6 +612,7 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
                 parameters.put("dbUser", dbUser);
                 parameters.put("dbPassword", dbPassword);
                 parameters.put("invoiceNumber", invoiceNumber);
+                parameters.put("author", author);
                 parameters.put("paymentAmount", newDataArray);
                 return parameters;
             }
