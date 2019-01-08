@@ -41,17 +41,17 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
     ArrayList<String> arrItems, arrTotal;
     ArrayList<Double> arrQuantity, arrExchange, arrReturn, arrPrice, arrSum;
     Integer iteration, itemsCheck;
-    Double finalPrice, tmpQuantityType, tmpExchangeType, tmpReturnType, paymentAmount;
+    Double finalPrice, tmpQuantityType, tmpExchangeType, tmpReturnType, paymentAmount, invoiceSum;
     String[] itemPrice, discountValue, discountType;
     String requestUrl = "https://caiman.ru.com/php/items.php", dbName, dbUser, dbPassword,
-            accountingType, salesPartner, items, area, dayOfTheWeek, author,
+            accountingType, salesPartner, items, area, dayOfTheWeek, author, statusSave, statusPay,
             requestUrlFinalPrice = "https://caiman.ru.com/php/price.php",
             requestUrlSaveRecord = "https://caiman.ru.com/php/saveNewInvoice.php",
             requestUrlMakePayment = "https://caiman.ru.com/php/makePayment.php", loginSecurity, invoiceNumber;
     ListView listViewItems, listViewItemsTotal;
     EditText editTextQuantity, editTextExchange, editTextReturn, editTextPaymentAmount;
     TextView textViewAccountingType, textViewSalesPartner, textViewPrice, textViewDiscountValue,
-            textViewDiscountType, textViewTotalSum;
+            textViewDiscountType, textViewTotalSum, textViewStatusSave, textViewStatusPay;
     SharedPreferences sPrefDBName, sPrefDBPassword, sPrefDBUser, sPrefAccountingType,
             sPrefSalesPartner, sPrefLogin, sPrefArea, sPrefDayOfTheWeek;
     final String SAVED_DBName = "dbName";
@@ -105,6 +105,8 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
         textViewDiscountValue = findViewById(R.id.textViewDiscountValue);
         textViewTotalSum = findViewById(R.id.textViewTotalSum);
         textViewTotalSum.setText("0");
+        textViewStatusSave = findViewById(R.id.textViewStatusSave);
+        textViewStatusPay = findViewById(R.id.textViewStatusPay);
 
 //        requestQueue = Volley.newRequestQueue((getApplicationContext()));
 
@@ -428,6 +430,7 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
 
                     Double tmp = (arrSum.get(iteration) + Double.parseDouble(textViewTotalSum.getText().toString()));
                     textViewTotalSum.setText(tmp.toString());
+                    invoiceSum = tmp;
 
                     arrTotal.add((iteration + 1) + ". " + arrItems.get(iteration)
                             + " || Цена: " + textViewPrice.getText().toString()
@@ -472,27 +475,44 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
         }
     }
 
-    private void saveRecordPrompt(){
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Сохранение накладной")
-                .setMessage("Вы собираетесь сохранить накладную!!!")
-                .setCancelable(true)
-                .setNegativeButton("Да, я хочу сохранить накладную",
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                                saveRecord();
-//                                dialog.cancel();
-                            }
-                        });
-        AlertDialog alert = builder.create();
-        alert.show();
+    private void saveRecordPrompt() {
+        if (statusSave != "Сохранено") {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Сохранение накладной")
+                    .setMessage("Вы собираетесь сохранить накладную!!!")
+                    .setCancelable(true)
+                    .setNegativeButton("Да, я хочу сохранить накладную",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    saveRecord();
+                                }
+                            });
+            AlertDialog alert = builder.create();
+            alert.show();
+        }
+        if (statusSave == "Сохранено") {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Внимание")
+                    .setMessage("Вы уже сохранили этот документ!")
+                    .setCancelable(true)
+                    .setNegativeButton("Я всё понял",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                dialog.cancel();
+                                }
+                            });
+            AlertDialog alert = builder.create();
+            alert.show();
+        }
+
     }
 
     private void saveRecord(){
+        invoiceSum = Double.parseDouble(textViewTotalSum.getText().toString());
         for (int i = 0; i < arrTotal.size(); i ++){
             DataInvoice dt = new DataInvoice(salesPartner, accountingType, arrItems.get(i),
                     arrPrice.get(i), arrQuantity.get(i), arrSum.get(i), arrExchange.get(i),
-                    arrReturn.get(i));
+                    arrReturn.get(i), invoiceSum);
             dataArray.add(dt);
         }
         Gson gson = new Gson();
@@ -504,12 +524,17 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
             public void onResponse(String response) {
                 Log.d("response", "result: " + response);
                 invoiceNumber = response;
-                Toast.makeText(getApplicationContext(), invoiceNumber, Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "Номер накладной: " + invoiceNumber, Toast.LENGTH_SHORT).show();
                 dataArray.clear();
+                if (invoiceNumber.matches("-?\\d+")) {
+                    Toast.makeText(getApplicationContext(), "Документ сохранён", Toast.LENGTH_SHORT).show();
+                    statusSave = "Сохранено";
+                    textViewStatusSave.setText(statusSave);
+                }
             }
         }, new Response.ErrorListener(){
             @Override
-            public void onErrorResponse(VolleyError error){
+            public void onErrorResponse(VolleyError error) {
                 Toast.makeText(getApplicationContext(), "Response Error, fuck!", Toast.LENGTH_SHORT).show();
                 Log.e("TAG", "Error " + error.getMessage());
             }
@@ -532,19 +557,49 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
     }
 
     private void makePaymentPrompt(){
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Внесение денег")
-                .setMessage("Убедитесь, что вы взяли деньги!")
-                .setCancelable(true)
-                .setNegativeButton("Да, я хочу внести деньги",
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                                checkPaymentPrompt();
-//                                dialog.cancel();
-                            }
-                        });
-        AlertDialog alert = builder.create();
-        alert.show();
+        if (statusPay != "Оплачено") {
+            if (statusSave != "Сохранено") {
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle("Внимание")
+                        .setMessage("Вы не сохранили документ!")
+                        .setCancelable(true)
+                        .setNegativeButton("Я всё понял",
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        dialog.cancel();
+                                    }
+                                });
+                AlertDialog alert = builder.create();
+                alert.show();
+            }
+            if (statusSave == "Сохранено") {
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle("Внесение денег")
+                        .setMessage("Убедитесь, что вы взяли деньги!")
+                        .setCancelable(true)
+                        .setNegativeButton("Да, я хочу внести деньги",
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        checkPaymentPrompt();
+                                    }
+                                });
+                AlertDialog alert = builder.create();
+                alert.show();
+            }
+        } else {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Внимание")
+                    .setMessage("Документ закрыт для изменений")
+                    .setCancelable(true)
+                    .setNegativeButton("Я всё понял",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    dialog.cancel();
+                                }
+                            });
+            AlertDialog alert = builder.create();
+            alert.show();
+        }
     }
 
     private void checkPaymentPrompt(){
@@ -595,8 +650,18 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
             @Override
             public void onResponse(String response) {
                 Log.d("response", "result: " + response);
-                Toast.makeText(getApplicationContext(), response, Toast.LENGTH_SHORT).show();
                 dataPay.clear();
+                if (response.equals("Бабло внесено")) {
+                    Toast.makeText(getApplicationContext(), response, Toast.LENGTH_SHORT).show();
+                    if (paymentAmount == Double.parseDouble(textViewTotalSum.getText().toString())){
+                        textViewStatusPay.setText("Оплачено полностью");
+                        statusPay = "Оплачено";
+                    } else {
+                        textViewStatusPay.setText("Оплачено частично");
+                        statusPay = "Оплачено";
+                    }
+                    clearAll();
+                }
             }
         }, new Response.ErrorListener(){
             @Override
@@ -618,5 +683,28 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
             }
         };
         VolleySingleton.getInstance(this).getRequestQueue().add(request);
+    }
+
+    private void clearAll(){
+        while (arrTotal.size() > 0){
+            Double tmpSum = Double.parseDouble(textViewTotalSum.getText().toString()) - arrSum.get(arrSum.size() - 1);
+            textViewTotalSum.setText(tmpSum.toString());
+            arrTotal.remove(arrTotal.size() - 1);
+            arrItems.remove(arrItems.size() - 1);
+            arrQuantity.remove(arrQuantity.size() - 1);
+            arrSum.remove(arrSum.size() - 1);
+            arrExchange.remove(arrExchange.size() - 1);
+            arrReturn.remove(arrReturn.size() -1);
+            ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_1, arrTotal);
+            listViewItemsTotal.setAdapter(arrayAdapter);
+            iteration = iteration - 1;
+            items = null;
+            textViewPrice.setText("Цена");
+            textViewDiscountType.setText("Тип скидки");
+            textViewDiscountValue.setText("Скидка");
+            editTextQuantity.setText("");
+            editTextExchange.setText("");
+            editTextReturn.setText("");
+        }
     }
 }
