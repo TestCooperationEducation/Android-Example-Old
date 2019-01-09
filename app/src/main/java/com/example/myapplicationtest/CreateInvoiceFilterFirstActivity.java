@@ -97,10 +97,12 @@ public class CreateInvoiceFilterFirstActivity extends AppCompatActivity implemen
     }
 
     private void loadListDayOfTheWeek(){
-        String[] dayOfTheWeek = new String[3];
-        dayOfTheWeek[0] = "Понедельник-Пятница";
-        dayOfTheWeek[1] = "Вторник-Четверг";
-        dayOfTheWeek[2] = "Среда";
+        String[] dayOfTheWeek = new String[4];
+        dayOfTheWeek[0] = "понедельник-четверг";
+        dayOfTheWeek[1] = "вторник-пятница";
+        dayOfTheWeek[2] = "среда";
+        dayOfTheWeek[3] = "любой";
+        dayOfTheWeek[2] = "север";
         ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, dayOfTheWeek);
         listViewDayOfTheWeek.setAdapter(arrayAdapter);
     }

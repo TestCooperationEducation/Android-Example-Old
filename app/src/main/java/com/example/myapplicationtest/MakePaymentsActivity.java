@@ -31,7 +31,7 @@ import java.util.Map;
 public class MakePaymentsActivity extends AppCompatActivity implements View.OnClickListener{
 
     ListView listViewAccountingType, listViewDebtors;
-    String[] invoiceNumber, total;
+    String[] invoiceNumber, totalPayment;
     String accountingType, dbName, dbUser, dbPassword, debtor, loginSecurity, dateStart, dateEnd,
             requestUrlLoadDebtors = "https://caiman.ru.com/php/loadDebtors.php";
     SharedPreferences sPrefDBName, sPrefDBPassword, sPrefDBUser, sPrefLogin;
@@ -122,20 +122,28 @@ public class MakePaymentsActivity extends AppCompatActivity implements View.OnCl
             @Override
             public void onResponse(String response) {
                 Log.d("response", "result: " + response);
-//                try{
-//                    JSONArray jsonArray = new JSONArray(response);
-//                    Toast.makeText(getApplicationContext(), "Запрос выполнен удачно", Toast.LENGTH_SHORT).show();
-//                    itemPrice = new String[jsonArray.length()];
-//                    total = new String[jsonArray.length()];
-//                    invoiceNumber = new String[jsonArray.length()];
-//                    if (jsonArray.length() > 0){
-//                        for (int i = 0; i < jsonArray.length(); i++) {
-//                            JSONObject obj = jsonArray.getJSONObject(i);
-////                            itemPrice[i] = obj.getString("Цена");
-////                            arrPrice.add(Double.parseDouble(itemPrice[0]));
+                try{
+//                    JSONObject jasonObject = new JSONObject(response);
+//
+//                    invoiceNumber = new Integer[jArray.length()];
+//
+//                    for (int i = 0; i < jArray.length(); i++) {
+//                        JSONArray jArray = jasonObject.getJSONArray();
+//                        invoiceNumber[i] = jArray.getInt(i);
+//                    }
+
+                    JSONArray jsonArray = new JSONArray(response);
+                    Toast.makeText(getApplicationContext(), "Запрос выполнен удачно", Toast.LENGTH_SHORT).show();
+                    totalPayment = new String[jsonArray.length()];
+                    invoiceNumber = new String[jsonArray.length()];
+                    if (jsonArray.length() > 0){
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            JSONObject obj = jsonArray.getJSONObject(i);
+                            invoiceNumber[i] = obj.getString("invoiceNumber");
+                            totalPayment[i] = obj.getString("paymentSum");
 //                            if (obj.isNull("InvoiceNumber") && obj.isNull("Total")) {
-////                                discountValue[i] = String.valueOf(0);
-////                                discountType[i] = String.valueOf(0);
+//                                discountValue[i] = String.valueOf(0);
+//                                discountType[i] = String.valueOf(0);
 //                                Toast.makeText(getApplicationContext(), "Нет", Toast.LENGTH_SHORT).show();
 //                            }
 //                            else {
@@ -143,7 +151,7 @@ public class MakePaymentsActivity extends AppCompatActivity implements View.OnCl
 //                                total[i] = obj.getString("Total");
 //                                Toast.makeText(getApplicationContext(), invoiceNumber[i], Toast.LENGTH_SHORT).show();
 //                            }
-//                        }
+                        }
 //                        textViewPrice.setText(itemPrice[0]);
 //                        textViewDiscountType.setText(discountType[0]);
 //                        textViewDiscountValue.setText(discountValue[0]);
@@ -159,16 +167,16 @@ public class MakePaymentsActivity extends AppCompatActivity implements View.OnCl
 //                            finalPrice = Double.parseDouble(itemPrice[0]) - (Double.parseDouble(itemPrice[0]) / 10);
 //                            textViewPrice.setText(finalPrice.toString());
 //                        }
-//                    }else{
-//                        Toast.makeText(getApplicationContext(), "Что-то пошло не так", Toast.LENGTH_SHORT).show();
-//                    }
+                    }else{
+                        Toast.makeText(getApplicationContext(), "Что-то пошло не так", Toast.LENGTH_SHORT).show();
+                    }
 //                    Toast.makeText(getApplicationContext(), textViewPrice.getText().toString(), Toast.LENGTH_SHORT).show();
-//                    ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_1, itemsList);
-//                    listViewItems.setAdapter(arrayAdapter);
-//                }
-//                catch (JSONException e1) {
-//                    e1.printStackTrace();
-//                }
+                    ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_1, invoiceNumber);
+                    listViewDebtors.setAdapter(arrayAdapter);
+                }
+                catch (JSONException e1) {
+                    e1.printStackTrace();
+                }
             }
         }, new Response.ErrorListener(){
             @Override

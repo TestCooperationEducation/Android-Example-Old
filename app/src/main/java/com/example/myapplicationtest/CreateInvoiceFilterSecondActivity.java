@@ -146,15 +146,16 @@ public class CreateInvoiceFilterSecondActivity extends AppCompatActivity impleme
             public void onResponse(String response) {
                 try{
                     JSONArray jsonArray = new JSONArray(response);
-                    Toast.makeText(getApplicationContext(), "Query successful", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), "Сервер ответил", Toast.LENGTH_SHORT).show();
                     String[] salesPartners = new String[jsonArray.length()];
                     if (jsonArray.length() > 0){
                         for (int i = 0; i < jsonArray.length(); i++) {
                             JSONObject obj = jsonArray.getJSONObject(i);
                             salesPartners[i] = obj.getString("Наименование");
+                            Toast.makeText(getApplicationContext(), "Данные загружены", Toast.LENGTH_SHORT).show();
                         }
                     }else{
-                        Toast.makeText(getApplicationContext(), "Something went wrong with DB query", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), "Что-то пошло не так", Toast.LENGTH_SHORT).show();
                     }
 
                     arrayAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_1, salesPartners);
@@ -167,8 +168,8 @@ public class CreateInvoiceFilterSecondActivity extends AppCompatActivity impleme
         }, new Response.ErrorListener(){
             @Override
             public void onErrorResponse(VolleyError error){
-                Toast.makeText(getApplicationContext(), "Response Error, fuck!", Toast.LENGTH_SHORT).show();
-                Log.e("TAG", "Error " + error.getMessage());
+                Toast.makeText(getApplicationContext(), "Не смогли получить ответ от сервера!", Toast.LENGTH_SHORT).show();
+                Log.e("TAG", "Ошибка: " + error.getMessage());
             }
         }){
             @Override
@@ -179,7 +180,7 @@ public class CreateInvoiceFilterSecondActivity extends AppCompatActivity impleme
                 parameters.put("dbPassword", dbPassword);
                 parameters.put("Area", area);
                 parameters.put("AccountingType", accountingType);
-                //parameters.put("DayOfTheWeek", dayOfTheWeek);
+                parameters.put("DayOfTheWeek", dayOfTheWeek);
                 return parameters;
             }
         };
