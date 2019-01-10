@@ -19,7 +19,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.Request;
-import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
@@ -133,12 +132,12 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
             loginSecurity = sPrefLogin.getString(SAVED_LOGIN, "");
         }
 
-        Intent intent = getIntent();
-        String agentName = intent.getStringExtra(CreateInvoiceFilterSecondActivity.EXTRA_AGENTNAMENEXT);
-        TextView textView = findViewById(R.id.textViewAgent);
-        textView.setText(agentName);
-        author = agentName;
-//        agentNameGlobal = intent.getStringExtra(CreateInvoiceFilterSecondActivity.EXTRA_AGENTNAMENEXT);
+//        Intent intent = getIntent();
+//        String agentName = intent.getStringExtra(CreateInvoiceChooseSalesPartnerActivity.EXTRA_AGENTNAMENEXT);
+//        TextView textView = findViewById(R.id.textViewAgent);
+//        textView.setText(agentName);
+//        author = agentName;
+//        agentNameGlobal = intent.getStringExtra(CreateInvoiceChooseSalesPartnerActivity.EXTRA_AGENTNAMENEXT);
 
         textViewSalesPartner.setText(salesPartner);
         textViewAccountingType.setText(accountingType);

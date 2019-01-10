@@ -30,11 +30,10 @@ import org.json.JSONObject;
 import java.util.HashMap;
 import java.util.Map;
 
-public class CreateInvoiceFilterSecondActivity extends AppCompatActivity implements View.OnClickListener {
+public class CreateInvoiceChooseSalesPartnerActivity extends AppCompatActivity implements View.OnClickListener {
 
     Button btnNext;
     ListView listViewSalesPartners, listViewAccountingType;
-    RequestQueue requestQueue;
     SharedPreferences sPrefArea, sPrefAccountingType, sPrefDBName, sPrefDBPassword, sPrefDBUser,
             sPrefDayOfTheWeek, sPrefSalesPartner;
     ArrayAdapter<String> arrayAdapter;
@@ -46,30 +45,23 @@ public class CreateInvoiceFilterSecondActivity extends AppCompatActivity impleme
     final String SAVED_DayOfTheWeek = "DayOfTheWeek";
     final String SAVED_SALESPARTNER = "SalesPartner";
     SharedPreferences.Editor e;
-    public static final String EXTRA_AGENTNAMENEXT = "com.example.myapplicationtest.AGENTNAMENEXT";
+//    public static final String EXTRA_AGENTNAMENEXT = "com.example.myapplicationtest.AGENTNAMENEXT";
     String requestUrl = "https://caiman.ru.com/php/filter.php", salesPartner, dbName, dbUser, dbPassword,
             area, accountingType, dayOfTheWeek;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_create_invoice_filter_second);
+        setContentView(R.layout.activity_create_invoice_choose_sales_partner);
 
-        Intent intent = getIntent();
-        String agentName = intent.getStringExtra(CreateInvoiceFilterFirstActivity.EXTRA_AGENT);
-        TextView textView = findViewById(R.id.textViewAgent);
-        textView.setText(agentName);
-
-        btnNext = findViewById(R.id.buttonNext);
-        btnNext.setOnClickListener(this);
+//        btnNext = findViewById(R.id.buttonNext);
+//        btnNext.setOnClickListener(this);
         EditText search = findViewById(R.id.editTextSearch);
 
         sPrefSalesPartner = getSharedPreferences(SAVED_SALESPARTNER, Context.MODE_PRIVATE);
 
         listViewSalesPartners = findViewById(R.id.listViewSalesPartners);
-        listViewAccountingType = findViewById(R.id.listViewAccountingType);
-
-//        requestQueue = Volley.newRequestQueue((getApplicationContext()));
+//        listViewAccountingType = findViewById(R.id.listViewAccountingType);
 
         sPrefDBName = getSharedPreferences(SAVED_DBName, Context.MODE_PRIVATE);
         sPrefDBUser = getSharedPreferences(SAVED_DBUser, Context.MODE_PRIVATE);
@@ -79,8 +71,8 @@ public class CreateInvoiceFilterSecondActivity extends AppCompatActivity impleme
         sPrefDayOfTheWeek = getSharedPreferences(SAVED_DayOfTheWeek, Context.MODE_PRIVATE);
 
         if (sPrefDBName.contains(SAVED_DBName) && sPrefDBUser.contains(SAVED_DBUser) && sPrefDBPassword.contains(SAVED_DBPassword)
-                && sPrefArea.contains(SAVED_AREA) && sPrefAccountingType.contains(SAVED_ACCOUNTINGTYPE)){
-//                && sPrefDayOfTheWeek.contains(SAVED_DayOfTheWeek)){
+                && sPrefArea.contains(SAVED_AREA) && sPrefAccountingType.contains(SAVED_ACCOUNTINGTYPE)
+                && sPrefDayOfTheWeek.contains(SAVED_DayOfTheWeek)){
             dbName = sPrefDBName.getString(SAVED_DBName, "");
             dbUser = sPrefDBUser.getString(SAVED_DBUser, "");
             dbPassword = sPrefDBPassword.getString(SAVED_DBPassword, "");
@@ -90,15 +82,15 @@ public class CreateInvoiceFilterSecondActivity extends AppCompatActivity impleme
         }
 
         receiveData();
-        loadListAccountingType();
+//        loadListAccountingType();
 
-        listViewAccountingType.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            public void onItemClick(AdapterView<?> parent, View view,
-                                    int position, long id) {
-                accountingType = ((TextView) view).getText().toString();
-                Toast.makeText(getApplicationContext(), "Selected Item :" + accountingType, Toast.LENGTH_SHORT).show();
-            }
-        });
+//        listViewAccountingType.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//            public void onItemClick(AdapterView<?> parent, View view,
+//                                    int position, long id) {
+//                accountingType = ((TextView) view).getText().toString();
+//                Toast.makeText(getApplicationContext(), "Selected Item :" + accountingType, Toast.LENGTH_SHORT).show();
+//            }
+//        });
 
         listViewSalesPartners.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view,
@@ -176,13 +168,18 @@ public class CreateInvoiceFilterSecondActivity extends AppCompatActivity impleme
                 parameters.put("dbName", dbName);
                 parameters.put("dbUser", dbUser);
                 parameters.put("dbPassword", dbPassword);
-                parameters.put("Area", area);
-                parameters.put("AccountingType", accountingType);
-                parameters.put("DayOfTheWeek", dayOfTheWeek);
+//                if (sPrefArea.contains(SAVED_AREA)){
+//                    parameters.put("Area", area);
+//                }
+//                if (sPrefAccountingType.contains(SAVED_ACCOUNTINGTYPE)){
+//                    parameters.put("AccountingType", accountingType);
+//                }
+//                if (sPrefDayOfTheWeek.contains(SAVED_DayOfTheWeek)){
+//                    parameters.put("DayOfTheWeek", dayOfTheWeek);
+//                }
                 return parameters;
             }
         };
-//        requestQueue.add(request);
         VolleySingleton.getInstance(this).getRequestQueue().add(request);
     }
 
@@ -203,10 +200,10 @@ public class CreateInvoiceFilterSecondActivity extends AppCompatActivity impleme
         e.apply();
 
         Intent intent = new Intent(getApplicationContext(), CreateInvoiceMainActivity.class);
-        TextView textView = findViewById(R.id.textViewAgent);
-        String agentName = textView.getText().toString();
-        intent.putExtra(EXTRA_AGENTNAMENEXT, agentName);
-        Toast.makeText(this, agentName, Toast.LENGTH_SHORT).show();
+//        TextView textView = findViewById(R.id.textViewAgent);
+//        String agentName = textView.getText().toString();
+//        intent.putExtra(EXTRA_AGENTNAMENEXT, agentName);
+//        Toast.makeText(this, agentName, Toast.LENGTH_SHORT).show();
         startActivity(intent);
     }
 }

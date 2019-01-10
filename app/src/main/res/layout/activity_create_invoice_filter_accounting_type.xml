@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".CreateInvoiceFilterAccountingTypeActivity">
+
+    <ListView
+        android:id="@+id/listViewAccountingType"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="?android:attr/activatedBackgroundIndicator"
+        android:choiceMode="singleChoice"
+        android:clickable="true"
+        android:footerDividersEnabled="true"
+        android:hapticFeedbackEnabled="true"
+        android:headerDividersEnabled="true"
+        app:layout_constraintBottom_toTopOf="@+id/buttonNext"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toEndOf="@+id/buttonChooseRoot"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/buttonNext"
+        android:layout_width="0dp"
+        android:layout_height="112dp"
+        android:text="@string/btnNext"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/buttonChooseAccountingType" />
+
+    <Button
+        android:id="@+id/buttonChooseArea"
+        android:layout_width="0dp"
+        android:layout_height="133dp"
+        android:text="@string/btnChooseArea"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toStartOf="@+id/listViewAccountingType"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/buttonChooseRoot"
+        android:layout_width="0dp"
+        android:layout_height="133dp"
+        android:text="@string/btnChooseRoot"
+        android:textSize="18sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/buttonChooseArea" />
+
+    <Button
+        android:id="@+id/buttonChooseAccountingType"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:text="@string/btnChooseAccountingType"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toTopOf="@+id/buttonNext"
+        app:layout_constraintEnd_toStartOf="@+id/listViewAccountingType"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/buttonChooseRoot" />
+</android.support.constraint.ConstraintLayout>

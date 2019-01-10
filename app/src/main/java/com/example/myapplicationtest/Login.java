@@ -1,8 +1,10 @@
 package com.example.myapplicationtest;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -15,7 +17,6 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -26,9 +27,7 @@ import java.util.Map;
 
 public class Login extends AppCompatActivity implements View.OnClickListener {
 
-    EditText Login, Password;
-    Button btnLogin, btnSave, btnSettings;
-    RequestQueue requestQueue;
+    Button btnLogin, btnSettings;
     SharedPreferences sPrefLogin, sPrefPassword, sPrefDBName, sPrefDBPassword, sPrefDBUser;
     final String SAVED_LOGIN = "Login";
     final String SAVED_PASSWORD = "Password";
@@ -36,7 +35,7 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
     final String SAVED_DBUser = "dbUser";
     final String SAVED_DBPassword = "dbPassword";
     SharedPreferences.Editor e;
-    String loginUrl = "https://caiman.ru.com/php/login.php", dbName, dbUser, dbPassword;
+    String loginUrl = "https://caiman.ru.com/php/login.php", dbName, dbUser, dbPassword, Login, Password;
     public static final String EXTRA_AGENTNAME = "com.example.myapplicationtest.AGENTNAME";
 
 
@@ -45,16 +44,10 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        Login = findViewById((R.id.editTextLogin));
-        Password = findViewById((R.id.editTextPassword));
-        btnLogin = findViewById(R.id.buttonLogin);
-        btnSave = findViewById(R.id.buttonSave);
+        btnLogin = findViewById(R.id.buttonLogin);;
         btnSettings = findViewById(R.id.buttonSettings);
         btnLogin.setOnClickListener(this);
-        btnSave.setOnClickListener(this);
         btnSettings.setOnClickListener(this);
-
-//        requestQueue = Volley.newRequestQueue((getApplicationContext()));
 
         sPrefLogin = getSharedPreferences(SAVED_LOGIN, Context.MODE_PRIVATE);
         sPrefPassword = getSharedPreferences(SAVED_PASSWORD, Context.MODE_PRIVATE);
@@ -62,37 +55,45 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
         sPrefDBUser = getSharedPreferences(SAVED_DBUser, Context.MODE_PRIVATE);
         sPrefDBPassword = getSharedPreferences(SAVED_DBPassword, Context.MODE_PRIVATE);
 
-        if (sPrefDBName.contains(SAVED_DBName) && sPrefDBUser.contains(SAVED_DBUser) && sPrefDBPassword.contains(SAVED_DBPassword)){
+        if (sPrefDBName.contains(SAVED_DBName) && sPrefDBUser.contains(SAVED_DBUser) && sPrefDBPassword.contains(SAVED_DBPassword) &&
+                sPrefLogin.contains(SAVED_LOGIN) && sPrefPassword.contains(SAVED_PASSWORD)){
             dbName = sPrefDBName.getString(SAVED_DBName, "");
             dbUser = sPrefDBUser.getString(SAVED_DBUser, "");
             dbPassword = sPrefDBPassword.getString(SAVED_DBPassword, "");
-        }
-        if(sPrefLogin.contains(SAVED_LOGIN)) {
-            Login.setText(sPrefLogin.getString(SAVED_LOGIN, ""));
-            Password.setText(sPrefPassword.getString(SAVED_PASSWORD, ""));
+            Login = sPrefLogin.getString(SAVED_LOGIN, "");
+            Password = sPrefPassword.getString(SAVED_PASSWORD, "");
+            login();
+        } else {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Ошибка")
+                    .setMessage("Настройте Учётку для входа")
+                    .setCancelable(true)
+                    .setNegativeButton("Назад",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    dialog.cancel();
+                                }
+                            });
+            AlertDialog alert = builder.create();
+            alert.show();
         }
     }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.buttonSave:
-                saveLoginPassword();
-                Toast.makeText(this, "saved", Toast.LENGTH_SHORT).show();
-                break;
             case R.id.buttonLogin:
                 login();
-//                Toast.makeText(this, dbName + " " + dbUser + " " + dbPassword, Toast.LENGTH_SHORT).show();
                 break;
             case R.id.buttonSettings:
-                serverSettings();
+                dbSettings();
                 break;
             default:
                 break;
         }
     }
 
-    private void serverSettings(){
+    private void dbSettings(){
         Intent intent = new Intent(this, Settings.class);
         startActivity(intent);
     }
@@ -103,28 +104,20 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
             @Override
             public void onResponse(String response) {
                 try{
-                    //JSONObject jsonObject = new JSONObject(response);
                     JSONArray jsonArray = new JSONArray(response);
-                    Toast.makeText(getApplicationContext(), "Login successfull", Toast.LENGTH_SHORT).show();
-                    /*if(!jsonObject.names().get(0).equals("failed")){
-                        Toast.makeText(getApplicationContext(), "Login successfull", Toast.LENGTH_SHORT).show();
-                        agentName = jsonObject.getString("secondname") + " " +
-                                     jsonObject.getString("firstname") + " " +
-                                     jsonObject.getString("middlename");*/
                     String[] agentName = new String[jsonArray.length()];
                     if (jsonArray.length() == 1){
+                        Toast.makeText(getApplicationContext(), "Успешный вход", Toast.LENGTH_SHORT).show();
                         for (int i = 0; i < jsonArray.length(); i++) {
                             JSONObject obj = jsonArray.getJSONObject(i);
                             agentName[i] = obj.getString("secondname") + " " + obj.getString("firstname")
                                     + " " + obj.getString("middlename");
                         }
                         Intent intent = new Intent(getApplicationContext(), MainMenu.class);
-                        //EditText editText = (EditText) findViewById(R.id.editText2);
-                        //String message = editText.getText().toString();
-                        intent.putExtra(EXTRA_AGENTNAME, agentName[0]);
+//                        intent.putExtra(EXTRA_AGENTNAME, agentName[0]);
                         startActivity(intent);
                     }else{
-                        Toast.makeText(getApplicationContext(), "Login failed", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), "Ошибка Входа. Проверьте Интернет или Учётку", Toast.LENGTH_SHORT).show();
                     }
                 }
                 catch (JSONException e1) {
@@ -134,7 +127,7 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
         }, new Response.ErrorListener(){
             @Override
             public void onErrorResponse(VolleyError error){
-                Toast.makeText(getApplicationContext(), "Login ERROR", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "Проблемы с запросом на сервер", Toast.LENGTH_SHORT).show();
                 Log.e("TAG", "Error " + error.getMessage());
             }
         }){
@@ -144,51 +137,11 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
                 parameters.put("dbName", dbName);
                 parameters.put("dbUser", dbUser);
                 parameters.put("dbPassword", dbPassword);
-                parameters.put("Login", Login.getText().toString());
-                parameters.put("Password", Password.getText().toString());
+                parameters.put("Login", sPrefLogin.getString(SAVED_LOGIN, ""));
+                parameters.put("Password", sPrefPassword.getString(SAVED_PASSWORD, ""));
                 return parameters;
             }
         };
-//        requestQueue.add(request);
         VolleySingleton.getInstance(this).getRequestQueue().add(request);
-
-        /*JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST,
-                loginUrl, new Response.Listener<JSONObject>() {
-            @Override
-            public void onResponse(JSONObject response) {
-                try{
-                    JSONArray dbUsers = response.getJSONArray("security");
-                    for (int iteration = 0; iteration < dbUsers.length(); iteration++){
-                        JSONObject dbUser = dbUsers.getJSONObject(iteration);
-
-                        attribute = dbUser.getString("attribute");
-
-                    }
-                }
-                catch (JSONException e1) {
-                    e1.printStackTrace();
-                }
-            }
-        }, new Response.ErrorListener(){
-            @Override
-            public void onErrorResponse(VolleyError error){
-                Log.e("TAG", "Error " + error.getMessage());
-            }
-        });
-        requestQueue.add(jsonObjectRequest);
-        Intent intent = new Intent(this, DisplayMessageActivity.class);
-        //EditText editText = (EditText) findViewById(R.id.editText2);
-        //String message = editText.getText().toString();
-        intent.putExtra(EXTRA_ATTRIBUTE, attribute);
-        startActivity(intent);*/
-    }
-
-    private void saveLoginPassword() {
-        e = sPrefLogin.edit();
-        e.putString(SAVED_LOGIN, Login.getText().toString());
-        e.apply();
-        e = sPrefPassword.edit();
-        e.putString(SAVED_PASSWORD, Password.getText().toString());
-        e.apply();
     }
 }

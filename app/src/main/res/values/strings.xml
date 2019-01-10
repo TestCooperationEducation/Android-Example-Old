@@ -2,18 +2,18 @@
     <string name="app_name">My ApplicationTest</string>
     <string name="edit_message">Enter message</string>
     <string name="button_send">Send</string>
-    <string name="login">login</string>
-    <string name="password">password</string>
+    <string name="login">Логин</string>
+    <string name="password">Пароль</string>
     <string name="BtnLogin">Войти</string>
     <string name="BtnSettings">Настройки Базы Данных</string>
-    <string name="BtnSave">Сохранить</string>
-    <string name="db_name">Server Name</string>
-    <string name="db_user">DB User</string>
-    <string name="db_password">DB Password</string>
-    <string name="btnDBSettingsSave">Save</string>
-    <string name="btnInvoice">Накладная</string>
-    <string name="btnPayments">Платежи</string>
-    <string name="btnSalesPartners">Контрагенты</string>
+    <string name="BtnSaveLoginPassword">Сохранить логин и пароль</string>
+    <string name="db_name">Имя Базы Данных</string>
+    <string name="db_user">Пользователь Базы Данных</string>
+    <string name="db_password">Пароль Базы Данных</string>
+    <string name="btnDBSettingsSave">Сохранить настройки БД</string>
+    <string name="btnInvoice">Создать накладную</string>
+    <string name="btnPayments">Просмотр платежей</string>
+    <string name="btnSalesPartners">Добавить контрагента</string>
     <string name="btnNext">Фильтр</string>
     <string name="btnNextFilterSecond">Создать</string>
     <string name="editTextQuantity">Количество</string>
@@ -41,5 +41,14 @@
     <string name="btnViewInvoice">Просмотреть накладную</string>
     <string name="editTextPaymentSum">Сумма внесения</string>
     <string name="editTextSearchDebtor">Поиск</string>
+    <string name="btnViewInvoices">Просмотр накладных</string>
+    <string name="btnChangePrices">Изменить цены</string>
+    <string name="btnReports">Отчёты</string>
+    <string name="btnChooseArea">Район</string>
+    <string name="btnChooseRoot">Маршрут</string>
+    <string name="btnChooseAccountingType">Учёт</string>
+    <string name="textViewFilterTabLabel">Название Раздела</string>
+    <string name="btnInvoiceTypeTwo">Непровод</string>
+    <string name="btnInvoiceTypeOne">Провод</string>
 
 </resources>

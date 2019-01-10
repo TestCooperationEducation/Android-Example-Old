@@ -8,13 +8,9 @@
 
     <EditText
         android:id="@+id/editTextDBName"
-        android:layout_width="300dp"
+        android:layout_width="0dp"
         android:layout_height="50dp"
-        android:layout_marginStart="50dp"
-        android:layout_marginLeft="50dp"
-        android:layout_marginTop="50dp"
-        android:layout_marginEnd="50dp"
-        android:layout_marginRight="50dp"
+        android:layout_marginTop="15dp"
         android:hint="@string/db_name"
         android:importantForAutofill="no"
         android:inputType="text"
@@ -24,48 +20,82 @@
         tools:targetApi="o" />
 
     <EditText
-        android:id="@+id/editTextDBUser"
-        android:layout_width="300dp"
+        android:id="@+id/editTextLogin"
+        android:layout_width="0dp"
         android:layout_height="50dp"
-        android:layout_marginStart="50dp"
-        android:layout_marginLeft="50dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="50dp"
-        android:layout_marginRight="50dp"
+        android:layout_marginTop="15dp"
+        android:hint="@string/login"
+        android:importantForAutofill="no"
+        android:inputType="text"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/buttonSaveDBSettings"
+        tools:targetApi="o" />
+
+    <EditText
+        android:id="@+id/editTextPassword"
+        android:layout_width="0dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="15dp"
+        android:hint="@string/password"
+        android:importantForAutofill="no"
+        android:inputType="textPassword"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/editTextLogin"
+        tools:targetApi="o" />
+
+    <EditText
+        android:id="@+id/editTextDBUser"
+        android:layout_width="0dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="15dp"
         android:hint="@string/db_user"
         android:importantForAutofill="no"
         android:inputType="text"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editTextDBName" tools:targetApi="o" />
+        app:layout_constraintTop_toBottomOf="@+id/editTextDBName"
+        tools:targetApi="o" />
 
     <EditText
         android:id="@+id/editTextDBPassword"
-        android:layout_width="300dp"
+        android:layout_width="0dp"
         android:layout_height="50dp"
-        android:layout_marginStart="50dp"
-        android:layout_marginLeft="50dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="50dp"
-        android:layout_marginRight="50dp"
+        android:layout_marginTop="15dp"
         android:ems="10"
         android:hint="@string/db_password"
+        android:importantForAutofill="no"
         android:inputType="textPassword"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/editTextDBUser"
-        android:importantForAutofill="no" tools:targetApi="o" />
+        tools:targetApi="o" />
 
     <Button
-        android:id="@+id/buttonSave"
+        android:id="@+id/buttonSaveDBSettings"
         android:layout_width="0dp"
-        android:layout_height="50dp"
+        android:layout_height="140dp"
         android:layout_marginTop="15dp"
         android:text="@string/btnDBSettingsSave"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/editTextDBPassword" />
+
+    <Button
+        android:id="@+id/buttonSaveLoginPassword"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="15dp"
+        android:text="@string/BtnSaveLoginPassword"
+        android:textSize="18sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editTextDBPassword"
-        app:layout_constraintVertical_bias="0.064" />
+        app:layout_constraintTop_toBottomOf="@+id/editTextPassword" />
 </android.support.constraint.ConstraintLayout>

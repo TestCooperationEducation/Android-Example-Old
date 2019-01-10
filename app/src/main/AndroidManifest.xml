@@ -37,12 +37,15 @@
         </activity>
         <activity android:name=".Settings" />
         <activity android:name=".MainMenu" />
-        <activity android:name=".CreateInvoiceFilterFirstActivity" />
-        <activity android:name=".CreateInvoiceFilterSecondActivity" />
+        <activity android:name=".CreateInvoiceFilterAreaActivity" />
+        <activity android:name=".CreateInvoiceChooseSalesPartnerActivity" />
         <activity android:name=".CreateInvoiceMainActivity" />
         <activity android:name=".MakePaymentsActivity" />
         <activity android:name=".ManageSalesPartnersActivity" />
-        <activity android:name=".SalesPartnersManagerActivity"></activity>
+        <activity android:name=".SalesPartnersManagerActivity" />
+        <activity android:name=".CreateInvoiceFilterRootActivity" />
+        <activity android:name=".CreateInvoiceFilterAccountingTypeActivity" />
+        <activity android:name=".CreateInvoiceChooseTypeOfInvoiceActivity"></activity>
     </application>
 
 </manifest>

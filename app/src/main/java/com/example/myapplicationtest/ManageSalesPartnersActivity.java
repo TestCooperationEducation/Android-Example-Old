@@ -14,10 +14,10 @@ public class ManageSalesPartnersActivity extends AppCompatActivity implements Vi
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_manage_sales_partners);
 
-        Intent intent = getIntent();
-        String agentName = intent.getStringExtra(MainMenu.EXTRA_AGENTNAMENEXT);
-        TextView textView = findViewById(R.id.textViewAgent);
-        textView.setText(agentName);
+//        Intent intent = getIntent();
+//        String agentName = intent.getStringExtra(MainMenu.EXTRA_AGENTNAMENEXT);
+//        TextView textView = findViewById(R.id.textViewAgent);
+//        textView.setText(agentName);
     }
 
     @Override

@@ -9,19 +9,20 @@
     <Button
         android:id="@+id/buttonInvoice"
         android:layout_width="0dp"
-        android:layout_height="50dp"
-        android:layout_marginTop="70dp"
+        android:layout_height="100dp"
         android:text="@string/btnInvoice"
+        android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textViewAgent" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <Button
         android:id="@+id/buttonPayments"
         android:layout_width="0dp"
-        android:layout_height="50dp"
-        android:layout_marginTop="15dp"
+        android:layout_height="100dp"
+        android:layout_marginTop="2dp"
         android:text="@string/btnPayments"
+        android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/buttonInvoice" />
@@ -29,23 +30,49 @@
     <Button
         android:id="@+id/buttonSalesPartners"
         android:layout_width="0dp"
-        android:layout_height="50dp"
-        android:layout_marginTop="15dp"
+        android:layout_height="100dp"
+        android:layout_marginTop="2dp"
         android:text="@string/btnSalesPartners"
+        android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/buttonPayments" />
 
-    <TextView
-        android:id="@+id/textViewAgent"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="50dp"
-        android:layout_marginLeft="50dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="50dp"
-        android:layout_marginRight="50dp"
+    <Button
+        android:id="@+id/buttonChangePrices"
+        android:layout_width="0dp"
+        android:layout_height="100dp"
+        android:layout_marginTop="2dp"
+        android:text="@string/btnChangePrices"
+        android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/buttonSalesPartners" />
+
+    <Button
+        android:id="@+id/buttonViewInvoices"
+        android:layout_width="0dp"
+        android:layout_height="100dp"
+        android:layout_marginTop="2dp"
+        android:text="@string/btnViewInvoices"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/buttonChangePrices" />
+
+    <Button
+        android:id="@+id/buttonReports"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="2dp"
+        android:text="@string/btnReports"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/buttonViewInvoices" />
+
 </android.support.constraint.ConstraintLayout>
