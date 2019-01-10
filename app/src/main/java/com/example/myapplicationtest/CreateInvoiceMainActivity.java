@@ -36,7 +36,6 @@ import java.util.Map;
 
 public class CreateInvoiceMainActivity extends AppCompatActivity implements View.OnClickListener {
 
-    RequestQueue requestQueue;
     Button btnAddItem, btnReceivePrice, btnRemove, btnSaveRecord, btnPay;
     ArrayList<String> arrItems, arrTotal;
     ArrayList<Double> arrQuantity, arrExchange, arrReturn, arrPrice, arrSum;
@@ -707,4 +706,5 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
             editTextReturn.setText("");
         }
     }
+
 }

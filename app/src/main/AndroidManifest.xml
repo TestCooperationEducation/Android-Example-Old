@@ -41,7 +41,8 @@
         <activity android:name=".CreateInvoiceFilterSecondActivity" />
         <activity android:name=".CreateInvoiceMainActivity" />
         <activity android:name=".MakePaymentsActivity" />
-        <activity android:name=".ManageSalesPartnersActivity"></activity>
+        <activity android:name=".ManageSalesPartnersActivity" />
+        <activity android:name=".SalesPartnersManagerActivity"></activity>
     </application>
 
 </manifest>

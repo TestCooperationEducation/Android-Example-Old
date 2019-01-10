@@ -32,8 +32,14 @@
     <string name="editTextPaymentAmount">Сумма Внесения</string>
     <string name="dateStart">Начало</string>
     <string name="dateEnd">Конец</string>
-    <string name="btnRecieveListOfDebtors">Получить список должников</string>
+    <string name="btnReceiveListOfDebts">Получить список долгов</string>
     <string name="btnClearListOfDebtors">Очистить список</string>
     <string name="btnMakePaymentDebtor">Внести платёж</string>
+    <string name="textViewTotalDebt">Весь долг</string>
+    <string name="textViewInvoiceDebt">Долг по накладной</string>
+    <string name="btnSelect">Подробно</string>
+    <string name="btnViewInvoice">Просмотреть накладную</string>
+    <string name="editTextPaymentSum">Сумма внесения</string>
+    <string name="editTextSearchDebtor">Поиск</string>
 
 </resources>

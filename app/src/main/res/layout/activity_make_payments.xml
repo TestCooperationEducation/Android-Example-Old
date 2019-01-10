@@ -10,7 +10,8 @@
         android:id="@+id/textViewAgent"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="5dp"
+        android:layout_marginTop="3dp"
+        android:textSize="12sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -18,33 +19,36 @@
     <ListView
         android:id="@+id/listViewAccountingType"
         android:layout_width="0dp"
-        android:layout_height="50dp"
-        android:layout_marginTop="10dp"
+        android:layout_height="33dp"
+        android:layout_marginTop="1dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.461"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textViewAgent" />
+        app:layout_constraintTop_toBottomOf="@+id/devider2" />
 
     <EditText
         android:id="@+id/editTextDateStart"
         android:layout_width="0dp"
-        android:layout_height="50dp"
-        android:layout_marginTop="10dp"
+        android:layout_height="35dp"
+        android:layout_marginTop="5dp"
         android:ems="10"
         android:hint="@string/dateStart"
         android:inputType="date"
+        android:textSize="13sp"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/listViewAccountingType" />
+        app:layout_constraintTop_toBottomOf="@+id/devider3" />
 
     <EditText
         android:id="@+id/editTextDateEnd"
         android:layout_width="0dp"
-        android:layout_height="50dp"
-        android:layout_marginTop="10dp"
+        android:layout_height="35dp"
+        android:layout_marginTop="5dp"
         android:ems="10"
         android:hint="@string/dateEnd"
         android:inputType="date"
+        android:textSize="14sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/editTextDateStart" />
@@ -53,39 +57,165 @@
         android:id="@+id/listViewDebtors"
         android:layout_width="0dp"
         android:layout_height="114dp"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="5dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/buttonReceiveList" />
+        app:layout_constraintTop_toBottomOf="@+id/editTextDateEnd" />
 
     <Button
         android:id="@+id/buttonReceiveList"
         android:layout_width="0dp"
         android:layout_height="50dp"
-        android:layout_marginTop="10dp"
-        android:text="@string/btnRecieveListOfDebtors"
+        android:layout_marginTop="5dp"
+        android:text="@string/btnReceiveListOfDebts"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editTextDateEnd" />
+        app:layout_constraintTop_toBottomOf="@+id/buttonSelect" />
 
     <Button
         android:id="@+id/buttonClearList"
         android:layout_width="0dp"
         android:layout_height="50dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="5dp"
         android:text="@string/btnClearListOfDebtors"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/listViewDebtors" />
+        app:layout_constraintStart_toEndOf="@+id/buttonMakePayment"
+        app:layout_constraintTop_toBottomOf="@+id/buttonReceiveList" />
 
     <Button
         android:id="@+id/buttonMakePayment"
+        android:layout_width="175dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="5dp"
+        android:text="@string/btnMakePaymentDebtor"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/buttonReceiveList" />
+
+    <TextView
+        android:id="@+id/textViewTotalDebt"
+        android:layout_width="93dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="2dp"
+        android:text="@string/textViewTotalDebt"
+        android:textSize="14sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/devider" />
+
+    <View
+        android:id="@+id/devider"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_marginTop="2dp"
+        android:background="@android:color/black"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/listViewDebtors" />
+
+    <View
+        android:id="@+id/devider2"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_marginTop="1dp"
+        android:background="@android:color/black"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/listViewSalesPartners" />
+
+    <View
+        android:id="@+id/devider3"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_marginTop="1dp"
+        android:background="@android:color/black"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/listViewAccountingType" />
+
+    <TextView
+        android:id="@+id/textViewInvoiceDebt"
+        android:layout_width="129dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="2dp"
+        android:text="@string/textViewInvoiceDebt"
+        app:layout_constraintStart_toEndOf="@+id/textViewTotalDebt"
+        app:layout_constraintTop_toBottomOf="@+id/devider" />
+
+    <Button
+        android:id="@+id/buttonSelect"
+        android:layout_width="wrap_content"
+        android:layout_height="50dp"
+        android:layout_marginTop="8dp"
+        android:text="@string/btnSelect"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewTotalDebt" />
+
+    <ListView
+        android:id="@+id/listViewSalesPartners"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="5dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/editTextSearch" />
+
+    <Button
+        android:id="@+id/buttonViewInvoice"
         android:layout_width="0dp"
         android:layout_height="50dp"
-        android:layout_marginTop="10dp"
-        android:text="@string/btnMakePaymentDebtor"
+        android:layout_marginStart="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="8dp"
+        android:text="@string/btnViewInvoice"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/buttonSelect"
+        app:layout_constraintTop_toBottomOf="@+id/textViewInvoiceDebt" />
+
+    <EditText
+        android:id="@+id/editTextPaymentSum"
+        android:layout_width="0dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="2dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
+        android:hint="@string/editTextPaymentSum"
+        android:inputType="number"
+        android:textSize="12sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/textViewInvoiceDebt"
+        app:layout_constraintTop_toBottomOf="@+id/devider" />
+
+    <EditText
+        android:id="@+id/editTextSearch"
+        android:layout_width="0dp"
+        android:layout_height="33dp"
+        android:layout_marginTop="8dp"
+        android:hint="@string/editTextSearchDebtor"
+        android:textSize="12sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/buttonClearList" />
+        app:layout_constraintTop_toBottomOf="@+id/textViewAgent" />
+
+    <TextView
+        android:id="@+id/textViewStatusPay"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/buttonMakePayment" />
+
 </android.support.constraint.ConstraintLayout>
