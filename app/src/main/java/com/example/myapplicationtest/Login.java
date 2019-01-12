@@ -107,12 +107,12 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
                     JSONArray jsonArray = new JSONArray(response);
                     String[] agentName = new String[jsonArray.length()];
                     if (jsonArray.length() == 1){
-                        Toast.makeText(getApplicationContext(), "Успешный вход", Toast.LENGTH_SHORT).show();
-                        for (int i = 0; i < jsonArray.length(); i++) {
-                            JSONObject obj = jsonArray.getJSONObject(i);
-                            agentName[i] = obj.getString("secondname") + " " + obj.getString("firstname")
-                                    + " " + obj.getString("middlename");
-                        }
+//                        Toast.makeText(getApplicationContext(), "Успешный вход", Toast.LENGTH_SHORT).show();
+//                        for (int i = 0; i < jsonArray.length(); i++) {
+//                            JSONObject obj = jsonArray.getJSONObject(i);
+//                            agentName[i] = obj.getString("secondname") + " " + obj.getString("firstname")
+//                                    + " " + obj.getString("middlename");
+//                        }
                         Intent intent = new Intent(getApplicationContext(), MainMenu.class);
 //                        intent.putExtra(EXTRA_AGENTNAME, agentName[0]);
                         startActivity(intent);

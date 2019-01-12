@@ -46,7 +46,7 @@ public class CreateInvoiceChooseSalesPartnerActivity extends AppCompatActivity i
     final String SAVED_SALESPARTNER = "SalesPartner";
     SharedPreferences.Editor e;
 //    public static final String EXTRA_AGENTNAMENEXT = "com.example.myapplicationtest.AGENTNAMENEXT";
-    String requestUrl = "https://caiman.ru.com/php/filter.php", salesPartner, dbName, dbUser, dbPassword,
+    String requestUrl = "https://caiman.ru.com/php/filter_new.php", salesPartner, dbName, dbUser, dbPassword,
             area, accountingType, dayOfTheWeek;
 
     @Override
@@ -70,9 +70,9 @@ public class CreateInvoiceChooseSalesPartnerActivity extends AppCompatActivity i
         sPrefAccountingType = getSharedPreferences(SAVED_ACCOUNTINGTYPE, Context.MODE_PRIVATE);
         sPrefDayOfTheWeek = getSharedPreferences(SAVED_DayOfTheWeek, Context.MODE_PRIVATE);
 
-        if (sPrefDBName.contains(SAVED_DBName) && sPrefDBUser.contains(SAVED_DBUser) && sPrefDBPassword.contains(SAVED_DBPassword)
-                && sPrefArea.contains(SAVED_AREA) && sPrefAccountingType.contains(SAVED_ACCOUNTINGTYPE)
-                && sPrefDayOfTheWeek.contains(SAVED_DayOfTheWeek)){
+        if (sPrefDBName.contains(SAVED_DBName) && sPrefDBUser.contains(SAVED_DBUser) && sPrefDBPassword.contains(SAVED_DBPassword)){
+//                && sPrefArea.contains(SAVED_AREA) && sPrefAccountingType.contains(SAVED_ACCOUNTINGTYPE)
+//                && sPrefDayOfTheWeek.contains(SAVED_DayOfTheWeek)){
             dbName = sPrefDBName.getString(SAVED_DBName, "");
             dbUser = sPrefDBUser.getString(SAVED_DBUser, "");
             dbPassword = sPrefDBPassword.getString(SAVED_DBPassword, "");
@@ -96,7 +96,8 @@ public class CreateInvoiceChooseSalesPartnerActivity extends AppCompatActivity i
             public void onItemClick(AdapterView<?> parent, View view,
                                     int position, long id) {
                 salesPartner = ((TextView) view).getText().toString();
-                Toast.makeText(getApplicationContext(), "Selected Item :" + salesPartner, Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "Контрагент: " + salesPartner, Toast.LENGTH_SHORT).show();
+                createInvoice();
             }
         });
 
@@ -142,8 +143,8 @@ public class CreateInvoiceChooseSalesPartnerActivity extends AppCompatActivity i
                         for (int i = 0; i < jsonArray.length(); i++) {
                             JSONObject obj = jsonArray.getJSONObject(i);
                             salesPartners[i] = obj.getString("Наименование");
-                            Toast.makeText(getApplicationContext(), "Данные загружены", Toast.LENGTH_SHORT).show();
                         }
+                        Toast.makeText(getApplicationContext(), "Данные загружены", Toast.LENGTH_SHORT).show();
                     }else{
                         Toast.makeText(getApplicationContext(), "Что-то пошло не так", Toast.LENGTH_SHORT).show();
                     }
@@ -168,15 +169,15 @@ public class CreateInvoiceChooseSalesPartnerActivity extends AppCompatActivity i
                 parameters.put("dbName", dbName);
                 parameters.put("dbUser", dbUser);
                 parameters.put("dbPassword", dbPassword);
-//                if (sPrefArea.contains(SAVED_AREA)){
-//                    parameters.put("Area", area);
-//                }
-//                if (sPrefAccountingType.contains(SAVED_ACCOUNTINGTYPE)){
-//                    parameters.put("AccountingType", accountingType);
-//                }
-//                if (sPrefDayOfTheWeek.contains(SAVED_DayOfTheWeek)){
-//                    parameters.put("DayOfTheWeek", dayOfTheWeek);
-//                }
+                if (sPrefArea.contains(SAVED_AREA)){
+                    parameters.put("Area", area);
+                }
+                if (sPrefAccountingType.contains(SAVED_ACCOUNTINGTYPE)){
+                    parameters.put("AccountingType", accountingType);
+                }
+                if (sPrefDayOfTheWeek.contains(SAVED_DayOfTheWeek)){
+                    parameters.put("DayOfTheWeek", dayOfTheWeek);
+                }
                 return parameters;
             }
         };
@@ -199,7 +200,7 @@ public class CreateInvoiceChooseSalesPartnerActivity extends AppCompatActivity i
         e.putString(SAVED_ACCOUNTINGTYPE, accountingType);
         e.apply();
 
-        Intent intent = new Intent(getApplicationContext(), CreateInvoiceMainActivity.class);
+        Intent intent = new Intent(getApplicationContext(), CreateInvoiceChooseTypeOfInvoiceActivity.class);
 //        TextView textView = findViewById(R.id.textViewAgent);
 //        String agentName = textView.getText().toString();
 //        intent.putExtra(EXTRA_AGENTNAMENEXT, agentName);

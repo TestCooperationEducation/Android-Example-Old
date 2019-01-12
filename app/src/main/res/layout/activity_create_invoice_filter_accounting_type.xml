@@ -37,7 +37,7 @@
     <Button
         android:id="@+id/buttonChooseArea"
         android:layout_width="0dp"
-        android:layout_height="133dp"
+        android:layout_height="60dp"
         android:text="@string/btnChooseArea"
         android:textSize="18sp"
         app:layout_constraintEnd_toStartOf="@+id/listViewAccountingType"
@@ -47,7 +47,7 @@
     <Button
         android:id="@+id/buttonChooseRoot"
         android:layout_width="0dp"
-        android:layout_height="133dp"
+        android:layout_height="60dp"
         android:text="@string/btnChooseRoot"
         android:textSize="18sp"
         app:layout_constraintStart_toStartOf="parent"

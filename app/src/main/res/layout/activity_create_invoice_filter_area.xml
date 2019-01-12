@@ -35,9 +35,10 @@
     <Button
         android:id="@+id/buttonChooseArea"
         android:layout_width="0dp"
-        android:layout_height="240dp"
+        android:layout_height="0dp"
         android:text="@string/btnChooseArea"
         android:textSize="18sp"
+        app:layout_constraintBottom_toTopOf="@+id/buttonChooseRoot"
         app:layout_constraintEnd_toStartOf="@+id/listViewArea"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -45,21 +46,20 @@
     <Button
         android:id="@+id/buttonChooseRoot"
         android:layout_width="0dp"
-        android:layout_height="133dp"
+        android:layout_height="60dp"
         android:text="@string/btnChooseRoot"
         android:textSize="18sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/buttonChooseArea" />
+        app:layout_constraintBottom_toTopOf="@+id/buttonChooseAccountingType"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <Button
         android:id="@+id/buttonChooseAccountingType"
         android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:layout_height="60dp"
         android:text="@string/btnChooseAccountingType"
         android:textSize="18sp"
         app:layout_constraintBottom_toTopOf="@+id/buttonNext"
         app:layout_constraintEnd_toStartOf="@+id/listViewArea"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/buttonChooseRoot" />
+        app:layout_constraintStart_toStartOf="parent" />
 
 </android.support.constraint.ConstraintLayout>

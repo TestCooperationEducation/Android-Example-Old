@@ -36,9 +36,9 @@ public class CreateInvoiceFilterAccountingTypeActivity extends AppCompatActivity
         btnChooseArea = findViewById(R.id.buttonChooseArea);
         btnChooseArea.setOnClickListener(this);
 
-        sPrefArea = getSharedPreferences(SAVED_AREA, Context.MODE_PRIVATE);
+//        sPrefArea = getSharedPreferences(SAVED_AREA, Context.MODE_PRIVATE);
         sPrefAccountingType = getSharedPreferences(SAVED_ACCOUNTINGTYPE, Context.MODE_PRIVATE);
-        sPrefDayOfTheWeek = getSharedPreferences(SAVED_DAYOFTHEWEEK, Context.MODE_PRIVATE);
+//        sPrefDayOfTheWeek = getSharedPreferences(SAVED_DAYOFTHEWEEK, Context.MODE_PRIVATE);
 
         listViewAccountingType = findViewById(R.id.listViewAccountingType);
 
