@@ -35,17 +35,18 @@ public class CreateInvoiceChooseSalesPartnerActivity extends AppCompatActivity i
     Button btnNext;
     ListView listViewSalesPartners, listViewAccountingType;
     SharedPreferences sPrefArea, sPrefAccountingType, sPrefDBName, sPrefDBPassword, sPrefDBUser,
-            sPrefDayOfTheWeek, sPrefSalesPartner;
+            sPrefDayOfTheWeek, sPrefSalesPartner, sPrefAreaDefault, sPrefDayOfTheWeekDefault;
     ArrayAdapter<String> arrayAdapter;
     final String SAVED_AREA = "Area";
+    final String SAVED_AREADEFAULT = "areaDefault";
     final String SAVED_ACCOUNTINGTYPE = "AccountingType";
     final String SAVED_DBName = "dbName";
     final String SAVED_DBUser = "dbUser";
     final String SAVED_DBPassword = "dbPassword";
-    final String SAVED_DayOfTheWeek = "DayOfTheWeek";
+    final String SAVED_DAYOFTHEWEEK = "DayOfTheWeek";
+    final String SAVED_DAYOFTHEWEEKDEFAULT = "DayOfTheWeekDefault";
     final String SAVED_SALESPARTNER = "SalesPartner";
     SharedPreferences.Editor e;
-//    public static final String EXTRA_AGENTNAMENEXT = "com.example.myapplicationtest.AGENTNAMENEXT";
     String requestUrl = "https://caiman.ru.com/php/filter_new.php", salesPartner, dbName, dbUser, dbPassword,
             area, accountingType, dayOfTheWeek;
 
@@ -54,43 +55,23 @@ public class CreateInvoiceChooseSalesPartnerActivity extends AppCompatActivity i
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_invoice_choose_sales_partner);
 
-//        btnNext = findViewById(R.id.buttonNext);
-//        btnNext.setOnClickListener(this);
         EditText search = findViewById(R.id.editTextSearch);
 
         sPrefSalesPartner = getSharedPreferences(SAVED_SALESPARTNER, Context.MODE_PRIVATE);
 
         listViewSalesPartners = findViewById(R.id.listViewSalesPartners);
-//        listViewAccountingType = findViewById(R.id.listViewAccountingType);
 
         sPrefDBName = getSharedPreferences(SAVED_DBName, Context.MODE_PRIVATE);
         sPrefDBUser = getSharedPreferences(SAVED_DBUser, Context.MODE_PRIVATE);
         sPrefDBPassword = getSharedPreferences(SAVED_DBPassword, Context.MODE_PRIVATE);
         sPrefArea= getSharedPreferences(SAVED_AREA, Context.MODE_PRIVATE);
         sPrefAccountingType = getSharedPreferences(SAVED_ACCOUNTINGTYPE, Context.MODE_PRIVATE);
-        sPrefDayOfTheWeek = getSharedPreferences(SAVED_DayOfTheWeek, Context.MODE_PRIVATE);
+        sPrefDayOfTheWeek = getSharedPreferences(SAVED_DAYOFTHEWEEK, Context.MODE_PRIVATE);
+        sPrefDayOfTheWeekDefault = getSharedPreferences(SAVED_DAYOFTHEWEEKDEFAULT, Context.MODE_PRIVATE);
+        sPrefAreaDefault= getSharedPreferences(SAVED_AREADEFAULT, Context.MODE_PRIVATE);
 
-        if (sPrefDBName.contains(SAVED_DBName) && sPrefDBUser.contains(SAVED_DBUser) && sPrefDBPassword.contains(SAVED_DBPassword)){
-//                && sPrefArea.contains(SAVED_AREA) && sPrefAccountingType.contains(SAVED_ACCOUNTINGTYPE)
-//                && sPrefDayOfTheWeek.contains(SAVED_DayOfTheWeek)){
-            dbName = sPrefDBName.getString(SAVED_DBName, "");
-            dbUser = sPrefDBUser.getString(SAVED_DBUser, "");
-            dbPassword = sPrefDBPassword.getString(SAVED_DBPassword, "");
-            area = sPrefArea.getString(SAVED_AREA, "");
-            accountingType = sPrefAccountingType.getString(SAVED_ACCOUNTINGTYPE, "");
-            dayOfTheWeek = sPrefDayOfTheWeek.getString(SAVED_DayOfTheWeek, "");
-        }
-
+        initialValues();
         receiveData();
-//        loadListAccountingType();
-
-//        listViewAccountingType.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//            public void onItemClick(AdapterView<?> parent, View view,
-//                                    int position, long id) {
-//                accountingType = ((TextView) view).getText().toString();
-//                Toast.makeText(getApplicationContext(), "Selected Item :" + accountingType, Toast.LENGTH_SHORT).show();
-//            }
-//        });
 
         listViewSalesPartners.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view,
@@ -169,42 +150,61 @@ public class CreateInvoiceChooseSalesPartnerActivity extends AppCompatActivity i
                 parameters.put("dbName", dbName);
                 parameters.put("dbUser", dbUser);
                 parameters.put("dbPassword", dbPassword);
-                if (sPrefArea.contains(SAVED_AREA)){
-                    parameters.put("Area", area);
-                }
+                parameters.put("Area", area);
                 if (sPrefAccountingType.contains(SAVED_ACCOUNTINGTYPE)){
                     parameters.put("AccountingType", accountingType);
                 }
-                if (sPrefDayOfTheWeek.contains(SAVED_DayOfTheWeek)){
-                    parameters.put("DayOfTheWeek", dayOfTheWeek);
-                }
+                parameters.put("DayOfTheWeek", dayOfTheWeek);
                 return parameters;
             }
         };
         VolleySingleton.getInstance(this).getRequestQueue().add(request);
     }
 
-    private void loadListAccountingType(){
-        String[] accountingType = new String[2];
-        accountingType[0] = "провод";
-        accountingType[1] = "непровод";
-        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, accountingType);
-        listViewAccountingType.setAdapter(arrayAdapter);
-    }
-
     private void createInvoice(){
         e = sPrefSalesPartner.edit();
         e.putString(SAVED_SALESPARTNER, salesPartner);
         e.apply();
-        e = sPrefAccountingType.edit();
-        e.putString(SAVED_ACCOUNTINGTYPE, accountingType);
-        e.apply();
-
         Intent intent = new Intent(getApplicationContext(), CreateInvoiceChooseTypeOfInvoiceActivity.class);
-//        TextView textView = findViewById(R.id.textViewAgent);
-//        String agentName = textView.getText().toString();
-//        intent.putExtra(EXTRA_AGENTNAMENEXT, agentName);
-//        Toast.makeText(this, agentName, Toast.LENGTH_SHORT).show();
         startActivity(intent);
+    }
+
+    private void initialValues(){
+        if (sPrefDBName.contains(SAVED_DBName) && sPrefDBUser.contains(SAVED_DBUser) && sPrefDBPassword.contains(SAVED_DBPassword)){
+            dbName = sPrefDBName.getString(SAVED_DBName, "");
+            dbUser = sPrefDBUser.getString(SAVED_DBUser, "");
+            dbPassword = sPrefDBPassword.getString(SAVED_DBPassword, "");
+
+            if (sPrefArea.contains(SAVED_AREA)){
+                area = sPrefArea.getString(SAVED_AREA, "");
+            } else {
+                area = sPrefAreaDefault.getString(SAVED_AREADEFAULT, "");
+            }
+            if (sPrefAccountingType.contains(SAVED_ACCOUNTINGTYPE)){
+                accountingType = sPrefAccountingType.getString(SAVED_ACCOUNTINGTYPE, "");
+            } else {
+
+            }
+            if (sPrefDayOfTheWeek.contains(SAVED_DAYOFTHEWEEK)){
+                dayOfTheWeek = sPrefDayOfTheWeek.getString(SAVED_DAYOFTHEWEEK, "");
+            } else {
+                dayOfTheWeek = sPrefDayOfTheWeekDefault.getString(SAVED_DAYOFTHEWEEKDEFAULT, "");
+                if (dayOfTheWeek.equals("1") || dayOfTheWeek.equals("4")){
+                    dayOfTheWeek = "понедельник-четверг";
+                }
+                if (dayOfTheWeek.equals("2") || dayOfTheWeek.equals("5")){
+                    dayOfTheWeek = "вторник-пятница";
+                }
+                if (dayOfTheWeek.equals("3")){
+                    dayOfTheWeek = "среда";
+                }
+                if (dayOfTheWeek.equals("6") || dayOfTheWeek.equals("7")){
+                    dayOfTheWeek = "среда";
+                }
+                if (sPrefAreaDefault.getString(SAVED_AREADEFAULT, "").equals("север")){
+                    dayOfTheWeek = "север";
+                }
+            }
+        }
     }
 }

@@ -150,6 +150,8 @@
         android:layout_marginStart="8dp"
         android:layout_marginLeft="8dp"
         android:layout_marginTop="10dp"
+        android:clickable="true"
+        android:focusableInTouchMode="true"
         android:text="@string/textViewReceivedPrice"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/listViewItemsTotal" />

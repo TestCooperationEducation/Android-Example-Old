@@ -17,12 +17,13 @@ public class CreateInvoiceFilterAreaActivity extends AppCompatActivity implement
 
     ListView listViewArea;
     Button btnNext, btnChooseRoot, btnChooseAccountingType;
-    SharedPreferences sPrefArea, sPrefAccountingType, sPrefDayOfTheWeek;
+    SharedPreferences sPrefArea, sPrefVisited, sPrefAccountingType, sPrefDayOfTheWeek;
     final String SAVED_AREA = "Area";
+    final String SAVED_VISITED = "visited";
     final String SAVED_ACCOUNTINGTYPE = "AccountingType";
     final String SAVED_DAYOFTHEWEEK = "DayOfTheWeek";
     SharedPreferences.Editor e;
-    String areaStr, dayOfTheWeek, accountingType;
+    String areaStr, visited, dayOfTheWeek, accountingType;
     String[] area = new String[5];
 
     @Override
@@ -38,6 +39,7 @@ public class CreateInvoiceFilterAreaActivity extends AppCompatActivity implement
         btnChooseAccountingType.setOnClickListener(this);
 
         sPrefArea = getSharedPreferences(SAVED_AREA, Context.MODE_PRIVATE);
+        sPrefVisited = getSharedPreferences(SAVED_VISITED, Context.MODE_PRIVATE);
 //        sPrefAccountingType = getSharedPreferences(SAVED_ACCOUNTINGTYPE, Context.MODE_PRIVATE);
 //        sPrefDayOfTheWeek = getSharedPreferences(SAVED_DAYOFTHEWEEK, Context.MODE_PRIVATE);
 
@@ -66,6 +68,14 @@ public class CreateInvoiceFilterAreaActivity extends AppCompatActivity implement
 //            dayOfTheWeek = sPrefDayOfTheWeek.getString(SAVED_DAYOFTHEWEEK, "");
 //            accountingType = sPrefAccountingType.getString(SAVED_ACCOUNTINGTYPE, "");
 //        }
+        if (sPrefVisited.contains(SAVED_VISITED)){
+
+        } else {
+            e = sPrefVisited.edit();
+            e.putString(SAVED_VISITED, "visited");
+            e.apply();
+            goNext();
+        }
     }
 
     private void loadListArea(){

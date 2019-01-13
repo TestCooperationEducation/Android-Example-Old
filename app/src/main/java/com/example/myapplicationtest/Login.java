@@ -28,16 +28,16 @@ import java.util.Map;
 public class Login extends AppCompatActivity implements View.OnClickListener {
 
     Button btnLogin, btnSettings;
-    SharedPreferences sPrefLogin, sPrefPassword, sPrefDBName, sPrefDBPassword, sPrefDBUser;
+    SharedPreferences sPrefLogin, sPrefPassword, sPrefDBName, sPrefDBPassword, sPrefDBUser, sPrefAreaDefault;
     final String SAVED_LOGIN = "Login";
     final String SAVED_PASSWORD = "Password";
     final String SAVED_DBName = "dbName";
     final String SAVED_DBUser = "dbUser";
     final String SAVED_DBPassword = "dbPassword";
+    final String SAVED_AREADEFAULT = "areaDefault";
     SharedPreferences.Editor e;
     String loginUrl = "https://caiman.ru.com/php/login.php", dbName, dbUser, dbPassword, Login, Password;
-    public static final String EXTRA_AGENTNAME = "com.example.myapplicationtest.AGENTNAME";
-
+    String[] area;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,6 +54,7 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
         sPrefDBName = getSharedPreferences(SAVED_DBName, Context.MODE_PRIVATE);
         sPrefDBUser = getSharedPreferences(SAVED_DBUser, Context.MODE_PRIVATE);
         sPrefDBPassword = getSharedPreferences(SAVED_DBPassword, Context.MODE_PRIVATE);
+        sPrefAreaDefault = getSharedPreferences(SAVED_AREADEFAULT, Context.MODE_PRIVATE);
 
         if (sPrefDBName.contains(SAVED_DBName) && sPrefDBUser.contains(SAVED_DBUser) && sPrefDBPassword.contains(SAVED_DBPassword) &&
                 sPrefLogin.contains(SAVED_LOGIN) && sPrefPassword.contains(SAVED_PASSWORD)){
@@ -68,6 +69,13 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
             builder.setTitle("Ошибка")
                     .setMessage("Настройте Учётку для входа")
                     .setCancelable(true)
+                    .setPositiveButton("Настроить",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    Intent intent = new Intent(getApplicationContext(), Settings.class);
+                                    startActivity(intent);
+                                }
+                            })
                     .setNegativeButton("Назад",
                             new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int id) {
@@ -105,17 +113,13 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
             public void onResponse(String response) {
                 try{
                     JSONArray jsonArray = new JSONArray(response);
-                    String[] agentName = new String[jsonArray.length()];
+                    area = new String[jsonArray.length()];
                     if (jsonArray.length() == 1){
-//                        Toast.makeText(getApplicationContext(), "Успешный вход", Toast.LENGTH_SHORT).show();
-//                        for (int i = 0; i < jsonArray.length(); i++) {
-//                            JSONObject obj = jsonArray.getJSONObject(i);
-//                            agentName[i] = obj.getString("secondname") + " " + obj.getString("firstname")
-//                                    + " " + obj.getString("middlename");
-//                        }
-                        Intent intent = new Intent(getApplicationContext(), MainMenu.class);
-//                        intent.putExtra(EXTRA_AGENTNAME, agentName[0]);
-                        startActivity(intent);
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            JSONObject obj = jsonArray.getJSONObject(i);
+                            area[i] = obj.getString("Район");
+                        }
+                        loadMainMenu();
                     }else{
                         Toast.makeText(getApplicationContext(), "Ошибка Входа. Проверьте Интернет или Учётку", Toast.LENGTH_SHORT).show();
                     }
@@ -143,5 +147,14 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
             }
         };
         VolleySingleton.getInstance(this).getRequestQueue().add(request);
+    }
+
+    private void loadMainMenu(){
+        e = sPrefAreaDefault.edit();
+        e.putString(SAVED_AREADEFAULT, area[0]);
+        e.apply();
+        Toast.makeText(getApplicationContext(), "Успешный вход. Ваш район: " + area[0], Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent(getApplicationContext(), MainMenu.class);
+        startActivity(intent);
     }
 }

@@ -45,7 +45,9 @@
         <activity android:name=".SalesPartnersManagerActivity" />
         <activity android:name=".CreateInvoiceFilterRootActivity" />
         <activity android:name=".CreateInvoiceFilterAccountingTypeActivity" />
-        <activity android:name=".CreateInvoiceChooseTypeOfInvoiceActivity"></activity>
+        <activity android:name=".CreateInvoiceChooseTypeOfInvoiceActivity" />
+        <activity android:name=".CreateInvoiceManageItemsActivity" />
+        <activity android:name=".CreateInvoiceChooseItemsActivity"></activity>
     </application>
 
 </manifest>

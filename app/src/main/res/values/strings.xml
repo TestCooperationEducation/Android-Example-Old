@@ -16,7 +16,7 @@
     <string name="btnSalesPartners">Добавить контрагента</string>
     <string name="btnNext">Фильтр</string>
     <string name="btnNextFilterSecond">Создать</string>
-    <string name="editTextQuantity">Количество</string>
+    <string name="editTextQuantity">Кол-во</string>
     <string name="editTextExchange">Обмен</string>
     <string name="editTextReturn">Возврат</string>
     <string name="btnAddItem">Добавить</string>
@@ -50,5 +50,6 @@
     <string name="textViewFilterTabLabel">Название Раздела</string>
     <string name="btnInvoiceTypeTwo">Непровод</string>
     <string name="btnInvoiceTypeOne">Провод</string>
+    <string name="btnNextToInvoice">Далее</string>
 
 </resources>

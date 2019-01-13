@@ -62,6 +62,7 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
     final String SAVED_DayOfTheWeek = "DayOfTheWeek";
     List<DataInvoice> dataArray;
     List<DataPay> dataPay;
+//    public static final String EXTRA_AccountingType = "com.example.myapplicationtest.AccountingType";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,8 +107,6 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
         textViewStatusSave = findViewById(R.id.textViewStatusSave);
         textViewStatusPay = findViewById(R.id.textViewStatusPay);
 
-//        requestQueue = Volley.newRequestQueue((getApplicationContext()));
-
         sPrefDBName = getSharedPreferences(SAVED_DBName, Context.MODE_PRIVATE);
         sPrefDBUser = getSharedPreferences(SAVED_DBUser, Context.MODE_PRIVATE);
         sPrefDBPassword = getSharedPreferences(SAVED_DBPassword, Context.MODE_PRIVATE);
@@ -117,30 +116,22 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
         sPrefArea = getSharedPreferences(SAVED_AREA, Context.MODE_PRIVATE);
         sPrefDayOfTheWeek = getSharedPreferences(SAVED_DayOfTheWeek, Context.MODE_PRIVATE);
 
-        if (sPrefDBName.contains(SAVED_DBName) && sPrefDBUser.contains(SAVED_DBUser) && sPrefDBPassword.contains(SAVED_DBPassword)
-                && sPrefSalesPartner.contains(SAVED_SALESPARTNER) && sPrefAccountingType.contains(SAVED_ACCOUNTINGTYPE)
-                && sPrefArea.contains(SAVED_AREA) ){
-//            && sPrefDayOfTheWeek.contains(SAVED_DayOfTheWeek)
-
+        if (sPrefDBName.contains(SAVED_DBName) && sPrefDBUser.contains(SAVED_DBUser) && sPrefDBPassword.contains(SAVED_DBPassword)){
             dbName = sPrefDBName.getString(SAVED_DBName, "");
             dbUser = sPrefDBUser.getString(SAVED_DBUser, "");
             dbPassword = sPrefDBPassword.getString(SAVED_DBPassword, "");
-            accountingType = sPrefAccountingType.getString(SAVED_ACCOUNTINGTYPE, "");
             salesPartner = sPrefSalesPartner.getString(SAVED_SALESPARTNER, "");
             area = sPrefArea.getString(SAVED_AREA, "");
-//            dayOfTheWeek = sPrefSalesPartner.getString(SAVED_DayOfTheWeek, "");
             loginSecurity = sPrefLogin.getString(SAVED_LOGIN, "");
         }
 
-//        Intent intent = getIntent();
-//        String agentName = intent.getStringExtra(CreateInvoiceChooseSalesPartnerActivity.EXTRA_AGENTNAMENEXT);
-//        TextView textView = findViewById(R.id.textViewAgent);
-//        textView.setText(agentName);
+        Intent intent = getIntent();
+        String accountingType = intent.getStringExtra(CreateInvoiceChooseTypeOfInvoiceActivity.EXTRA_AccountingType);
+        textViewAccountingType.setText(accountingType);
 //        author = agentName;
 //        agentNameGlobal = intent.getStringExtra(CreateInvoiceChooseSalesPartnerActivity.EXTRA_AGENTNAMENEXT);
 
         textViewSalesPartner.setText(salesPartner);
-        textViewAccountingType.setText(accountingType);
 
         receiveItemsList();
 

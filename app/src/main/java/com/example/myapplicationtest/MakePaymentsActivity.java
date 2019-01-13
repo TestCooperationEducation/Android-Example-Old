@@ -62,11 +62,11 @@ public class MakePaymentsActivity extends AppCompatActivity implements View.OnCl
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_make_payments);
 
-        Intent intent = getIntent();
-        String agentName = intent.getStringExtra(MainMenu.EXTRA_AGENTNAMENEXT);
-        TextView textView = findViewById(R.id.textViewAgent);
-        textView.setText(agentName);
-        author = agentName;
+//        Intent intent = getIntent();
+//        String agentName = intent.getStringExtra(MainMenu.EXTRA_AGENTNAMENEXT);
+//        TextView textView = findViewById(R.id.textViewAgent);
+//        textView.setText(agentName);
+//        author = agentName;
 
         dataPay = new ArrayList<>();
 
