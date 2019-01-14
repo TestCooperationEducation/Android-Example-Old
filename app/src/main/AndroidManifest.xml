@@ -47,7 +47,8 @@
         <activity android:name=".CreateInvoiceFilterAccountingTypeActivity" />
         <activity android:name=".CreateInvoiceChooseTypeOfInvoiceActivity" />
         <activity android:name=".CreateInvoiceManageItemsActivity" />
-        <activity android:name=".CreateInvoiceChooseItemsActivity"></activity>
+        <activity android:name=".CreateInvoiceChooseItemsActivity" />
+        <activity android:name=".CreateInvoiceSetItemsQuantitiesActivity"></activity>
     </application>
 
 </manifest>

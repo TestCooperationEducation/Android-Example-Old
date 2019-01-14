@@ -1,6 +1,7 @@
 package com.example.myapplicationtest;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
@@ -10,6 +11,7 @@ import android.util.SparseBooleanArray;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -19,17 +21,19 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class CreateInvoiceChooseItemsActivity extends AppCompatActivity {
+public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implements View.OnClickListener {
 
     String requestUrl = "https://caiman.ru.com/php/items.php", dbName, dbUser, dbPassword, item;
     String[] itemsList;
@@ -40,8 +44,8 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity {
     final String SAVED_DBPassword = "dbPassword";
     final String SAVED_ItemsListToInvoice = "itemsToInvoice";
     SharedPreferences.Editor e;
-    ArrayList<String> tmp, myList;
-    Integer itt;
+    ArrayList<String> tmp;
+    Button btnCreateList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,8 +53,10 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_create_invoice_choose_items);
 
         listViewItems = findViewById(R.id.listViewItemsToSelect);
-        tmp = new ArrayList<>();
-        myList = new ArrayList<>();
+
+//        myList = new ArrayList<>();
+        btnCreateList = findViewById(R.id.buttonNext);
+        btnCreateList.setOnClickListener(this);
 
         sPrefDBName = getSharedPreferences(SAVED_DBName, Context.MODE_PRIVATE);
         sPrefDBUser = getSharedPreferences(SAVED_DBUser, Context.MODE_PRIVATE);
@@ -69,23 +75,20 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view,
                                     int position, long id) {
                 item = ((TextView) view).getText().toString();
-
-                SparseBooleanArray chosen = listViewItems.getCheckedItemPositions();
-                for (int i = 0; i < listViewItems.getCount(); i++) {
-                    if (chosen.get(i) == true) {
-                        myList.add(listViewItems.getItemAtPosition(i).toString());
-                        Toast.makeText(getApplicationContext(), "Добавлен в список: " + item, Toast.LENGTH_SHORT).show();
-                    }
-                    if (chosen.get(i) == false) {
-                        if (myList.contains(listViewItems.getItemAtPosition(i).toString())) {
-                            myList.remove(myList.indexOf(listViewItems.getItemAtPosition(i).toString()));
-                            Toast.makeText(getApplicationContext(), "Удален из списка: " + item, Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                }
                 addItemsToInvoice();
             }
         });
+    }
+
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.buttonNext:
+                Intent intent = new Intent(this, CreateInvoiceSetItemsQuantitiesActivity.class);
+                startActivity(intent);
+                break;
+            default:
+                break;
+        }
     }
 
     private void receiveItemsList(){
@@ -132,12 +135,28 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity {
         VolleySingleton.getInstance(this).getRequestQueue().add(request);
     }
 
-    private void addItemsToInvoice(){
-
-        Gson gson = new Gson();
-        String json = gson.toJson(myList);
-        e = sPrefItemsList.edit();
-        e.putString("fuck", json);
-        e.apply();
+    private void addItemsToInvoice() {
+        tmp = new ArrayList<>();
+        SparseBooleanArray chosen = listViewItems.getCheckedItemPositions();
+        for (int i = 0; i < listViewItems.getCount(); i++) {
+            if (chosen.get(i) == true) {
+                tmp.add(listViewItems.getItemAtPosition(i).toString());
+            }
+        }
+        setStringArrayPref(getApplicationContext(), SAVED_ItemsListToInvoice, tmp);
+    }
+    public static void setStringArrayPref(Context context, String key, ArrayList<String> values) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences.Editor editor = prefs.edit();
+        JSONArray a = new JSONArray();
+        for (int i = 0; i < values.size(); i++) {
+            a.put(values.get(i));
+        }
+        if (!values.isEmpty()) {
+            editor.putString(key, a.toString());
+        } else {
+            editor.putString(key, null);
+        }
+        editor.commit();
     }
 }
