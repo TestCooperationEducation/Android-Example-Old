@@ -23,6 +23,15 @@ import org.json.JSONObject;
 import java.util.HashMap;
 import java.util.Map;
 
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+import android.widget.EditText;
+
+import static android.icu.text.MessagePattern.ArgType.SELECT;
+
 public class MainMenu extends AppCompatActivity implements View.OnClickListener {
 
     Button btnInvoice, btnPayments, btnSalesAgents;
@@ -36,14 +45,20 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
     final String SAVED_DBUser = "dbUser";
     final String SAVED_DBPassword = "dbPassword";
     final String SAVED_VISITED = "visited";
-    String loginUrl = "https://caiman.ru.com/php/login.php", dbName, dbUser, dbPassword;
-    String[] dayOfTheWeek;
+    String loginUrl = "https://caiman.ru.com/php/login.php", dbName, dbUser, dbPassword,
+            syncUrl = "https://caiman.ru.com/php/syncDB.php";
+    String[] dayOfTheWeek, salesPartnersName, accountingType, author;
+    Integer[] area, serverDB_ID;
     SharedPreferences.Editor e;
+    DBHelper dbHelper;
+    final String LOG_TAG = "myLogs";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_menu);
+
+        dbHelper = new DBHelper(this);
 
         btnInvoice = findViewById(R.id.buttonInvoice);
         btnPayments = findViewById(R.id.buttonPayments);
@@ -76,6 +91,8 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         sPrefVisited.edit().clear().apply();
 
         loadData();
+        loadDB();
+//        syncDB();
     }
 
     @Override
@@ -153,5 +170,193 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
             }
         };
         VolleySingleton.getInstance(this).getRequestQueue().add(request);
+    }
+
+    private void loadDB(){
+        StringRequest request = new StringRequest(Request.Method.POST,
+                syncUrl, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                try{
+                    JSONArray jsonArray = new JSONArray(response);
+                    dayOfTheWeek = new String[jsonArray.length()];
+                    salesPartnersName= new String[jsonArray.length()];
+                    area= new Integer[jsonArray.length()];
+                    accountingType= new String[jsonArray.length()];
+                    author= new String[jsonArray.length()];
+                    serverDB_ID = new Integer[jsonArray.length()];
+
+                    if (jsonArray.length() > 0){
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            JSONObject obj = jsonArray.getJSONObject(i);
+                            dayOfTheWeek[i] = obj.getString("DayOfTheWeek");
+                            salesPartnersName[i] = obj.getString("Наименование");
+                            area[i] = obj.getInt("Район");
+                            accountingType[i] = obj.getString("Учет");
+                            author[i] = obj.getString("Автор");
+                            serverDB_ID[i] = obj.getInt("ID");
+
+                            SQLiteDatabase db = dbHelper.getWritableDatabase();
+//                            if (!tableExists(db, "salesPartner"))
+                            if (resultExists(db, "salesPartners")){
+                                ContentValues cv = new ContentValues();
+                                Log.d(LOG_TAG, "--- Insert in salesPartners: ---");
+                                // подготовим данные для вставки в виде пар: наименование столбца - значение
+                                cv.put("serverDB_ID", serverDB_ID[i]);
+                                cv.put("Наименование", salesPartnersName[i]);
+                                cv.put("Район", area[i]);
+                                cv.put("Учет", accountingType[i]);
+                                cv.put("DayOfTheWeek", dayOfTheWeek[i]);
+                                cv.put("Автор", author[i]);
+                                // вставляем запись и получаем ее ID
+                                long rowID = db.insert("salesPartners", null, cv);
+                                Log.d(LOG_TAG, "row inserted, ID = " + rowID);
+                            }
+                        }
+                        Toast.makeText(getApplicationContext(), "Данные загружены", Toast.LENGTH_SHORT).show();
+                    }else{
+                        Toast.makeText(getApplicationContext(), "Ошибка загрузки. Проверьте Интернет или Учётку", Toast.LENGTH_SHORT).show();
+                    }
+                }
+                catch (JSONException e1) {
+                    e1.printStackTrace();
+                }
+            }
+        }, new Response.ErrorListener(){
+            @Override
+            public void onErrorResponse(VolleyError error){
+                Toast.makeText(getApplicationContext(), "Проблемы с запросом на сервер", Toast.LENGTH_SHORT).show();
+                Log.e("TAG", "Error " + error.getMessage());
+            }
+        }){
+            @Override
+            protected Map<String, String> getParams() {
+                Map<String, String> parameters = new HashMap<>();
+                parameters.put("dbName", dbName);
+                parameters.put("dbUser", dbUser);
+                parameters.put("dbPassword", dbPassword);
+                return parameters;
+            }
+        };
+        VolleySingleton.getInstance(this).getRequestQueue().add(request);
+    }
+
+//    private void syncDB(){
+//        ContentValues cv = new ContentValues();
+//        SQLiteDatabase db = dbHelper.getWritableDatabase();
+//
+//        Log.d(LOG_TAG, "--- Insert in salespartners: ---");
+//        // подготовим данные для вставки в виде пар: наименование столбца - значение
+//        for (int i = 0; i < serverDB_ID.length; i++){
+//            cv.put("serverDB_ID", serverDB_ID[i]);
+//            cv.put("Наименование", salesPartnersName[i]);
+//            cv.put("Район", area[i]);
+//            cv.put("Учет", accountingType[i]);
+//            cv.put("DayOfTheWeek", dayOfTheWeek[i]);
+//            cv.put("Автор", author[i]);
+//            // вставляем запись и получаем ее ID
+//            long rowID = db.insert("salespartners", null, cv);
+//            Log.d(LOG_TAG, "row inserted, ID = " + rowID);
+//        }
+//    }
+
+    class DBHelper extends SQLiteOpenHelper {
+
+        public DBHelper(Context context) {
+            // конструктор суперкласса
+            super(context, "myLocalDB", null, 1);
+        }
+
+        @Override
+        public void onCreate(SQLiteDatabase db) {
+            Log.d(LOG_TAG, "--- onCreate database ---");
+            // создаем таблицу с полями
+            db.execSQL("create table salesPartners ("
+                    + "id integer primary key autoincrement,"
+                    + "serverDB_ID integer,"
+                    + "Наименование text,"
+                    + "Район integer,"
+                    + "Учет text,"
+                    + "DayOfTheWeek text,"
+                    + "Автор text,"
+                    + "UNIQUE (serverDB_ID) ON CONFLICT REPLACE" + ");");
+
+            db.execSQL("create table items ("
+                    + "id integer primary key autoincrement,"
+                    + "Артикул integer,"
+                    + "Наименование text,"
+                    + "Цена integer,"
+                    + "UNIQUE (Артикул) ON CONFLICT REPLACE" + ");");
+
+            db.execSQL("create table itemsWithDiscount ("
+                    + "id integer primary key autoincrement,"
+                    + "serverDB_ID integer,"
+                    + "Артикул integer,"
+                    + "ID_скидки integer,"
+                    + "ID_контрагента integer,"
+                    + "автор text,"
+                    + "UNIQUE (serverDB_ID) ON CONFLICT REPLACE" + ");");
+
+            db.execSQL("create table discount ("
+                    + "id integer primary key autoincrement,"
+                    + "serverDB_ID integer,"
+                    + "Тип_скидки integer,"
+                    + "Скидка integer,"
+                    + "UNIQUE (serverDB_ID) ON CONFLICT REPLACE" + ");");
+
+            db.execSQL("create table invoice ("
+                    + "id integer primary key autoincrement,"
+                    + "serverDB_ID integer,"
+                    + "InvoiceNumber integer,"
+                    + "AgentID integer,"
+                    + "SalesPartnerID integer,"
+                    + "AccountingType text,"
+                    + "ItemID integer,"
+                    + "Quantity real,"
+                    + "Price real,"
+                    + "Total real,"
+                    + "ExchangeQuantity real,"
+                    + "ReturnQuantity  real,"
+                    + "DateTimeDoc text,"
+                    + "InvoiceSum real,"
+                    + "UNIQUE (serverDB_ID) ON CONFLICT REPLACE" + ");");
+
+            db.execSQL("create table pyments ("
+                    + "id integer primary key autoincrement,"
+                    + "serverDB_ID integer,"
+                    + "InvoiceNumber integer,"
+                    + "сумма_внесения real,"
+                    + "автор text,"
+                    + "UNIQUE (serverDB_ID) ON CONFLICT REPLACE" + ");");
+        }
+
+        @Override
+        public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+
+        }
+    }
+
+    boolean tableExists(SQLiteDatabase db, String tableName){
+        if (tableName == null || db == null || !db.isOpen())
+        {
+            return false;
+        }
+        Cursor cursor = db.rawQuery("SELECT COUNT(*) FROM sqlite_master WHERE type = ? AND name = ?", new String[] {"table", tableName});
+        if (!cursor.moveToFirst())
+        {
+            cursor.close();
+            return false;
+        }
+        int count = cursor.getInt(0);
+        cursor.close();
+        return count > 0;
+    }
+
+    boolean resultExists(SQLiteDatabase db, String tableName){
+        String sql = "SELECT EXISTS(SELECT ReturnQuantity FROM " + tableName + " WHERE ReturnQuantity = 0 LIMIT 1)";
+        Cursor cursor = db.rawQuery(sql, null);
+        int count = cursor.getInt(0);
+        cursor.close();
+        return count > 0;
     }
 }
