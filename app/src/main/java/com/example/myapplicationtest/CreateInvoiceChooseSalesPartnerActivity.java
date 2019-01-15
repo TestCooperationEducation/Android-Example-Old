@@ -1,8 +1,12 @@
 package com.example.myapplicationtest;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
@@ -49,11 +53,15 @@ public class CreateInvoiceChooseSalesPartnerActivity extends AppCompatActivity i
     SharedPreferences.Editor e;
     String requestUrl = "https://caiman.ru.com/php/filter_new.php", salesPartner, dbName, dbUser, dbPassword,
             area, accountingType, dayOfTheWeek;
+    final String LOG_TAG = "myLogs";
+    DBHelper dbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_invoice_choose_sales_partner);
+
+        dbHelper = new DBHelper(this);
 
         EditText search = findViewById(R.id.editTextSearch);
 
@@ -71,7 +79,8 @@ public class CreateInvoiceChooseSalesPartnerActivity extends AppCompatActivity i
         sPrefAreaDefault= getSharedPreferences(SAVED_AREADEFAULT, Context.MODE_PRIVATE);
 
         initialValues();
-        receiveData();
+//        receiveDataFromServer();
+        receiveDataFromLocalDB();
 
         listViewSalesPartners.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view,
@@ -111,7 +120,7 @@ public class CreateInvoiceChooseSalesPartnerActivity extends AppCompatActivity i
         }
     }
 
-    private void receiveData(){
+    private void receiveDataFromServer(){
         StringRequest request = new StringRequest(Request.Method.POST,
                 requestUrl, new Response.Listener<String>() {
             @Override
@@ -161,6 +170,41 @@ public class CreateInvoiceChooseSalesPartnerActivity extends AppCompatActivity i
         VolleySingleton.getInstance(this).getRequestQueue().add(request);
     }
 
+    private void receiveDataFromLocalDB(){
+        // подключаемся к БД
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        Log.d(LOG_TAG, "--- Rows in salesPartners: ---");
+        String sql = new String();
+        // делаем запрос всех данных из таблицы salesPartners, получаем Cursor
+        if (sPrefAccountingType.contains(SAVED_ACCOUNTINGTYPE)){
+            sql = "SELECT Наименование FROM salesPartners WHERE DayOfTheWeek LIKE " + dayOfTheWeek + " AND Район LIKE " + area + " AND Учет LIKE " + accountingType;
+        } else {
+            sql = "SELECT Наименование FROM salesPartners WHERE DayOfTheWeek LIKE " + dayOfTheWeek + " AND Район LIKE " + area;
+        }
+        Cursor c = db.rawQuery(sql, null);
+        // ставим позицию курсора на первую строку выборки
+        // если в выборке нет строк, вернется false
+        if (c.moveToFirst()) {
+
+            // определяем номера столбцов по имени в выборке
+            int idColIndex = c.getColumnIndex("id");
+            int nameColIndex = c.getColumnIndex("name");
+            int emailColIndex = c.getColumnIndex("email");
+
+            do {
+                // получаем значения по номерам столбцов и пишем все в лог
+                Log.d(LOG_TAG,
+                        "ID = " + c.getInt(idColIndex) +
+                                ", name = " + c.getString(nameColIndex) +
+                                ", email = " + c.getString(emailColIndex));
+                // переход на следующую строку
+                // а если следующей нет (текущая - последняя), то false - выходим из цикла
+            } while (c.moveToNext());
+        } else
+            Log.d(LOG_TAG, "0 rows");
+        c.close();
+    }
+
     private void createInvoice(){
         e = sPrefSalesPartner.edit();
         e.putString(SAVED_SALESPARTNER, salesPartner);
@@ -205,6 +249,24 @@ public class CreateInvoiceChooseSalesPartnerActivity extends AppCompatActivity i
                     dayOfTheWeek = "север";
                 }
             }
+        }
+    }
+
+    class DBHelper extends SQLiteOpenHelper {
+
+        public DBHelper(Context context) {
+            // конструктор суперкласса
+            super(context, "myLocalDB", null, 1);
+        }
+
+        @Override
+        public void onCreate(SQLiteDatabase db) {
+
+        }
+
+        @Override
+        public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+
         }
     }
 }

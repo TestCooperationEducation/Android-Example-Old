@@ -52,6 +52,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
     SharedPreferences.Editor e;
     DBHelper dbHelper;
     final String LOG_TAG = "myLogs";
+    SQLiteDatabase db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +60,8 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         setContentView(R.layout.activity_main_menu);
 
         dbHelper = new DBHelper(this);
+        db = dbHelper.getWritableDatabase();
+//        dbHelper.onUpgrade(db, 1, 2);
 
         btnInvoice = findViewById(R.id.buttonInvoice);
         btnPayments = findViewById(R.id.buttonPayments);
@@ -196,9 +199,10 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                             author[i] = obj.getString("Автор");
                             serverDB_ID[i] = obj.getInt("ID");
 
-                            SQLiteDatabase db = dbHelper.getWritableDatabase();
-//                            if (!tableExists(db, "salesPartner"))
-                            if (resultExists(db, "salesPartners")){
+
+                            if (tableExists(db, "salesPartners")){
+
+//                            if (resultExists(db, "salesPartners","Автор", "Автор", "admin")){
                                 ContentValues cv = new ContentValues();
                                 Log.d(LOG_TAG, "--- Insert in salesPartners: ---");
                                 // подготовим данные для вставки в виде пар: наименование столбца - значение
@@ -211,6 +215,13 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                                 // вставляем запись и получаем ее ID
                                 long rowID = db.insert("salesPartners", null, cv);
                                 Log.d(LOG_TAG, "row inserted, ID = " + rowID);
+                            } else {
+                                Log.d(LOG_TAG, "--- Clear mytable: ---");
+                                // удаляем все записи из таблицы
+                                int clearCount = db.delete("salesPartners", null, null);
+                                Log.d(LOG_TAG, "deleted rows count = " + clearCount);
+//                                db.execSQL("DROP TABLE IF EXISTS salesPartners");//Удаление таблицы
+
                             }
                         }
                         Toast.makeText(getApplicationContext(), "Данные загружены", Toast.LENGTH_SHORT).show();
@@ -270,69 +281,77 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         @Override
         public void onCreate(SQLiteDatabase db) {
             Log.d(LOG_TAG, "--- onCreate database ---");
+
             // создаем таблицу с полями
-            db.execSQL("create table salesPartners ("
-                    + "id integer primary key autoincrement,"
-                    + "serverDB_ID integer,"
-                    + "Наименование text,"
-                    + "Район integer,"
-                    + "Учет text,"
-                    + "DayOfTheWeek text,"
-                    + "Автор text,"
-                    + "UNIQUE (serverDB_ID) ON CONFLICT REPLACE" + ");");
-
-            db.execSQL("create table items ("
-                    + "id integer primary key autoincrement,"
-                    + "Артикул integer,"
-                    + "Наименование text,"
-                    + "Цена integer,"
-                    + "UNIQUE (Артикул) ON CONFLICT REPLACE" + ");");
-
-            db.execSQL("create table itemsWithDiscount ("
-                    + "id integer primary key autoincrement,"
-                    + "serverDB_ID integer,"
-                    + "Артикул integer,"
-                    + "ID_скидки integer,"
-                    + "ID_контрагента integer,"
-                    + "автор text,"
-                    + "UNIQUE (serverDB_ID) ON CONFLICT REPLACE" + ");");
-
-            db.execSQL("create table discount ("
-                    + "id integer primary key autoincrement,"
-                    + "serverDB_ID integer,"
-                    + "Тип_скидки integer,"
-                    + "Скидка integer,"
-                    + "UNIQUE (serverDB_ID) ON CONFLICT REPLACE" + ");");
-
-            db.execSQL("create table invoice ("
-                    + "id integer primary key autoincrement,"
-                    + "serverDB_ID integer,"
-                    + "InvoiceNumber integer,"
-                    + "AgentID integer,"
-                    + "SalesPartnerID integer,"
-                    + "AccountingType text,"
-                    + "ItemID integer,"
-                    + "Quantity real,"
-                    + "Price real,"
-                    + "Total real,"
-                    + "ExchangeQuantity real,"
-                    + "ReturnQuantity  real,"
-                    + "DateTimeDoc text,"
-                    + "InvoiceSum real,"
-                    + "UNIQUE (serverDB_ID) ON CONFLICT REPLACE" + ");");
-
-            db.execSQL("create table pyments ("
-                    + "id integer primary key autoincrement,"
-                    + "serverDB_ID integer,"
-                    + "InvoiceNumber integer,"
-                    + "сумма_внесения real,"
-                    + "автор text,"
-                    + "UNIQUE (serverDB_ID) ON CONFLICT REPLACE" + ");");
+            if (!tableExists(db, "salesPartner")){
+                db.execSQL("create table salesPartners ("
+                        + "id integer primary key autoincrement,"
+                        + "serverDB_ID integer,"
+                        + "Наименование text,"
+                        + "Район integer,"
+                        + "Учет text,"
+                        + "DayOfTheWeek text,"
+                        + "Автор text,"
+                        + "UNIQUE (serverDB_ID) ON CONFLICT REPLACE" + ");");
+            }
+            if (!tableExists(db, "items")){
+                db.execSQL("create table items ("
+                        + "id integer primary key autoincrement,"
+                        + "Артикул integer,"
+                        + "Наименование text,"
+                        + "Цена integer,"
+                        + "UNIQUE (Артикул) ON CONFLICT REPLACE" + ");");
+            }
+            if (!tableExists(db, "itemsWithDiscount")){
+                db.execSQL("create table itemsWithDiscount ("
+                        + "id integer primary key autoincrement,"
+                        + "serverDB_ID integer,"
+                        + "Артикул integer,"
+                        + "ID_скидки integer,"
+                        + "ID_контрагента integer,"
+                        + "автор text,"
+                        + "UNIQUE (serverDB_ID) ON CONFLICT REPLACE" + ");");
+            }
+            if (!tableExists(db, "discount")){
+                db.execSQL("create table discount ("
+                        + "id integer primary key autoincrement,"
+                        + "serverDB_ID integer,"
+                        + "Тип_скидки integer,"
+                        + "Скидка integer,"
+                        + "UNIQUE (serverDB_ID) ON CONFLICT REPLACE" + ");");
+            }
+            if (!tableExists(db, "invoice")){
+                db.execSQL("create table invoice ("
+                        + "id integer primary key autoincrement,"
+                        + "serverDB_ID integer,"
+                        + "InvoiceNumber integer,"
+                        + "AgentID integer,"
+                        + "SalesPartnerID integer,"
+                        + "AccountingType text,"
+                        + "ItemID integer,"
+                        + "Quantity real,"
+                        + "Price real,"
+                        + "Total real,"
+                        + "ExchangeQuantity real,"
+                        + "ReturnQuantity  real,"
+                        + "DateTimeDoc text,"
+                        + "InvoiceSum real,"
+                        + "UNIQUE (serverDB_ID) ON CONFLICT REPLACE" + ");");
+            }
+            if (!tableExists(db, "invoice")){
+                db.execSQL("create table pyments ("
+                        + "id integer primary key autoincrement,"
+                        + "serverDB_ID integer,"
+                        + "InvoiceNumber integer,"
+                        + "сумма_внесения real,"
+                        + "автор text,"
+                        + "UNIQUE (serverDB_ID) ON CONFLICT REPLACE" + ");");
+            }
         }
 
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-
+            onCreate(db);
         }
     }
 
@@ -352,9 +371,18 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         return count > 0;
     }
 
-    boolean resultExists(SQLiteDatabase db, String tableName){
-        String sql = "SELECT EXISTS(SELECT ReturnQuantity FROM " + tableName + " WHERE ReturnQuantity = 0 LIMIT 1)";
-        Cursor cursor = db.rawQuery(sql, null);
+    boolean resultExists(SQLiteDatabase db, String tableName, String selectField, String fieldName, String fieldValue){
+        if (tableName == null || db == null || !db.isOpen())
+        {
+            return false;
+        }
+        String sql = "SELECT EXISTS(SELECT " + selectField + " FROM " + tableName + " WHERE " + fieldName + " LIKE ? LIMIT 1)";
+        Cursor cursor = db.rawQuery(sql, new String[]{fieldValue});
+        if (!cursor.moveToFirst())
+        {
+            cursor.close();
+            return false;
+        }
         int count = cursor.getInt(0);
         cursor.close();
         return count > 0;
