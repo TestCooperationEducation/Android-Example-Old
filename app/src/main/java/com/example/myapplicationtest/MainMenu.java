@@ -49,8 +49,10 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
     final String SAVED_CONNSTATUS = "connectionStatus";
     String loginUrl = "https://caiman.ru.com/php/login.php", dbName, dbUser, dbPassword,
             syncUrl = "https://caiman.ru.com/php/syncDB.php", connStatus;
-    String[] dayOfTheWeek, salesPartnersName, accountingType, author, itemName;
-    Integer[] itemPrice, discountID, spID, area, serverDB_ID, itemNumber, discountType, discount;
+    String[] dayOfTheWeek, salesPartnersName, accountingType, author, itemName, comment, dateTimeDoc;
+    Integer[] itemPrice, discountID, spID, area, serverDB_ID, itemNumber, discountType, discount,
+            invoiceNumber, agentID, salesPartnerID;
+    Double[] itemQuantity, totalSum, exchangeQuantity, returnQuantity, invoiceSum, paymentAmount;
     SharedPreferences.Editor e;
     DBHelper dbHelper;
     final String LOG_TAG = "myLogs";
@@ -124,7 +126,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                 loadItemsFromServerDB();
                 loadItemsWithDiscountsFromServerDB();
                 loadDiscountsFromServerDB();
-                loaInvoicesFromServerDB();
+                loadInvoicesFromServerDB();
                 loadPaymentsFromServerDB();
 //        syncDB();
 //                }
@@ -464,7 +466,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         VolleySingleton.getInstance(this).getRequestQueue().add(request);
     }
 
-    private void loaInvoicesFromServerDB(){
+    private void loadInvoicesFromServerDB(){
         StringRequest request = new StringRequest(Request.Method.POST,
                 syncUrl, new Response.Listener<String>() {
             @Override
@@ -482,7 +484,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                     totalSum = new Double[jsonArray.length()];
                     exchangeQuantity = new Double[jsonArray.length()];
                     returnQuantity = new Double[jsonArray.length()];
-                    dateTimeDoc = new Date[jsonArray.length()];
+                    dateTimeDoc = new String[jsonArray.length()];
                     invoiceSum = new Double[jsonArray.length()];
                     comment = new String[jsonArray.length()];
 
@@ -490,18 +492,38 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                         for (int i = 0; i < jsonArray.length(); i++) {
                             JSONObject obj = jsonArray.getJSONObject(i);
                             serverDB_ID[i] = obj.getInt("ID");
-                            discountType[i] = obj.getInt("Тип_скидки");
-                            discount[i] = obj.getInt("Скидка");
-                            author[i] = obj.getString("Автор");
+                            invoiceNumber[i] = obj.getInt("InvoiceNumber");
+                            agentID[i] = obj.getInt("AgentID");
+                            salesPartnerID[i] = obj.getInt("SalesPartnerID");
+                            accountingType[i] = obj.getString("AccountingType");
+                            itemNumber[i] = obj.getInt("ItemID");
+                            itemQuantity[i] = obj.getDouble("Quantity");
+                            itemPrice[i] = obj.getInt("Price");
+                            totalSum[i] = obj.getDouble("Total");
+                            exchangeQuantity[i] = obj.getDouble("ExchangeQuantity");
+                            returnQuantity[i] = obj.getDouble("ReturnQuantity");
+                            dateTimeDoc[i] = obj.getString("DateTimeDoc");
+                            invoiceSum[i] = obj.getDouble("InvoiceSum");
+                            comment[i] = obj.getString("Comment");
 
-                            if (!resultExists(db, "discount","Автор", "Автор", "admin")){
+                            if (!resultExists(db, "invoice","ReturnQuantity", "ReturnQuantity", "0")){
                                 ContentValues cv = new ContentValues();
-                                Log.d(LOG_TAG, "--- Insert in discount: ---");
+                                Log.d(LOG_TAG, "--- Insert in invoice: ---");
                                 cv.put("serverDB_ID", serverDB_ID[i]);
-                                cv.put("Тип_скидки", itemNumber[i]);
-                                cv.put("Скидка", discountID[i]);
-                                cv.put("Автор", author[i]);
-                                long rowID = db.insert("discount", null, cv);
+                                cv.put("InvoiceNumber", invoiceNumber[i]);
+                                cv.put("AgentID", agentID[i]);
+                                cv.put("SalesPartnerID", salesPartnerID[i]);
+                                cv.put("AccountingType", accountingType[i]);
+                                cv.put("ItemID", itemNumber[i]);
+                                cv.put("Quantity", itemQuantity[i]);
+                                cv.put("Price", itemPrice[i]);
+                                cv.put("Total", totalSum[i]);
+                                cv.put("ExchangeQuantity", exchangeQuantity[i]);
+                                cv.put("ReturnQuantity", returnQuantity[i]);
+                                cv.put("DateTimeDoc", dateTimeDoc[i]);
+                                cv.put("InvoiceSum", invoiceSum[i]);
+                                cv.put("Comment", comment[i]);
+                                long rowID = db.insert("invoice", null, cv);
                                 Log.d(LOG_TAG, "row inserted, ID = " + rowID);
                             } else {
                                 Toast.makeText(getApplicationContext(), "Ошибка: MainMenu invoice loadDB", Toast.LENGTH_SHORT).show();
@@ -537,7 +559,68 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
     }
 
     private void loadPaymentsFromServerDB(){
+        StringRequest request = new StringRequest(Request.Method.POST,
+                syncUrl, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                try{
+                    JSONArray jsonArray = new JSONArray(response);
+                    serverDB_ID = new Integer[jsonArray.length()];
+                    dateTimeDoc = new String[jsonArray.length()];
+                    invoiceNumber = new Integer[jsonArray.length()];
+                    paymentAmount= new Double[jsonArray.length()];
+                    author = new String[jsonArray.length()];
 
+                    if (jsonArray.length() > 0){
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            JSONObject obj = jsonArray.getJSONObject(i);
+                            serverDB_ID[i] = obj.getInt("ID");
+                            dateTimeDoc[i] = obj.getString("дата_платежа");
+                            invoiceNumber[i] = obj.getInt("№_накладной");
+                            paymentAmount[i] = obj.getDouble("сумма_внесения");
+                            author[i] = obj.getString("автор");
+
+                            if (!resultExists(db, "payments","Автор", "Автор", "Рождественская Яна Андреевна")){
+                                ContentValues cv = new ContentValues();
+                                Log.d(LOG_TAG, "--- Insert in payments: ---");
+                                cv.put("serverDB_ID", serverDB_ID[i]);
+                                cv.put("DateTimeDoc", dateTimeDoc[i]);
+                                cv.put("InvoiceNumber", itemNumber[i]);
+                                cv.put("сумма_внесения", paymentAmount[i]);
+                                cv.put("Автор", author[i]);
+                                long rowID = db.insert("payments", null, cv);
+                                Log.d(LOG_TAG, "row inserted, ID = " + rowID);
+                            } else {
+                                Toast.makeText(getApplicationContext(), "Ошибка: MainMenu платежи loadDB", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                        Toast.makeText(getApplicationContext(), "Платежи загружены", Toast.LENGTH_SHORT).show();
+                    }else{
+                        Toast.makeText(getApplicationContext(), "Ошибка загрузки. Проверьте Интернет или Учётку", Toast.LENGTH_SHORT).show();
+                    }
+                }
+                catch (JSONException e1) {
+                    e1.printStackTrace();
+                }
+            }
+        }, new Response.ErrorListener(){
+            @Override
+            public void onErrorResponse(VolleyError error){
+                Toast.makeText(getApplicationContext(), "Проблемы с запросом на сервер", Toast.LENGTH_SHORT).show();
+                Log.e("TAG", "Error " + error.getMessage());
+            }
+        }){
+            @Override
+            protected Map<String, String> getParams() {
+                Map<String, String> parameters = new HashMap<>();
+                parameters.put("dbName", dbName);
+                parameters.put("dbUser", dbUser);
+                parameters.put("dbPassword", dbPassword);
+                parameters.put("tableName", "платежи");
+                return parameters;
+            }
+        };
+        VolleySingleton.getInstance(this).getRequestQueue().add(request);
     }
 
 //    private void syncDB(){
@@ -630,9 +713,10 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                 db.execSQL("create table payments ("
                         + "id integer primary key autoincrement,"
                         + "serverDB_ID integer,"
+                        + "DateTimeDoc text,"
                         + "InvoiceNumber integer,"
                         + "сумма_внесения real,"
-                        + "автор text,"
+                        + "Автор text,"
                         + "UNIQUE (serverDB_ID) ON CONFLICT REPLACE" + ");");
 //            }
         }
