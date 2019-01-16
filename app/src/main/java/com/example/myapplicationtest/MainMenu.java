@@ -57,6 +57,8 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
     DBHelper dbHelper;
     final String LOG_TAG = "myLogs";
     SQLiteDatabase db;
+    Boolean triggerDate, triggerSalesPartners, triggerItems, triggerItemsWithDiscount, triggerDiscounts,
+            triggerInvoices;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,6 +79,13 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         btnInvoice.setOnClickListener(this);
         btnPayments.setOnClickListener(this);
         btnSalesAgents.setOnClickListener(this);
+
+        triggerDate = false;
+        triggerSalesPartners = false;
+        triggerItems = false;
+        triggerItemsWithDiscount = false;
+        triggerDiscounts = false;
+        triggerInvoices = false;
 
 //        Intent intent = getIntent();
 //        String agentName = intent.getStringExtra(Login.EXTRA_AGENTNAME);
@@ -121,13 +130,26 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                 db.execSQL("DROP TABLE IF EXISTS invoice");
                 db.execSQL("DROP TABLE IF EXISTS payments");
                 dbHelper.onUpgrade(db, 1, 2);
-                loadDateFromServer();
-                loadSalesPartnersFromServerDB();
-                loadItemsFromServerDB();
-                loadItemsWithDiscountsFromServerDB();
-                loadDiscountsFromServerDB();
-                loadInvoicesFromServerDB();
-                loadPaymentsFromServerDB();
+                if (!triggerDate){
+                    loadDateFromServer();
+                } else {
+                    loadSalesPartnersFromServerDB();
+                }
+                if (triggerSalesPartners){
+                    loadItemsFromServerDB();
+                }
+                if (triggerItems){
+                    loadItemsWithDiscountsFromServerDB();
+                }
+                if (triggerItemsWithDiscount){
+                    loadDiscountsFromServerDB();
+                }
+                if (triggerDiscounts){
+                    loadInvoicesFromServerDB();
+                }
+                if (triggerInvoices){
+                    loadPaymentsFromServerDB();
+                }
 //        syncDB();
 //                }
             } else {
@@ -185,6 +207,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                         e.putString(SAVED_DAYOFTHEWEEKDEFAULT, dayOfTheWeek[0]);
                         e.apply();
                         Toast.makeText(getApplicationContext(), "День недели: " + dayOfTheWeek[0], Toast.LENGTH_SHORT).show();
+                        triggerDate = true;
                     }else{
                         Toast.makeText(getApplicationContext(), "Ошибка Входа. Проверьте Интернет или Учётку", Toast.LENGTH_SHORT).show();
                     }
@@ -252,6 +275,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                             }
                         }
                         Toast.makeText(getApplicationContext(), "Контрагенты загружены", Toast.LENGTH_SHORT).show();
+                        triggerSalesPartners = true;
                     }else{
                         Toast.makeText(getApplicationContext(), "Ошибка загрузки. Проверьте Интернет или Учётку", Toast.LENGTH_SHORT).show();
                     }
@@ -311,6 +335,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                             }
                         }
                         Toast.makeText(getApplicationContext(), "Номенклатура загружена", Toast.LENGTH_SHORT).show();
+                        triggerItems = true;
                     }else{
                         Toast.makeText(getApplicationContext(), "Ошибка загрузки. Проверьте Интернет или Учётку", Toast.LENGTH_SHORT).show();
                     }
@@ -376,6 +401,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                             }
                         }
                         Toast.makeText(getApplicationContext(), "НоменклатураСоСкидкой загружена", Toast.LENGTH_SHORT).show();
+                        triggerItemsWithDiscount = true;
                     }else{
                         Toast.makeText(getApplicationContext(), "Ошибка загрузки. Проверьте Интернет или Учётку", Toast.LENGTH_SHORT).show();
                     }
@@ -438,6 +464,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                             }
                         }
                         Toast.makeText(getApplicationContext(), "Скидки загружены", Toast.LENGTH_SHORT).show();
+                        triggerDiscounts = true;
                     }else{
                         Toast.makeText(getApplicationContext(), "Ошибка загрузки. Проверьте Интернет или Учётку", Toast.LENGTH_SHORT).show();
                     }
@@ -530,6 +557,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                             }
                         }
                         Toast.makeText(getApplicationContext(), "Накладные загружены", Toast.LENGTH_SHORT).show();
+                        triggerInvoices = true;
                     }else{
                         Toast.makeText(getApplicationContext(), "Ошибка загрузки. Проверьте Интернет или Учётку", Toast.LENGTH_SHORT).show();
                     }
