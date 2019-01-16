@@ -3,6 +3,9 @@ package com.example.myapplicationtest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -35,22 +38,29 @@ import java.util.Map;
 
 public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implements View.OnClickListener {
 
-    String requestUrl = "https://caiman.ru.com/php/items.php", dbName, dbUser, dbPassword, item;
+    String requestUrl = "https://caiman.ru.com/php/items.php", dbName, dbUser, dbPassword, item, connStatus;
     String[] itemsList;
     ListView listViewItems;
-    SharedPreferences sPrefDBName, sPrefDBPassword, sPrefDBUser, sPrefItemsList;
+    SharedPreferences sPrefDBName, sPrefDBPassword, sPrefDBUser, sPrefItemsList, sPrefConnectionStatus;
     final String SAVED_DBName = "dbName";
     final String SAVED_DBUser = "dbUser";
     final String SAVED_DBPassword = "dbPassword";
     final String SAVED_ItemsListToInvoice = "itemsToInvoice";
+    final String SAVED_CONNSTATUS = "connectionStatus";
     SharedPreferences.Editor e;
     ArrayList<String> tmp;
     Button btnCreateList;
+    final String LOG_TAG = "myLogs";
+    DBHelper dbHelper;
+    SQLiteDatabase db;
+    ArrayAdapter<String> arrayAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_invoice_choose_items);
+
+        dbHelper = new DBHelper(this);
 
         listViewItems = findViewById(R.id.listViewItemsToSelect);
 
@@ -62,6 +72,7 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implemen
         sPrefDBUser = getSharedPreferences(SAVED_DBUser, Context.MODE_PRIVATE);
         sPrefDBPassword = getSharedPreferences(SAVED_DBPassword, Context.MODE_PRIVATE);
         sPrefItemsList = getSharedPreferences(SAVED_ItemsListToInvoice, Context.MODE_PRIVATE);
+        sPrefConnectionStatus = getSharedPreferences(SAVED_CONNSTATUS, Context.MODE_PRIVATE);
 
         if (sPrefDBName.contains(SAVED_DBName) && sPrefDBUser.contains(SAVED_DBUser) && sPrefDBPassword.contains(SAVED_DBPassword)) {
             dbName = sPrefDBName.getString(SAVED_DBName, "");
@@ -69,7 +80,14 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implemen
             dbPassword = sPrefDBPassword.getString(SAVED_DBPassword, "");
         }
 
-        receiveItemsList();
+        if (sPrefConnectionStatus.contains(SAVED_CONNSTATUS)) {
+            connStatus = sPrefConnectionStatus.getString(SAVED_CONNSTATUS, "");
+            if (connStatus.equals("success")) {
+                receiveItemsListFromServerDB();
+            } else {
+                receiveItemsListFromLocalDB();
+            }
+        }
 
         listViewItems.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view,
@@ -91,22 +109,22 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implemen
         }
     }
 
-    private void receiveItemsList(){
+    private void receiveItemsListFromServerDB(){
         StringRequest request = new StringRequest(Request.Method.POST,
                 requestUrl, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
                 try{
                     JSONArray jsonArray = new JSONArray(response);
-                    Toast.makeText(getApplicationContext(), "Query successful", Toast.LENGTH_SHORT).show();
                     itemsList = new String[jsonArray.length()];
                     if (jsonArray.length() > 0){
                         for (int i = 0; i < jsonArray.length(); i++) {
                             JSONObject obj = jsonArray.getJSONObject(i);
                             itemsList[i] = obj.getString("Наименование");
+                            Toast.makeText(getApplicationContext(), "Список загружен с сервера", Toast.LENGTH_SHORT).show();
                         }
                     }else{
-                        Toast.makeText(getApplicationContext(), "Something went wrong with DB query", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), "Что-то пошло не так с запросом к серверу", Toast.LENGTH_SHORT).show();
                     }
 
                     ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_multiple_choice, itemsList);
@@ -119,7 +137,7 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implemen
         }, new Response.ErrorListener(){
             @Override
             public void onErrorResponse(VolleyError error){
-                Toast.makeText(getApplicationContext(), "Response Error, fuck!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "Проблемы соединения с сервером", Toast.LENGTH_SHORT).show();
                 Log.e("TAG", "Error " + error.getMessage());
             }
         }){
@@ -133,6 +151,29 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implemen
             }
         };
         VolleySingleton.getInstance(this).getRequestQueue().add(request);
+    }
+
+    private void receiveItemsListFromLocalDB(){
+        db = dbHelper.getReadableDatabase();
+        String sql;
+        ArrayList<String> itemsList;
+        itemsList = new ArrayList<>();
+        sql = "SELECT Наименование FROM items";
+        Cursor c = db.rawQuery(sql, null);
+        if (c.moveToFirst()) {
+            int idColIndex = c.getColumnIndex("Наименование");
+            do {
+                Log.d(LOG_TAG,"ID = " + c.getString(idColIndex));
+                itemsList.add(c.getString(idColIndex));
+            } while (c.moveToNext());
+        } else {
+            Log.d(LOG_TAG, "0 rows");
+            Toast.makeText(getApplicationContext(), "Ошибка: CreateInvoiceChooseSalesPartner receiveDataFromLocalDB 001",
+                    Toast.LENGTH_SHORT).show();
+        }
+        arrayAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_multiple_choice, itemsList);
+        listViewItems.setAdapter(arrayAdapter);
+        c.close();
     }
 
     private void addItemsToInvoice() {
@@ -158,5 +199,23 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implemen
             editor.putString(key, null);
         }
         editor.commit();
+    }
+
+    class DBHelper extends SQLiteOpenHelper {
+
+        public DBHelper(Context context) {
+            // конструктор суперкласса
+            super(context, "myLocalDB", null, 1);
+        }
+
+        @Override
+        public void onCreate(SQLiteDatabase db) {
+
+        }
+
+        @Override
+        public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+
+        }
     }
 }

@@ -31,6 +31,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -39,7 +41,8 @@ public class CreateInvoiceChooseSalesPartnerActivity extends AppCompatActivity i
     Button btnNext;
     ListView listViewSalesPartners, listViewAccountingType;
     SharedPreferences sPrefArea, sPrefAccountingType, sPrefDBName, sPrefDBPassword, sPrefDBUser,
-            sPrefDayOfTheWeek, sPrefSalesPartner, sPrefAreaDefault, sPrefDayOfTheWeekDefault;
+            sPrefDayOfTheWeek, sPrefSalesPartner, sPrefAreaDefault, sPrefDayOfTheWeekDefault,
+            sPrefConnectionStatus;
     ArrayAdapter<String> arrayAdapter;
     final String SAVED_AREA = "Area";
     final String SAVED_AREADEFAULT = "areaDefault";
@@ -50,11 +53,13 @@ public class CreateInvoiceChooseSalesPartnerActivity extends AppCompatActivity i
     final String SAVED_DAYOFTHEWEEK = "DayOfTheWeek";
     final String SAVED_DAYOFTHEWEEKDEFAULT = "DayOfTheWeekDefault";
     final String SAVED_SALESPARTNER = "SalesPartner";
+    final String SAVED_CONNSTATUS = "connectionStatus";
     SharedPreferences.Editor e;
     String requestUrl = "https://caiman.ru.com/php/filter_new.php", salesPartner, dbName, dbUser, dbPassword,
-            area, accountingType, dayOfTheWeek;
+            area, accountingType, dayOfTheWeek, connStatus;
     final String LOG_TAG = "myLogs";
     DBHelper dbHelper;
+    SQLiteDatabase db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,10 +82,18 @@ public class CreateInvoiceChooseSalesPartnerActivity extends AppCompatActivity i
         sPrefDayOfTheWeek = getSharedPreferences(SAVED_DAYOFTHEWEEK, Context.MODE_PRIVATE);
         sPrefDayOfTheWeekDefault = getSharedPreferences(SAVED_DAYOFTHEWEEKDEFAULT, Context.MODE_PRIVATE);
         sPrefAreaDefault= getSharedPreferences(SAVED_AREADEFAULT, Context.MODE_PRIVATE);
+        sPrefConnectionStatus = getSharedPreferences(SAVED_CONNSTATUS, Context.MODE_PRIVATE);
 
         initialValues();
-//        receiveDataFromServer();
-        receiveDataFromLocalDB();
+
+        if (sPrefConnectionStatus.contains(SAVED_CONNSTATUS)) {
+            connStatus = sPrefConnectionStatus.getString(SAVED_CONNSTATUS, "");
+            if (connStatus.equals("success")) {
+                receiveDataFromServer();
+            } else {
+                receiveDataFromLocalDB();
+            }
+        }
 
         listViewSalesPartners.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view,
@@ -134,7 +147,7 @@ public class CreateInvoiceChooseSalesPartnerActivity extends AppCompatActivity i
                             JSONObject obj = jsonArray.getJSONObject(i);
                             salesPartners[i] = obj.getString("Наименование");
                         }
-                        Toast.makeText(getApplicationContext(), "Данные загружены", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), "Данные загружены из Интернета", Toast.LENGTH_SHORT).show();
                     }else{
                         Toast.makeText(getApplicationContext(), "Что-то пошло не так", Toast.LENGTH_SHORT).show();
                     }
@@ -171,38 +184,45 @@ public class CreateInvoiceChooseSalesPartnerActivity extends AppCompatActivity i
     }
 
     private void receiveDataFromLocalDB(){
-        // подключаемся к БД
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
-        Log.d(LOG_TAG, "--- Rows in salesPartners: ---");
-        String sql = new String();
-        // делаем запрос всех данных из таблицы salesPartners, получаем Cursor
+        db = dbHelper.getReadableDatabase();
+        String sql;
+        ArrayList<String> salesPartners;
+        salesPartners = new ArrayList<>();
         if (sPrefAccountingType.contains(SAVED_ACCOUNTINGTYPE)){
-            sql = "SELECT Наименование FROM salesPartners WHERE DayOfTheWeek LIKE " + dayOfTheWeek + " AND Район LIKE " + area + " AND Учет LIKE " + accountingType;
+            sql = "SELECT Наименование FROM salesPartners WHERE DayOfTheWeek LIKE ? AND Район LIKE ? AND Учет LIKE ?";
+            Cursor c = db.rawQuery(sql, new String[]{dayOfTheWeek, area, accountingType});
+            if (c.moveToFirst()) {
+                int idColIndex = c.getColumnIndex("Наименование");
+                do {
+                    Log.d(LOG_TAG,"ID = " + c.getString(idColIndex));
+                    salesPartners.add(c.getString(idColIndex));
+                } while (c.moveToNext());
+            } else {
+                Log.d(LOG_TAG, "0 rows");
+                Toast.makeText(getApplicationContext(), "Ошибка: CreateInvoiceChooseSalesPartner receiveDataFromLocalDB 001",
+                        Toast.LENGTH_SHORT).show();
+            }
+            arrayAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_1, salesPartners);
+            listViewSalesPartners.setAdapter(arrayAdapter);
+            c.close();
         } else {
-            sql = "SELECT Наименование FROM salesPartners WHERE DayOfTheWeek LIKE " + dayOfTheWeek + " AND Район LIKE " + area;
+            sql = "SELECT Наименование FROM salesPartners WHERE DayOfTheWeek LIKE ? AND Район LIKE ?";
+            Cursor c = db.rawQuery(sql, new String[]{dayOfTheWeek, area});
+            if (c.moveToFirst()) {
+                int idColIndex = c.getColumnIndex("Наименование");
+                do {
+                    Log.d(LOG_TAG,"ID = " + c.getString(idColIndex));
+                    salesPartners.add(c.getString(idColIndex));
+                } while (c.moveToNext());
+            } else {
+                Log.d(LOG_TAG, "0 rows");
+                Toast.makeText(getApplicationContext(), "Ошибка: CreateInvoiceChooseSalesPartner receiveDataFromLocalDB 002",
+                        Toast.LENGTH_SHORT).show();
+            }
+            arrayAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_1, salesPartners);
+            listViewSalesPartners.setAdapter(arrayAdapter);
+            c.close();
         }
-        Cursor c = db.rawQuery(sql, null);
-        // ставим позицию курсора на первую строку выборки
-        // если в выборке нет строк, вернется false
-        if (c.moveToFirst()) {
-
-            // определяем номера столбцов по имени в выборке
-            int idColIndex = c.getColumnIndex("id");
-            int nameColIndex = c.getColumnIndex("name");
-            int emailColIndex = c.getColumnIndex("email");
-
-            do {
-                // получаем значения по номерам столбцов и пишем все в лог
-                Log.d(LOG_TAG,
-                        "ID = " + c.getInt(idColIndex) +
-                                ", name = " + c.getString(nameColIndex) +
-                                ", email = " + c.getString(emailColIndex));
-                // переход на следующую строку
-                // а если следующей нет (текущая - последняя), то false - выходим из цикла
-            } while (c.moveToNext());
-        } else
-            Log.d(LOG_TAG, "0 rows");
-        c.close();
     }
 
     private void createInvoice(){
@@ -245,7 +265,7 @@ public class CreateInvoiceChooseSalesPartnerActivity extends AppCompatActivity i
                 if (dayOfTheWeek.equals("6") || dayOfTheWeek.equals("7")){
                     dayOfTheWeek = "среда";
                 }
-                if (sPrefAreaDefault.getString(SAVED_AREADEFAULT, "").equals("север")){
+                if (sPrefAreaDefault.getString(SAVED_AREADEFAULT, "").equals("4")){
                     dayOfTheWeek = "север";
                 }
             }

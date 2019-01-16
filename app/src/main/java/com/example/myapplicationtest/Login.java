@@ -28,13 +28,14 @@ import java.util.Map;
 public class Login extends AppCompatActivity implements View.OnClickListener {
 
     Button btnLogin, btnSettings;
-    SharedPreferences sPrefLogin, sPrefPassword, sPrefDBName, sPrefDBPassword, sPrefDBUser, sPrefAreaDefault;
+    SharedPreferences sPrefLogin, sPrefPassword, sPrefDBName, sPrefDBPassword, sPrefDBUser, sPrefAreaDefault, sPrefConnectionStatus;
     final String SAVED_LOGIN = "Login";
     final String SAVED_PASSWORD = "Password";
     final String SAVED_DBName = "dbName";
     final String SAVED_DBUser = "dbUser";
     final String SAVED_DBPassword = "dbPassword";
     final String SAVED_AREADEFAULT = "areaDefault";
+    final String SAVED_CONNSTATUS = "connectionStatus";
     SharedPreferences.Editor e;
     String loginUrl = "https://caiman.ru.com/php/login.php", dbName, dbUser, dbPassword, Login, Password;
     String[] area;
@@ -55,6 +56,9 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
         sPrefDBUser = getSharedPreferences(SAVED_DBUser, Context.MODE_PRIVATE);
         sPrefDBPassword = getSharedPreferences(SAVED_DBPassword, Context.MODE_PRIVATE);
         sPrefAreaDefault = getSharedPreferences(SAVED_AREADEFAULT, Context.MODE_PRIVATE);
+        sPrefConnectionStatus = getSharedPreferences(SAVED_CONNSTATUS, Context.MODE_PRIVATE);
+
+        sPrefConnectionStatus.edit().clear().apply();
 
         if (sPrefDBName.contains(SAVED_DBName) && sPrefDBUser.contains(SAVED_DBUser) && sPrefDBPassword.contains(SAVED_DBPassword) &&
                 sPrefLogin.contains(SAVED_LOGIN) && sPrefPassword.contains(SAVED_PASSWORD)){
@@ -132,6 +136,8 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
             @Override
             public void onErrorResponse(VolleyError error){
                 Toast.makeText(getApplicationContext(), "Проблемы с запросом на сервер", Toast.LENGTH_SHORT).show();
+                onConnectionFailed();
+
                 Log.e("TAG", "Error " + error.getMessage());
             }
         }){
@@ -153,8 +159,37 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
         e = sPrefAreaDefault.edit();
         e.putString(SAVED_AREADEFAULT, area[0]);
         e.apply();
+        e = sPrefConnectionStatus.edit();
+        e.putString(SAVED_CONNSTATUS, "success");
+        e.apply();
         Toast.makeText(getApplicationContext(), "Успешный вход. Ваш район: " + area[0], Toast.LENGTH_SHORT).show();
         Intent intent = new Intent(getApplicationContext(), MainMenu.class);
         startActivity(intent);
+    }
+
+    private void onConnectionFailed(){
+        e = sPrefConnectionStatus.edit();
+        e.putString(SAVED_CONNSTATUS, "failed");
+        e.apply();
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Внимание")
+                .setMessage("Вход через Интернет провалился")
+                .setCancelable(true)
+                .setPositiveButton("Попробовать снова",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialog.cancel();
+                            }
+                        })
+                .setNegativeButton("Войти без Интернета",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                Intent intent = new Intent(getApplicationContext(), MainMenu.class);
+                                startActivity(intent);
+                            }
+                        });
+        AlertDialog alert = builder.create();
+        alert.show();
     }
 }
