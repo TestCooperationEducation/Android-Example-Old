@@ -41,12 +41,14 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implemen
     String requestUrl = "https://caiman.ru.com/php/items.php", dbName, dbUser, dbPassword, item, connStatus;
     String[] itemsList;
     ListView listViewItems;
-    SharedPreferences sPrefDBName, sPrefDBPassword, sPrefDBUser, sPrefItemsList, sPrefConnectionStatus;
+    SharedPreferences sPrefDBName, sPrefDBPassword, sPrefDBUser, sPrefItemsList, sPrefConnectionStatus,
+            sPrefItemName;
     final String SAVED_DBName = "dbName";
     final String SAVED_DBUser = "dbUser";
     final String SAVED_DBPassword = "dbPassword";
     final String SAVED_ItemsListToInvoice = "itemsToInvoice";
     final String SAVED_CONNSTATUS = "connectionStatus";
+    final String SAVED_ITEMNAME = "itemName";
     SharedPreferences.Editor e;
     ArrayList<String> tmp;
     Button btnCreateList;
@@ -73,6 +75,7 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implemen
         sPrefDBPassword = getSharedPreferences(SAVED_DBPassword, Context.MODE_PRIVATE);
         sPrefItemsList = getSharedPreferences(SAVED_ItemsListToInvoice, Context.MODE_PRIVATE);
         sPrefConnectionStatus = getSharedPreferences(SAVED_CONNSTATUS, Context.MODE_PRIVATE);
+        sPrefItemName = getSharedPreferences(SAVED_ITEMNAME, Context.MODE_PRIVATE);
 
         if (sPrefDBName.contains(SAVED_DBName) && sPrefDBUser.contains(SAVED_DBUser) && sPrefDBPassword.contains(SAVED_DBPassword)) {
             dbName = sPrefDBName.getString(SAVED_DBName, "");
@@ -93,7 +96,13 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implemen
             public void onItemClick(AdapterView<?> parent, View view,
                                     int position, long id) {
                 item = ((TextView) view).getText().toString();
-                addItemsToInvoice();
+                SparseBooleanArray chosen = listViewItems.getCheckedItemPositions();
+                for (int i = 0; i < listViewItems.getCount(); i++) {
+                    if (itemsList[i].equals(item) && chosen.get(i) == true) {
+                        goToSetQuantities();
+                    }
+                }
+//                addItemsToInvoice();
             }
         });
     }
@@ -186,6 +195,15 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implemen
         }
         setStringArrayPref(getApplicationContext(), SAVED_ItemsListToInvoice, tmp);
     }
+
+    private void goToSetQuantities(){
+        e = sPrefItemName.edit();
+        e.putString(SAVED_ITEMNAME, item);
+        e.apply();
+        Intent intent = new Intent(this, CreateInvoiceSetItemsQuantitiesActivity.class);
+        startActivity(intent);
+    }
+
     public static void setStringArrayPref(Context context, String key, ArrayList<String> values) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         SharedPreferences.Editor editor = prefs.edit();

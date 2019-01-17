@@ -93,8 +93,8 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
 
         listViewItems = findViewById(R.id.listViewItems);
         listViewItemsTotal = findViewById(R.id.listViewItemsTotal);
-        textViewSalesPartner = findViewById(R.id.textViewSalesPartner);
-        textViewAccountingType = findViewById(R.id.textViewAccountingType);
+//        textViewSalesPartner = findViewById(R.id.textViewSalesPartner);
+//        textViewAccountingType = findViewById(R.id.textViewAccountingType);
         editTextQuantity = findViewById(R.id.editTextQuantity);
         editTextExchange = findViewById(R.id.editTextExchange);
         editTextReturn = findViewById(R.id.editTextReturn);
@@ -125,9 +125,9 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
             loginSecurity = sPrefLogin.getString(SAVED_LOGIN, "");
         }
 
-        Intent intent = getIntent();
-        String accountingType = intent.getStringExtra(CreateInvoiceChooseTypeOfInvoiceActivity.EXTRA_AccountingType);
-        textViewAccountingType.setText(accountingType);
+//        Intent intent = getIntent();
+//        String accountingType = intent.getStringExtra(CreateInvoiceChooseTypeOfInvoiceActivity.EXTRA_AccountingType);
+//        textViewAccountingType.setText(accountingType);
 //        author = agentName;
 //        agentNameGlobal = intent.getStringExtra(CreateInvoiceChooseSalesPartnerActivity.EXTRA_AGENTNAMENEXT);
 

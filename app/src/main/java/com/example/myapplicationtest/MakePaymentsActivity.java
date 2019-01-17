@@ -4,6 +4,9 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -44,31 +47,32 @@ public class MakePaymentsActivity extends AppCompatActivity implements View.OnCl
             requestUrlLoadDebts = "https://caiman.ru.com/php/loadDebtors.php", salesPartner,
             requestUrlSalesPartners = "https://caiman.ru.com/php/receiveSalesPartners.php",
             requestUrlMakePayment = "https://caiman.ru.com/php/makePayment.php",
-            author;
-    SharedPreferences sPrefDBName, sPrefDBPassword, sPrefDBUser, sPrefLogin;
+            author, connStatus;
+    SharedPreferences sPrefDBName, sPrefDBPassword, sPrefDBUser, sPrefLogin, sPrefConnectionStatus,
+            sPrefAccountingType;
     final String SAVED_DBName = "dbName";
     final String SAVED_DBUser = "dbUser";
     final String SAVED_DBPassword = "dbPassword";
     final String SAVED_LOGIN = "Login";
+    final String SAVED_CONNSTATUS = "connectionStatus";
+    final String SAVED_ACCOUNTINGTYPE = "AccountingType";
     Button btnReceiveList, btnClearList, btnSelectInvoice, btnMakePayment;
     EditText editTextDateStart, editTextDateEnd, editTextSearch, editTextPaymentSum;
     TextView textViewInvoiceDebt, textViewTotalDebt, textViewStatusPay;
     ArrayAdapter<String> arrayAdapter;
     Double tmpTotalDebt = 0d, paymentAmount;
     List<DataPay> dataPay;
+    final String LOG_TAG = "myLogs";
+    DBHelper dbHelper;
+    SQLiteDatabase db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_make_payments);
 
-//        Intent intent = getIntent();
-//        String agentName = intent.getStringExtra(MainMenu.EXTRA_AGENTNAMENEXT);
-//        TextView textView = findViewById(R.id.textViewAgent);
-//        textView.setText(agentName);
-//        author = agentName;
-
         dataPay = new ArrayList<>();
+        dbHelper = new DBHelper(this);
 
         btnReceiveList = findViewById(R.id.buttonReceiveList);
         btnReceiveList.setOnClickListener(this);
@@ -90,6 +94,9 @@ public class MakePaymentsActivity extends AppCompatActivity implements View.OnCl
         sPrefDBName = getSharedPreferences(SAVED_DBName, Context.MODE_PRIVATE);
         sPrefDBUser = getSharedPreferences(SAVED_DBUser, Context.MODE_PRIVATE);
         sPrefDBPassword = getSharedPreferences(SAVED_DBPassword, Context.MODE_PRIVATE);
+        sPrefConnectionStatus = getSharedPreferences(SAVED_CONNSTATUS, Context.MODE_PRIVATE);
+        sPrefAccountingType = getSharedPreferences(SAVED_ACCOUNTINGTYPE, Context.MODE_PRIVATE);
+
         dbName = sPrefDBName.getString(SAVED_DBName, "");
         dbUser = sPrefDBUser.getString(SAVED_DBUser, "");
         dbPassword = sPrefDBPassword.getString(SAVED_DBPassword, "");
@@ -155,7 +162,14 @@ public class MakePaymentsActivity extends AppCompatActivity implements View.OnCl
         switch (v.getId()) {
             case R.id.buttonReceiveList:
                 tmpTotalDebt = 0d;
-                receiveList();
+                if (sPrefConnectionStatus.contains(SAVED_CONNSTATUS)) {
+                    connStatus = sPrefConnectionStatus.getString(SAVED_CONNSTATUS, "");
+                    if (!connStatus.equals("failed")) {
+                        receiveDebtsFromServerDB();
+                    } else {
+//                        receiveDebtsFromLocalDB();
+                    }
+                }
                 break;
             case R.id.buttonClearList:
                 clearAll();
@@ -182,7 +196,7 @@ public class MakePaymentsActivity extends AppCompatActivity implements View.OnCl
         listViewAccountingType.setAdapter(arrayAdapter);
     }
 
-    private void receiveList(){
+    private void receiveDebtsFromServerDB(){
         dateStart = editTextDateStart.getText().toString();
         dateEnd = editTextDateEnd.getText().toString();
 
@@ -212,38 +226,10 @@ public class MakePaymentsActivity extends AppCompatActivity implements View.OnCl
                             totalPayment[i] = obj.getString("paymentSum");
                             tmpTotalDebt = tmpTotalDebt + Double.parseDouble(totalPayment[i]);
                             textViewTotalDebt.setText(tmpTotalDebt.toString());
-
-//                            if (obj.isNull("InvoiceNumber") && obj.isNull("Total")) {
-//                                discountValue[i] = String.valueOf(0);
-//                                discountType[i] = String.valueOf(0);
-//                                Toast.makeText(getApplicationContext(), "Нет", Toast.LENGTH_SHORT).show();
-//                            }
-//                            else {
-//                                invoiceNumber[i] = obj.getString("InvoiceNumber");
-//                                total[i] = obj.getString("Total");
-//                                Toast.makeText(getApplicationContext(), invoiceNumber[i], Toast.LENGTH_SHORT).show();
-//                            }
                         }
-//                        textViewPrice.setText(itemPrice[0]);
-//                        textViewDiscountType.setText(discountType[0]);
-//                        textViewDiscountValue.setText(discountValue[0]);
-//                        if (Double.parseDouble(discountType[0]) == 0){
-//                            textViewPrice.setText(itemPrice[0]);
-//                            finalPrice = Double.parseDouble(textViewPrice.getText().toString());
-//                        }
-//                        if (Double.parseDouble(discountType[0]) == 1){
-//                            finalPrice = Double.parseDouble(itemPrice[0]) - Double.parseDouble(discountValue[0]);
-//                            textViewPrice.setText(finalPrice.toString());
-//                        }
-//                        if (Double.parseDouble(discountType[0]) == 2){
-//                            finalPrice = Double.parseDouble(itemPrice[0]) - (Double.parseDouble(itemPrice[0]) / 10);
-//                            textViewPrice.setText(finalPrice.toString());
-//                        }
                     }else{
-//                        Toast.makeText(getApplicationContext(), "Что-то пошло не так", Toast.LENGTH_SHORT).show();
                         Toast.makeText(getApplicationContext(), response, Toast.LENGTH_SHORT).show();
                     }
-//                    Toast.makeText(getApplicationContext(), textViewPrice.getText().toString(), Toast.LENGTH_SHORT).show();
                     ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_1, invoiceNumber);
                     listViewDebts.setAdapter(arrayAdapter);
                 }
@@ -296,7 +282,6 @@ public class MakePaymentsActivity extends AppCompatActivity implements View.OnCl
                         for (int i = 0; i < jsonArray.length(); i++) {
                             JSONObject obj = jsonArray.getJSONObject(i);
                             salesPartners[i] = obj.getString("Наименование");
-//                            Toast.makeText(getApplicationContext(), "Данные загружены", Toast.LENGTH_SHORT).show();
                         }
                     }else{
                         Toast.makeText(getApplicationContext(), "Что-то пошло не так", Toast.LENGTH_SHORT).show();
@@ -466,7 +451,6 @@ public class MakePaymentsActivity extends AppCompatActivity implements View.OnCl
         Toast.makeText(getApplicationContext(), "Этот функционал еще не добавлен :-(", Toast.LENGTH_SHORT).show();
     }
 
-
     public static boolean isDouble(String s) {
         try {
             Double.parseDouble(s);
@@ -477,5 +461,65 @@ public class MakePaymentsActivity extends AppCompatActivity implements View.OnCl
         }
         // only got here if we didn't return false
         return true;
+    }
+
+//    private void receiveDebtsFromLocalDB(){
+//        db = dbHelper.getReadableDatabase();
+//        String sql;
+//        ArrayList<String> salesPartners;
+//        salesPartners = new ArrayList<>();
+//        if (sPrefAccountingType.contains(SAVED_ACCOUNTINGTYPE)){
+//            sql = "SELECT Наименование FROM salesPartners WHERE DayOfTheWeek LIKE ? AND Район LIKE ? AND Учет LIKE ?";
+//            Cursor c = db.rawQuery(sql, new String[]{dayOfTheWeek, area, accountingType});
+//            if (c.moveToFirst()) {
+//                int idColIndex = c.getColumnIndex("Наименование");
+//                do {
+//                    Log.d(LOG_TAG,"ID = " + c.getString(idColIndex));
+//                    salesPartners.add(c.getString(idColIndex));
+//                } while (c.moveToNext());
+//            } else {
+//                Log.d(LOG_TAG, "0 rows");
+//                Toast.makeText(getApplicationContext(), "Ошибка: CreateInvoiceChooseSalesPartner receiveDataFromLocalDB 001",
+//                        Toast.LENGTH_SHORT).show();
+//            }
+//            arrayAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_1, salesPartners);
+//            listViewSalesPartners.setAdapter(arrayAdapter);
+//            c.close();
+//        } else {
+//            sql = "SELECT Наименование FROM salesPartners WHERE DayOfTheWeek LIKE ? AND Район LIKE ?";
+//            Cursor c = db.rawQuery(sql, new String[]{dayOfTheWeek, area});
+//            if (c.moveToFirst()) {
+//                int idColIndex = c.getColumnIndex("Наименование");
+//                do {
+//                    Log.d(LOG_TAG,"ID = " + c.getString(idColIndex));
+//                    salesPartners.add(c.getString(idColIndex));
+//                } while (c.moveToNext());
+//            } else {
+//                Log.d(LOG_TAG, "0 rows");
+//                Toast.makeText(getApplicationContext(), "Ошибка: CreateInvoiceChooseSalesPartner receiveDataFromLocalDB 002",
+//                        Toast.LENGTH_SHORT).show();
+//            }
+//            arrayAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_1, salesPartners);
+//            listViewSalesPartners.setAdapter(arrayAdapter);
+//            c.close();
+//        }
+//    }
+
+    class DBHelper extends SQLiteOpenHelper {
+
+        public DBHelper(Context context) {
+            // конструктор суперкласса
+            super(context, "myLocalDB", null, 1);
+        }
+
+        @Override
+        public void onCreate(SQLiteDatabase db) {
+
+        }
+
+        @Override
+        public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+
+        }
     }
 }

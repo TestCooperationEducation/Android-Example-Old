@@ -7,24 +7,145 @@
     tools:context=".CreateInvoiceSetItemsQuantitiesActivity">
 
     <TextView
-        android:id="@+id/textViewTest"
+        android:id="@+id/textViewPrice"
+        android:layout_width="wrap_content"
+        android:layout_height="35dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginLeft="10dp"
+        app:layout_constraintStart_toEndOf="@+id/textViewPriceLabel"
+        app:layout_constraintTop_toBottomOf="@+id/textViewAccountingType" />
+
+    <TextView
+        android:id="@+id/textViewPriceLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="35dp"
+        android:text="@string/textViewPriceLabel"
+        android:textSize="18sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewAccountingType" />
+
+    <TextView
+        android:id="@+id/textViewQuantityLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="35dp"
+        android:layout_marginTop="5dp"
+        android:text="@string/editTextQuantityLabel"
+        android:textSize="18sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewPriceLabel" />
+
+    <TextView
+        android:id="@+id/textViewExchangeLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="35dp"
+        android:layout_marginTop="5dp"
+        android:text="@string/editTextExchange"
+        android:textSize="18sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewQuantityLabel" />
+
+    <TextView
+        android:id="@+id/textViewReturnLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="35dp"
+        android:layout_marginTop="5dp"
+        android:text="@string/editTextReturn"
+        android:textSize="18sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewExchangeLabel" />
+
+    <EditText
+        android:id="@+id/editTextQuantity"
+        android:layout_width="0dp"
+        android:layout_height="35dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="5dp"
+        android:hint="@string/editTextQuantityLabel"
+        android:inputType="numberDecimal"
+        android:textSize="12sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toEndOf="@+id/textViewQuantityLabel"
+        app:layout_constraintTop_toBottomOf="@+id/textViewPriceLabel" />
+
+    <EditText
+        android:id="@+id/editTextExchange"
+        android:layout_width="0dp"
+        android:layout_height="35dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="5dp"
+        android:hint="@string/editTextExchange"
+        android:inputType="numberDecimal"
+        android:textSize="12sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toEndOf="@+id/textViewExchangeLabel"
+        app:layout_constraintTop_toBottomOf="@+id/editTextQuantity" />
+
+    <EditText
+        android:id="@+id/editTextReturn"
+        android:layout_width="0dp"
+        android:layout_height="35dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="5dp"
+        android:hint="@string/editTextReturn"
+        android:inputType="numberDecimal"
+        android:textSize="12sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toEndOf="@+id/textViewReturnLabel"
+        app:layout_constraintTop_toBottomOf="@+id/editTextExchange" />
+
+    <Button
+        android:id="@+id/buttonChangePrice"
+        android:layout_width="0dp"
+        android:layout_height="35dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginLeft="10dp"
+        android:text="@string/btnChangePrice"
+        android:textSize="14sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toEndOf="@+id/textViewPrice"
+        app:layout_constraintTop_toBottomOf="@+id/textViewAccountingType" />
+
+    <TextView
+        android:id="@+id/textViewItemName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="101dp"
-        android:layout_marginLeft="101dp"
-        android:layout_marginTop="55dp"
-        android:layout_marginEnd="225dp"
-        android:layout_marginRight="225dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <ListView
-        android:id="@+id/listViewTest"
+    <TextView
+        android:id="@+id/textViewSalesPartner"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewItemName" />
+
+    <TextView
+        android:id="@+id/textViewAccountingType"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewSalesPartner" />
+
+    <Button
+        android:id="@+id/buttonSaveTmp"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:layout_marginTop="5dp"
+        android:text="@string/btnSaveRecord"
+        android:textSize="36sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textViewTest" />
+        app:layout_constraintTop_toBottomOf="@+id/editTextReturn" />
+
 </android.support.constraint.ConstraintLayout>

@@ -1,17 +1,19 @@
 package com.example.myapplicationtest;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-import android.widget.TextView;
-import android.widget.Toast;
 
 public class CreateInvoiceChooseTypeOfInvoiceActivity extends AppCompatActivity implements View.OnClickListener {
 
     Button btnInvoiceTypeOne, btnInvoiceTypeTwo;
-    public static final String EXTRA_AccountingType = "com.example.myapplicationtest.AccountingType";
+    final String SAVED_ACCOUNTINGTYPE = "AccountingType";
+    SharedPreferences sPrefAccountingType;
+    SharedPreferences.Editor e;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,22 +24,24 @@ public class CreateInvoiceChooseTypeOfInvoiceActivity extends AppCompatActivity 
         btnInvoiceTypeOne.setOnClickListener(this);
         btnInvoiceTypeTwo = findViewById(R.id.buttonInvoiceTypeTwo);
         btnInvoiceTypeTwo.setOnClickListener(this);
+
+        sPrefAccountingType = getSharedPreferences(SAVED_ACCOUNTINGTYPE, Context.MODE_PRIVATE);
     }
 
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.buttonInvoiceTypeOne:
+                e = sPrefAccountingType.edit();
+                e.putString(SAVED_ACCOUNTINGTYPE, "провод");
+                e.apply();
                 Intent intentOne = new Intent(getApplicationContext(), CreateInvoiceChooseItemsActivity.class);
-//                String accountingTypeOne = "непровод";
-//                intentOne.putExtra(EXTRA_AccountingType, accountingTypeOne);
-//                Toast.makeText(this, "Вы создаёте: " + accountingTypeOne, Toast.LENGTH_SHORT).show();
                 startActivity(intentOne);
                 break;
             case R.id.buttonInvoiceTypeTwo:
+                e = sPrefAccountingType.edit();
+                e.putString(SAVED_ACCOUNTINGTYPE, "непровод");
+                e.apply();
                 Intent intentTwo = new Intent(getApplicationContext(), CreateInvoiceChooseItemsActivity.class);
-//                String accountingTypeTwo = "непровод";
-//                intentTwo.putExtra(EXTRA_AccountingType, accountingTypeTwo);
-//                Toast.makeText(this, "Вы создаёте: " + accountingTypeTwo, Toast.LENGTH_SHORT).show();
                 startActivity(intentTwo);
                 break;
             default:

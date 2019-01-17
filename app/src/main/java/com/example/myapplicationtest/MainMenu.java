@@ -130,26 +130,67 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                 db.execSQL("DROP TABLE IF EXISTS invoice");
                 db.execSQL("DROP TABLE IF EXISTS payments");
                 dbHelper.onUpgrade(db, 1, 2);
-                if (!triggerDate){
-                    loadDateFromServer();
-                } else {
-                    loadSalesPartnersFromServerDB();
-                }
-                if (triggerSalesPartners){
-                    loadItemsFromServerDB();
-                }
-                if (triggerItems){
-                    loadItemsWithDiscountsFromServerDB();
-                }
-                if (triggerItemsWithDiscount){
-                    loadDiscountsFromServerDB();
-                }
-                if (triggerDiscounts){
-                    loadInvoicesFromServerDB();
-                }
-                if (triggerInvoices){
-                    loadPaymentsFromServerDB();
-                }
+                Runnable runnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        loadDateFromServer();
+                    }
+                };
+                Thread thread1 = new Thread(runnable);
+                thread1.start();
+                runnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        loadSalesPartnersFromServerDB();
+                    }
+                };
+                Thread thread2 = new Thread(runnable);
+                thread2.start();
+
+                runnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        loadItemsFromServerDB();
+                    }
+                };
+                Thread thread3 = new Thread(runnable);
+                thread3.start();
+
+                runnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        loadItemsWithDiscountsFromServerDB();
+                    }
+                };
+                Thread thread4 = new Thread(runnable);
+                thread4.start();
+
+                runnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        loadDiscountsFromServerDB();
+                    }
+                };
+                Thread thread5 = new Thread(runnable);
+                thread5.start();
+
+                runnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        loadInvoicesFromServerDB();
+                    }
+                };
+                Thread thread6 = new Thread(runnable);
+                thread6.start();
+
+                runnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        loadPaymentsFromServerDB();
+                    }
+                };
+                Thread thread7 = new Thread(runnable);
+                thread7.start();
 //        syncDB();
 //                }
             } else {
@@ -454,8 +495,8 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                                 ContentValues cv = new ContentValues();
                                 Log.d(LOG_TAG, "--- Insert in discount: ---");
                                 cv.put("serverDB_ID", serverDB_ID[i]);
-                                cv.put("Тип_скидки", itemNumber[i]);
-                                cv.put("Скидка", discountID[i]);
+                                cv.put("Тип_скидки", discountType[i]);
+                                cv.put("Скидка", discount[i]);
                                 cv.put("Автор", author[i]);
                                 long rowID = db.insert("discount", null, cv);
                                 Log.d(LOG_TAG, "row inserted, ID = " + rowID);

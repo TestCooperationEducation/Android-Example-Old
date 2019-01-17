@@ -17,8 +17,8 @@
     <string name="btnNext">Фильтр</string>
     <string name="btnNextFilterSecond">Создать</string>
     <string name="editTextQuantity">Кол-во</string>
-    <string name="editTextExchange">Обмен</string>
-    <string name="editTextReturn">Возврат</string>
+    <string name="editTextExchange">Обмен:</string>
+    <string name="editTextReturn">Возврат:</string>
     <string name="btnAddItem">Добавить</string>
     <string name="btnRemoveItem">Удалить</string>
     <string name="btnMakePayment">Оплатить</string>
@@ -51,5 +51,8 @@
     <string name="btnInvoiceTypeTwo">Непровод</string>
     <string name="btnInvoiceTypeOne">Провод</string>
     <string name="btnNextToInvoice">Далее</string>
+    <string name="textViewPriceLabel">Цена:</string>
+    <string name="editTextQuantityLabel">Количество:</string>
+    <string name="btnChangePrice">Изменить цену</string>
 
 </resources>
