@@ -228,7 +228,16 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implemen
 
         @Override
         public void onCreate(SQLiteDatabase db) {
-
+            Log.d(LOG_TAG, "--- onCreate database ---");
+            db.execSQL("create table itemsToInvoiceTmp ("
+                    + "id integer primary key autoincrement,"
+                    + "serverDB_ID integer,"
+                    + "Наименование text,"
+                    + "Район integer,"
+                    + "Учет text,"
+                    + "DayOfTheWeek text,"
+                    + "Автор text,"
+                    + "UNIQUE (serverDB_ID) ON CONFLICT REPLACE" + ");");
         }
 
         @Override
