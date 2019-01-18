@@ -1,17 +1,22 @@
 package com.example.myapplicationtest;
 
+import android.content.ContentValues;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.preference.PreferenceManager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -19,7 +24,6 @@ import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
-import com.google.gson.Gson;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -44,21 +48,32 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
     final String SAVED_CONNSTATUS = "connectionStatus";
     final String SAVED_ACCOUNTINGTYPE = "AccountingType";
     final String SAVED_ITEMNAME = "itemName";
-    Double finalPrice;
+    Double finalPrice, priceChanged;
 //    ArrayList<String> myList;
     ArrayList<DataPrice> dataArray;
-    TextView textViewSalesPartner, textViewItemName, textViewPrice, textViewAccountingType;
-    EditText editTextQuantity, editTextExchange, editTextReturn;
-    Button btnChangePrice;
+    TextView textViewSalesPartner, textViewItemName, textViewAccountingType, textViewTotal;
+    EditText editTextQuantity, editTextExchange, editTextReturn, editTextPrice;
+    Button btnChangePrice,btnSaveTmp;
+    final String LOG_TAG = "myLogs";
+    DBHelper dbHelper;
+    SQLiteDatabase db;
+    Boolean quantityType;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_invoice_set_items_quantities);
 
+        dbHelper = new DBHelper(this);
+        db = dbHelper.getWritableDatabase();
+
+        quantityType = false;
+
         dataArray = new ArrayList<>();
         btnChangePrice = findViewById(R.id.buttonChangePrice);
         btnChangePrice.setOnClickListener(this);
+        btnSaveTmp = findViewById(R.id.buttonSaveTmp);
+        btnSaveTmp.setOnClickListener(this);
 
         sPrefDBName = getSharedPreferences(SAVED_DBName, Context.MODE_PRIVATE);
         sPrefDBUser = getSharedPreferences(SAVED_DBUser, Context.MODE_PRIVATE);
@@ -71,8 +86,12 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
 
         textViewSalesPartner = findViewById(R.id.textViewSalesPartner);
         textViewItemName = findViewById(R.id.textViewItemName);
-        textViewPrice = findViewById(R.id.textViewPrice);
+        editTextPrice = findViewById(R.id.editTextViewPrice);
         textViewAccountingType = findViewById(R.id.textViewAccountingType);
+        editTextQuantity = findViewById(R.id.editTextQuantity);
+        editTextExchange = findViewById(R.id.editTextExchange);
+        editTextReturn = findViewById(R.id.editTextReturn);
+        textViewTotal = findViewById(R.id.textViewTotal);
 
         salesPartner = sPrefSalesPartner.getString(SAVED_SALESPARTNER, "");
         textViewSalesPartner.setText(salesPartner);
@@ -96,13 +115,14 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
                 getPriceFromLocalDB();
             }
         }
+
+        onChangeListener();
     }
 
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.buttonChangePrice:
-                Intent intent = new Intent(this, CreateInvoiceSetItemsQuantitiesActivity.class);
-                startActivity(intent);
+                changePrice();
                 break;
             case R.id.buttonSaveTmp:
                 saveTmp();
@@ -148,32 +168,30 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
                             if (obj.isNull("Скидка") && obj.isNull("Тип_скидки")) {
                                 discountValue[i] = String.valueOf(0);
                                 discountType[i] = String.valueOf(0);
-                                Toast.makeText(getApplicationContext(), "Нет", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(getApplicationContext(), "Без скидки", Toast.LENGTH_SHORT).show();
                             }
                             else {
                                 discountValue[i] = obj.getString("Скидка");
                                 discountType[i] = obj.getString("Тип_скидки");
-                                Toast.makeText(getApplicationContext(), "Есть", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(getApplicationContext(), "Со скидкой", Toast.LENGTH_SHORT).show();
                             }
                         }
                         if (Double.parseDouble(discountType[0]) == 0){
-                            textViewPrice.setText(itemPrice[0]);
-                            finalPrice = Double.parseDouble(textViewPrice.getText().toString());
+                            editTextPrice.setText(itemPrice[0]);
+                            finalPrice = Double.parseDouble(editTextPrice.getText().toString());
                         }
                         if (Double.parseDouble(discountType[0]) == 1){
                             finalPrice = Double.parseDouble(itemPrice[0]) - Double.parseDouble(discountValue[0]);
-                            textViewPrice.setText(finalPrice.toString());
+                            editTextPrice.setText(finalPrice.toString());
                         }
                         if (Double.parseDouble(discountType[0]) == 2){
                             finalPrice = Double.parseDouble(itemPrice[0]) - (Double.parseDouble(itemPrice[0]) / 10);
-                            textViewPrice.setText(finalPrice.toString());
+                            editTextPrice.setText(finalPrice.toString());
                         }
+                        priceChanged = finalPrice;
                     }else{
                         Toast.makeText(getApplicationContext(), "Something went wrong with DB query", Toast.LENGTH_SHORT).show();
                     }
-                    Toast.makeText(getApplicationContext(), textViewPrice.getText().toString(), Toast.LENGTH_SHORT).show();
-//                    ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_1, itemsList);
-//                    listViewItems.setAdapter(arrayAdapter);
                 }
                 catch (JSONException e1) {
                     e1.printStackTrace();
@@ -197,7 +215,6 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
                 return parameters;
             }
         };
-//        requestQueue.add(request);
         VolleySingleton.getInstance(this).getRequestQueue().add(request);
     }
 
@@ -206,6 +223,236 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
     }
 
     private void saveTmp(){
+        Double tmpSum, tmpQuantity, tmpExchange, tmpReturn;
+        if (editTextPrice.getText().toString().trim().length() == 0){
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Ошибка")
+                    .setMessage("Цена не может быть равна нулю")
+                    .setCancelable(true)
+                    .setNegativeButton("Назад",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    dialog.cancel();
+                                }
+                            });
+            AlertDialog alert = builder.create();
+            alert.show();
+        } else {
+            if (editTextQuantity.getText().toString().trim().length() == 0){
+                tmpQuantity = 0d;
+            } else {
+                tmpQuantity = Double.parseDouble(editTextQuantity.getText().toString());
+            }
 
+            if (!finalPrice.equals(priceChanged)){
+                tmpSum = priceChanged * Double.parseDouble(editTextQuantity.getText().toString());
+            } else {
+                tmpSum = finalPrice * Double.parseDouble(editTextQuantity.getText().toString());
+            }
+
+            if (editTextExchange.getText().toString().trim().length() == 0){
+                tmpExchange = 0d;
+            } else {
+                tmpExchange = Double.parseDouble(editTextExchange.getText().toString());
+            }
+            if (editTextReturn.getText().toString().trim().length() == 0){
+                tmpReturn = 0d;
+            } else {
+                tmpReturn = Double.parseDouble(editTextReturn.getText().toString());
+            }
+
+            if (tmpQuantity == 0d && tmpExchange == 0d && tmpReturn == 0d){
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle("Ошибка")
+                        .setMessage("Введите кол-во товара или обмена и возврата")
+                        .setCancelable(true)
+                        .setNegativeButton("Ок",
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        dialog.cancel();
+                                    }
+                                });
+                AlertDialog alert = builder.create();
+                alert.show();
+            }
+
+            if (tmpQuantity != 0d || tmpExchange != 0d || tmpReturn != 0d){
+                ContentValues cv = new ContentValues();
+                Log.d(LOG_TAG, "--- Insert in itemsToInvoiceTmp: ---");
+                cv.put("Наименование", item);
+                cv.put("Цена", finalPrice);
+                cv.put("ЦенаИзмененная", priceChanged);
+                cv.put("Количество", tmpQuantity);
+                cv.put("Обмен", tmpExchange);
+                cv.put("Возврат", tmpReturn);
+                cv.put("Итого", tmpSum);
+                long rowID = db.insert("itemsToInvoiceTmp", null, cv);
+                Log.d(LOG_TAG, "row inserted, ID = " + rowID);
+            }
+        }
+    }
+
+    private void changePrice(){
+        if (editTextPrice.getText().toString().trim().length() == 0 || Double.parseDouble(editTextPrice.getText().toString()) == 0){
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Ошибка")
+                    .setMessage("Цена товара не может быть равна нулю")
+                    .setCancelable(true)
+                    .setNegativeButton("Назад",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    dialog.cancel();
+                                }
+                            });
+            AlertDialog alert = builder.create();
+            alert.show();
+            editTextPrice.setText(String.valueOf(finalPrice));
+        } else {
+            priceChanged = Double.parseDouble(editTextPrice.getText().toString());
+        }
+    }
+
+    private void onChangeListener(){
+        editTextQuantity.addTextChangedListener(new TextWatcher() {
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                // текст только что изменили
+            }
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                // текст будет изменен
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                if (editTextQuantity.getText().toString().trim().length() > 0d){
+                    if (!item.equals("Ким-ча весовая") && !item.equals("Редька по-восточному весовая")){
+                        if ((Double.parseDouble(editTextQuantity.getText().toString()) > 0d &&
+                                Double.parseDouble(editTextQuantity.getText().toString()) < 1d)){
+                            Toast.makeText(getApplicationContext(), "<<< Этот товар в пачках >>>", Toast.LENGTH_SHORT).show();
+                        }
+                        if (Double.parseDouble(editTextQuantity.getText().toString()) >= 1){
+                            Double tmpD = Double.parseDouble(editTextQuantity.getText().toString()) %
+                                    Math.floor(Double.parseDouble(editTextQuantity.getText().toString()));
+                            if (tmpD > 0){
+                                Toast.makeText(getApplicationContext(), "<<< Этот товар в пачках >>>", Toast.LENGTH_SHORT).show();
+                            } else {
+                                Double tmpSum;
+                                if (!finalPrice.equals(priceChanged)){
+                                    tmpSum = priceChanged * Double.parseDouble(editTextQuantity.getText().toString());
+                                    textViewTotal.setText(String.valueOf(tmpSum));
+                                } else {
+                                    tmpSum = finalPrice * Double.parseDouble(editTextQuantity.getText().toString());
+                                    textViewTotal.setText(String.valueOf(tmpSum));
+                                }
+                            }
+                        }
+                    } else {
+                        Double tmpSum;
+                        if (!finalPrice.equals(priceChanged)){
+                            tmpSum = priceChanged * Double.parseDouble(editTextQuantity.getText().toString());
+                            textViewTotal.setText(String.valueOf(tmpSum));
+                        } else {
+                            tmpSum = finalPrice * Double.parseDouble(editTextQuantity.getText().toString());
+                            textViewTotal.setText(String.valueOf(tmpSum));
+                        }
+                    }
+                } else {
+                    textViewTotal.setText(String.valueOf(0));
+                }
+            }
+        });
+
+        editTextExchange.addTextChangedListener(new TextWatcher() {
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                // текст только что изменили
+            }
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                // текст будет изменен
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                if (editTextExchange.getText().toString().trim().length() > 0d){
+                    if (!item.equals("Ким-ча весовая") && !item.equals("Редька по-восточному весовая")){
+                        if ((Double.parseDouble(editTextExchange.getText().toString()) > 0d &&
+                                Double.parseDouble(editTextExchange.getText().toString()) < 1d)){
+                            Toast.makeText(getApplicationContext(), "<<< Этот товар в пачках >>>", Toast.LENGTH_SHORT).show();
+                            editTextExchange.setText("");
+                        }
+                        if (editTextExchange.getText().toString().trim().length() > 0d) {
+                            if (Double.parseDouble(editTextExchange.getText().toString()) >= 1) {
+                                Double tmpD = Double.parseDouble(editTextExchange.getText().toString()) %
+                                        Math.floor(Double.parseDouble(editTextExchange.getText().toString()));
+                                if (tmpD > 0) {
+                                    Toast.makeText(getApplicationContext(), "<<< Этот товар в пачках >>>", Toast.LENGTH_SHORT).show();
+                                    editTextExchange.setText("");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        editTextReturn.addTextChangedListener(new TextWatcher() {
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                // текст только что изменили
+            }
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                // текст будет изменен
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                if (editTextReturn.getText().toString().trim().length() > 0d){
+                    if (!item.equals("Ким-ча весовая") && !item.equals("Редька по-восточному весовая")){
+                        if ((Double.parseDouble(editTextReturn.getText().toString()) > 0d &&
+                                Double.parseDouble(editTextReturn.getText().toString()) < 1d)){
+                            Toast.makeText(getApplicationContext(), "<<< Этот товар в пачках >>>", Toast.LENGTH_SHORT).show();
+                            editTextReturn.setText("");
+                        }
+                        if (editTextReturn.getText().toString().trim().length() > 0d) {
+                            if (Double.parseDouble(editTextReturn.getText().toString()) >= 1) {
+                                Double tmpD = Double.parseDouble(editTextReturn.getText().toString()) %
+                                        Math.floor(Double.parseDouble(editTextReturn.getText().toString()));
+                                if (tmpD > 0) {
+                                    Toast.makeText(getApplicationContext(), "<<< Этот товар в пачках >>>", Toast.LENGTH_SHORT).show();
+                                    editTextReturn.setText("");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    class DBHelper extends SQLiteOpenHelper {
+
+        public DBHelper(Context context) {
+            // конструктор суперкласса
+            super(context, "myLocalDB", null, 1);
+        }
+
+        @Override
+        public void onCreate(SQLiteDatabase db) {
+
+        }
+
+        @Override
+        public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+
+        }
     }
 }

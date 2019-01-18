@@ -57,21 +57,12 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
     DBHelper dbHelper;
     final String LOG_TAG = "myLogs";
     SQLiteDatabase db;
-    Boolean triggerDate, triggerSalesPartners, triggerItems, triggerItemsWithDiscount, triggerDiscounts,
-            triggerInvoices;
+    Boolean one, two, three, four, five, six, seven;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_menu);
-
-//        if (tableExists(db, "salesPartners")){
-////            if (resultExists(db, "salesPartners","Автор", "Автор", "admin")){
-//            Log.d(LOG_TAG, "--- Clear mytable: ---");
-//            // удаляем все записи из таблицы
-//            int clearCount = db.delete("salesPartners", null, null);
-//            Log.d(LOG_TAG, "deleted rows count = " + clearCount);
-//        }
 
         btnInvoice = findViewById(R.id.buttonInvoice);
         btnPayments = findViewById(R.id.buttonPayments);
@@ -80,12 +71,13 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         btnPayments.setOnClickListener(this);
         btnSalesAgents.setOnClickListener(this);
 
-        triggerDate = false;
-        triggerSalesPartners = false;
-        triggerItems = false;
-        triggerItemsWithDiscount = false;
-        triggerDiscounts = false;
-        triggerInvoices = false;
+        one = false;
+        two = false;
+        three = false;
+        four = false;
+        five = false;
+        six = false;
+        seven = false;
 
 //        Intent intent = getIntent();
 //        String agentName = intent.getStringExtra(Login.EXTRA_AGENTNAME);
@@ -117,12 +109,6 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         if (sPrefConnectionStatus.contains(SAVED_CONNSTATUS)){
             connStatus = sPrefConnectionStatus.getString(SAVED_CONNSTATUS, "");
             if (!connStatus.equals("failed")){
-//                if (tableExists(db, "salesPartners") &&
-//                        tableExists(db, "items") &&
-//                        tableExists(db, "itemsWithDiscount") &&
-//                        tableExists(db, "discount") &&
-//                        tableExists(db, "invoice") &&
-//                        tableExists(db, "payments")) {
                 db.execSQL("DROP TABLE IF EXISTS salesPartners");//Удаление таблицы
                 db.execSQL("DROP TABLE IF EXISTS items");
                 db.execSQL("DROP TABLE IF EXISTS itemsWithDiscount");
@@ -130,15 +116,10 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                 db.execSQL("DROP TABLE IF EXISTS invoice");
                 db.execSQL("DROP TABLE IF EXISTS payments");
                 dbHelper.onUpgrade(db, 1, 2);
+
+                loadDateFromServer();
+
                 Runnable runnable = new Runnable() {
-                    @Override
-                    public void run() {
-                        loadDateFromServer();
-                    }
-                };
-                Thread thread1 = new Thread(runnable);
-                thread1.start();
-                runnable = new Runnable() {
                     @Override
                     public void run() {
                         loadSalesPartnersFromServerDB();
@@ -191,10 +172,8 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                 };
                 Thread thread7 = new Thread(runnable);
                 thread7.start();
-//        syncDB();
-//                }
             } else {
-                Toast.makeText(getApplicationContext(), "Статус входа через Интернет: " + connStatus, Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "<<< Локальная База >>>" + connStatus, Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -238,7 +217,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
             public void onResponse(String response) {
                 try{
                     JSONArray jsonArray = new JSONArray(response);
-                    dayOfTheWeek = new String[jsonArray.length()];
+                    String[] dayOfTheWeek = new String[jsonArray.length()];
                     if (jsonArray.length() == 1){
                         for (int i = 0; i < jsonArray.length(); i++) {
                             JSONObject obj = jsonArray.getJSONObject(i);
@@ -247,8 +226,8 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                         e = sPrefDayOfTheWeekDefault.edit();
                         e.putString(SAVED_DAYOFTHEWEEKDEFAULT, dayOfTheWeek[0]);
                         e.apply();
-                        Toast.makeText(getApplicationContext(), "День недели: " + dayOfTheWeek[0], Toast.LENGTH_SHORT).show();
-                        triggerDate = true;
+//                        Toast.makeText(getApplicationContext(), "День недели: " + dayOfTheWeek[0], Toast.LENGTH_SHORT).show();
+                        one = true;
                     }else{
                         Toast.makeText(getApplicationContext(), "Ошибка Входа. Проверьте Интернет или Учётку", Toast.LENGTH_SHORT).show();
                     }
@@ -283,12 +262,12 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
             public void onResponse(String response) {
                 try{
                     JSONArray jsonArray = new JSONArray(response);
-                    dayOfTheWeek = new String[jsonArray.length()];
-                    salesPartnersName= new String[jsonArray.length()];
-                    area= new Integer[jsonArray.length()];
-                    accountingType= new String[jsonArray.length()];
-                    author= new String[jsonArray.length()];
-                    serverDB_ID = new Integer[jsonArray.length()];
+                    String[] dayOfTheWeek = new String[jsonArray.length()];
+                    String[] salesPartnersName= new String[jsonArray.length()];
+                    Integer[] area= new Integer[jsonArray.length()];
+                    String[] accountingType= new String[jsonArray.length()];
+                    String[] author= new String[jsonArray.length()];
+                    Integer[] serverDB_ID = new Integer[jsonArray.length()];
 
                     if (jsonArray.length() > 0){
                         for (int i = 0; i < jsonArray.length(); i++) {
@@ -315,8 +294,8 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                                 Toast.makeText(getApplicationContext(), "Ошибка: MainMenu контрагенты loadDB", Toast.LENGTH_SHORT).show();
                             }
                         }
-                        Toast.makeText(getApplicationContext(), "Контрагенты загружены", Toast.LENGTH_SHORT).show();
-                        triggerSalesPartners = true;
+//                        Toast.makeText(getApplicationContext(), "Контрагенты загружены", Toast.LENGTH_SHORT).show();
+                        two = true;
                     }else{
                         Toast.makeText(getApplicationContext(), "Ошибка загрузки. Проверьте Интернет или Учётку", Toast.LENGTH_SHORT).show();
                     }
@@ -352,9 +331,9 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
             public void onResponse(String response) {
                 try{
                     JSONArray jsonArray = new JSONArray(response);
-                    itemNumber = new Integer[jsonArray.length()];
-                    itemName= new String[jsonArray.length()];
-                    itemPrice= new Integer[jsonArray.length()];
+                    Integer[] itemNumber = new Integer[jsonArray.length()];
+                    String[] itemName= new String[jsonArray.length()];
+                    Integer[] itemPrice= new Integer[jsonArray.length()];
 
                     if (jsonArray.length() > 0){
                         for (int i = 0; i < jsonArray.length(); i++) {
@@ -375,8 +354,9 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                                 Toast.makeText(getApplicationContext(), "Ошибка: MainMenu items loadDB", Toast.LENGTH_SHORT).show();
                             }
                         }
-                        Toast.makeText(getApplicationContext(), "Номенклатура загружена", Toast.LENGTH_SHORT).show();
-                        triggerItems = true;
+//                        Toast.makeText(getApplicationContext(), "Номенклатура загружена", Toast.LENGTH_SHORT).show();
+                        three = true;
+                        loadMessage();
                     }else{
                         Toast.makeText(getApplicationContext(), "Ошибка загрузки. Проверьте Интернет или Учётку", Toast.LENGTH_SHORT).show();
                     }
@@ -412,11 +392,11 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
             public void onResponse(String response) {
                 try{
                     JSONArray jsonArray = new JSONArray(response);
-                    serverDB_ID = new Integer[jsonArray.length()];
-                    itemNumber= new Integer[jsonArray.length()];
-                    discountID= new Integer[jsonArray.length()];
-                    spID = new Integer[jsonArray.length()];
-                    author = new String[jsonArray.length()];
+                    Integer[] serverDB_ID = new Integer[jsonArray.length()];
+                    Integer[] itemNumber= new Integer[jsonArray.length()];
+                    Integer[] discountID= new Integer[jsonArray.length()];
+                    Integer[] spID = new Integer[jsonArray.length()];
+                    String[] author = new String[jsonArray.length()];
 
                     if (jsonArray.length() > 0){
                         for (int i = 0; i < jsonArray.length(); i++) {
@@ -441,8 +421,9 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                                 Toast.makeText(getApplicationContext(), "Ошибка: MainMenu itemsWithDiscount loadDB", Toast.LENGTH_SHORT).show();
                             }
                         }
-                        Toast.makeText(getApplicationContext(), "НоменклатураСоСкидкой загружена", Toast.LENGTH_SHORT).show();
-                        triggerItemsWithDiscount = true;
+//                        Toast.makeText(getApplicationContext(), "НоменклатураСоСкидкой загружена", Toast.LENGTH_SHORT).show();
+                        four = true;
+                        loadMessage();
                     }else{
                         Toast.makeText(getApplicationContext(), "Ошибка загрузки. Проверьте Интернет или Учётку", Toast.LENGTH_SHORT).show();
                     }
@@ -478,10 +459,10 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
             public void onResponse(String response) {
                 try{
                     JSONArray jsonArray = new JSONArray(response);
-                    serverDB_ID = new Integer[jsonArray.length()];
-                    discountType= new Integer[jsonArray.length()];
-                    discount= new Integer[jsonArray.length()];
-                    author = new String[jsonArray.length()];
+                    Integer[] serverDB_ID = new Integer[jsonArray.length()];
+                    Integer[] discountType= new Integer[jsonArray.length()];
+                    Integer[] discount= new Integer[jsonArray.length()];
+                    String[] author = new String[jsonArray.length()];
 
                     if (jsonArray.length() > 0){
                         for (int i = 0; i < jsonArray.length(); i++) {
@@ -504,8 +485,9 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                                 Toast.makeText(getApplicationContext(), "Ошибка: MainMenu discount loadDB", Toast.LENGTH_SHORT).show();
                             }
                         }
-                        Toast.makeText(getApplicationContext(), "Скидки загружены", Toast.LENGTH_SHORT).show();
-                        triggerDiscounts = true;
+//                        Toast.makeText(getApplicationContext(), "Скидки загружены", Toast.LENGTH_SHORT).show();
+                        five = true;
+                        loadMessage();
                     }else{
                         Toast.makeText(getApplicationContext(), "Ошибка загрузки. Проверьте Интернет или Учётку", Toast.LENGTH_SHORT).show();
                     }
@@ -541,20 +523,20 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
             public void onResponse(String response) {
                 try{
                     JSONArray jsonArray = new JSONArray(response);
-                    serverDB_ID = new Integer[jsonArray.length()];
-                    invoiceNumber= new Integer[jsonArray.length()];
-                    agentID= new Integer[jsonArray.length()];
-                    salesPartnerID = new Integer[jsonArray.length()];
-                    accountingType = new String[jsonArray.length()];
-                    itemNumber = new Integer[jsonArray.length()];
-                    itemQuantity = new Double[jsonArray.length()];
-                    itemPrice = new Integer[jsonArray.length()];
-                    totalSum = new Double[jsonArray.length()];
-                    exchangeQuantity = new Double[jsonArray.length()];
-                    returnQuantity = new Double[jsonArray.length()];
-                    dateTimeDoc = new String[jsonArray.length()];
-                    invoiceSum = new Double[jsonArray.length()];
-                    comment = new String[jsonArray.length()];
+                    Integer[] serverDB_ID = new Integer[jsonArray.length()];
+                    Integer[] invoiceNumber= new Integer[jsonArray.length()];
+                    Integer[] agentID= new Integer[jsonArray.length()];
+                    Integer[] salesPartnerID = new Integer[jsonArray.length()];
+                    String[] accountingType = new String[jsonArray.length()];
+                    Integer[] itemNumber = new Integer[jsonArray.length()];
+                    Double[] itemQuantity = new Double[jsonArray.length()];
+                    Integer[] itemPrice = new Integer[jsonArray.length()];
+                    Double[] totalSum = new Double[jsonArray.length()];
+                    Double[] exchangeQuantity = new Double[jsonArray.length()];
+                    Double[] returnQuantity = new Double[jsonArray.length()];
+                    String[] dateTimeDoc = new String[jsonArray.length()];
+                    Double[] invoiceSum = new Double[jsonArray.length()];
+                    String[] comment = new String[jsonArray.length()];
 
                     if (jsonArray.length() > 0){
                         for (int i = 0; i < jsonArray.length(); i++) {
@@ -597,8 +579,9 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                                 Toast.makeText(getApplicationContext(), "Ошибка: MainMenu invoice loadDB", Toast.LENGTH_SHORT).show();
                             }
                         }
-                        Toast.makeText(getApplicationContext(), "Накладные загружены", Toast.LENGTH_SHORT).show();
-                        triggerInvoices = true;
+//                        Toast.makeText(getApplicationContext(), "Накладные загружены", Toast.LENGTH_SHORT).show();
+                        six = true;
+                        loadMessage();
                     }else{
                         Toast.makeText(getApplicationContext(), "Ошибка загрузки. Проверьте Интернет или Учётку", Toast.LENGTH_SHORT).show();
                     }
@@ -634,11 +617,11 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
             public void onResponse(String response) {
                 try{
                     JSONArray jsonArray = new JSONArray(response);
-                    serverDB_ID = new Integer[jsonArray.length()];
-                    dateTimeDoc = new String[jsonArray.length()];
-                    invoiceNumber = new Integer[jsonArray.length()];
-                    paymentAmount= new Double[jsonArray.length()];
-                    author = new String[jsonArray.length()];
+                    Integer[] serverDB_ID = new Integer[jsonArray.length()];
+                    String[] dateTimeDoc = new String[jsonArray.length()];
+                    Integer[] invoiceNumber = new Integer[jsonArray.length()];
+                    Double[] paymentAmount= new Double[jsonArray.length()];
+                    String[] author = new String[jsonArray.length()];
 
                     if (jsonArray.length() > 0){
                         for (int i = 0; i < jsonArray.length(); i++) {
@@ -654,7 +637,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                                 Log.d(LOG_TAG, "--- Insert in payments: ---");
                                 cv.put("serverDB_ID", serverDB_ID[i]);
                                 cv.put("DateTimeDoc", dateTimeDoc[i]);
-                                cv.put("InvoiceNumber", itemNumber[i]);
+                                cv.put("InvoiceNumber", invoiceNumber[i]);
                                 cv.put("сумма_внесения", paymentAmount[i]);
                                 cv.put("Автор", author[i]);
                                 long rowID = db.insert("payments", null, cv);
@@ -663,7 +646,9 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                                 Toast.makeText(getApplicationContext(), "Ошибка: MainMenu платежи loadDB", Toast.LENGTH_SHORT).show();
                             }
                         }
-                        Toast.makeText(getApplicationContext(), "Платежи загружены", Toast.LENGTH_SHORT).show();
+//                        Toast.makeText(getApplicationContext(), "Платежи загружены", Toast.LENGTH_SHORT).show();
+                        seven = true;
+                        loadMessage();
                     }else{
                         Toast.makeText(getApplicationContext(), "Ошибка загрузки. Проверьте Интернет или Учётку", Toast.LENGTH_SHORT).show();
                     }
@@ -724,45 +709,41 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
 //            if (!tableExists(db, "salesPartners")) {
                 db.execSQL("create table salesPartners ("
                         + "id integer primary key autoincrement,"
-                        + "serverDB_ID integer,"
+                        + "serverDB_ID integer UNIQUE ON CONFLICT REPLACE,"
                         + "Наименование text,"
                         + "Район integer,"
                         + "Учет text,"
                         + "DayOfTheWeek text,"
-                        + "Автор text,"
-                        + "UNIQUE (serverDB_ID) ON CONFLICT REPLACE" + ");");
+                        + "Автор text" + ");");
 //            }
 //            if (!tableExists(db, "items")) {
                 db.execSQL("create table items ("
                         + "id integer primary key autoincrement,"
-                        + "Артикул integer,"
+                        + "Артикул integer UNIQUE ON CONFLICT REPLACE,"
                         + "Наименование text,"
-                        + "Цена integer,"
-                        + "UNIQUE (Артикул) ON CONFLICT REPLACE" + ");");
+                        + "Цена integer" + ");");
 //            }
 //            if (!tableExists(db, "itemsWithDiscount")) {
                 db.execSQL("create table itemsWithDiscount ("
                         + "id integer primary key autoincrement,"
-                        + "serverDB_ID integer,"
+                        + "serverDB_ID integer UNIQUE ON CONFLICT REPLACE,"
                         + "Артикул integer,"
                         + "ID_скидки integer,"
                         + "ID_контрагента integer,"
-                        + "Автор text,"
-                        + "UNIQUE (serverDB_ID) ON CONFLICT REPLACE" + ");");
+                        + "Автор text" + ");");
 //            }
 //            if (!tableExists(db, "discount")) {
                 db.execSQL("create table discount ("
                         + "id integer primary key autoincrement,"
-                        + "serverDB_ID integer,"
+                        + "serverDB_ID integer UNIQUE ON CONFLICT REPLACE,"
                         + "Тип_скидки integer,"
                         + "Скидка integer,"
-                        + "Автор текст,"
-                        + "UNIQUE (serverDB_ID) ON CONFLICT REPLACE" + ");");
+                        + "Автор текст" + ");");
 //            }
 //            if (!tableExists(db, "invoice")) {
                 db.execSQL("create table invoice ("
                         + "id integer primary key autoincrement,"
-                        + "serverDB_ID integer,"
+                        + "serverDB_ID integer UNIQUE ON CONFLICT REPLACE,"
                         + "InvoiceNumber integer,"
                         + "AgentID integer,"
                         + "SalesPartnerID integer,"
@@ -775,18 +756,16 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                         + "ReturnQuantity  real,"
                         + "DateTimeDoc text,"
                         + "InvoiceSum real,"
-                        + "Comment text,"
-                        + "UNIQUE (serverDB_ID) ON CONFLICT REPLACE" + ");");
+                        + "Comment text" + ");");
 //            }
 //            if (!tableExists(db, "payments")) {
                 db.execSQL("create table payments ("
                         + "id integer primary key autoincrement,"
-                        + "serverDB_ID integer,"
+                        + "serverDB_ID integer UNIQUE ON CONFLICT REPLACE,"
                         + "DateTimeDoc text,"
                         + "InvoiceNumber integer,"
                         + "сумма_внесения real,"
-                        + "Автор text,"
-                        + "UNIQUE (serverDB_ID) ON CONFLICT REPLACE" + ");");
+                        + "Автор text" + ");");
 //            }
         }
 
@@ -827,5 +806,11 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         int count = cursor.getInt(0);
         cursor.close();
         return count > 0;
+    }
+
+    private void loadMessage(){
+        if (one && two && three && four && five && six && seven){
+            Toast.makeText(getApplicationContext(), "Данные загружены", Toast.LENGTH_SHORT).show();
+        }
     }
 }

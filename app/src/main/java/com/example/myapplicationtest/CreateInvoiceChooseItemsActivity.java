@@ -63,6 +63,7 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implemen
         setContentView(R.layout.activity_create_invoice_choose_items);
 
         dbHelper = new DBHelper(this);
+        db = dbHelper.getWritableDatabase();
 
         listViewItems = findViewById(R.id.listViewItemsToSelect);
 
@@ -101,8 +102,14 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implemen
                     if (itemsList[i].equals(item) && chosen.get(i) == true) {
                         goToSetQuantities();
                     }
+                    if (itemsList[i].equals(item) && chosen.get(i) == false) {
+                        if (tableExists(db, "itemsToInvoiceTmp")){
+                            if (resultExists(db, "itemsToInvoiceTmp", "Наименование", item)){
+                                Toast.makeText(getApplicationContext(), "Бла-бла-бла-бла-бла-бла-блаааааа", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    }
                 }
-//                addItemsToInvoice();
             }
         });
     }
@@ -130,7 +137,7 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implemen
                         for (int i = 0; i < jsonArray.length(); i++) {
                             JSONObject obj = jsonArray.getJSONObject(i);
                             itemsList[i] = obj.getString("Наименование");
-                            Toast.makeText(getApplicationContext(), "Список загружен с сервера", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getApplicationContext(), "Загружено", Toast.LENGTH_SHORT).show();
                         }
                     }else{
                         Toast.makeText(getApplicationContext(), "Что-то пошло не так с запросом к серверу", Toast.LENGTH_SHORT).show();
@@ -231,18 +238,64 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implemen
             Log.d(LOG_TAG, "--- onCreate database ---");
             db.execSQL("create table itemsToInvoiceTmp ("
                     + "id integer primary key autoincrement,"
-                    + "serverDB_ID integer,"
-                    + "Наименование text,"
-                    + "Район integer,"
-                    + "Учет text,"
-                    + "DayOfTheWeek text,"
-                    + "Автор text,"
-                    + "UNIQUE (serverDB_ID) ON CONFLICT REPLACE" + ");");
+                    + "Наименование text UNIQUE ON CONFLICT REPLACE,"
+                    + "Цена integer,"
+                    + "ЦенаИзмененная integer,"
+                    + "Количество real,"
+                    + "Обмен real,"
+                    + "Возврат real,"
+                    + "Итого real"+ ");");
         }
 
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 
+        }
+    }
+
+    boolean tableExists(SQLiteDatabase db, String tableName){
+        if (tableName == null || db == null || !db.isOpen())
+        {
+            return false;
+        }
+        Cursor cursor = db.rawQuery("SELECT COUNT(*) FROM sqlite_master WHERE type = ? AND name = ?", new String[] {"table", tableName});
+        if (!cursor.moveToFirst())
+        {
+            cursor.close();
+            return false;
+        }
+        int count = cursor.getInt(0);
+        cursor.close();
+        return count > 0;
+    }
+
+    boolean resultExists(SQLiteDatabase db, String tableName, String fieldName, String fieldValue){
+        if (tableName == null || db == null || !db.isOpen())
+        {
+            return false;
+        }
+        String sql = "SELECT COUNT(*) FROM " + tableName + " WHERE " + fieldName + " LIKE ?";
+        Cursor cursor = db.rawQuery(sql, new String[]{fieldValue});
+        if (!cursor.moveToFirst())
+        {
+            cursor.close();
+            return false;
+        }
+        int count = cursor.getInt(0);
+        cursor.close();
+        return count > 0;
+    }
+
+    private void deleteRowFromLocalTable(String tableName, String fieldName, String fieldValue){
+        db = dbHelper.getWritableDatabase();
+        if (tableExists(db, tableName)) {
+            if (resultExists(db, tableName, fieldName, fieldValue)) {
+                Log.d(LOG_TAG, "--- Clear mytable: ---");
+                // удаляем все записи из таблицы
+                int clearCount = db.delete(tableName, fieldName + " LIKE " + fieldValue, null);
+                Log.d(LOG_TAG, "deleted rows count = " + clearCount);
+                Toast.makeText(getApplicationContext(), "Бла-бла-бла-бла-бла-бла-блаааааа", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 }

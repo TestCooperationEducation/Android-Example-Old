@@ -61,7 +61,7 @@ public class ItemsAdapter extends RecyclerView.Adapter<ItemsAdapter.ViewHolder> 
         public ViewHolder(View itemView) {
             super(itemView);
             textViewItem = itemView.findViewById(R.id.textViewItem);
-            textViewPrice = itemView.findViewById(R.id.textViewPrice);
+            textViewPrice = itemView.findViewById(R.id.editTextViewPrice);
             editTextQuantity = itemView.findViewById(R.id.editTextQuantity);
             editTextExchange = itemView.findViewById(R.id.editTextExchange);
             editTextReturn = itemView.findViewById(R.id.editTextReturn);

@@ -6,19 +6,21 @@
     android:layout_height="match_parent"
     tools:context=".CreateInvoiceSetItemsQuantitiesActivity">
 
-    <TextView
-        android:id="@+id/textViewPrice"
+    <EditText
+        android:id="@+id/editTextViewPrice"
         android:layout_width="wrap_content"
-        android:layout_height="35dp"
+        android:layout_height="45dp"
         android:layout_marginStart="10dp"
         android:layout_marginLeft="10dp"
+        android:hint="@string/textViewReceivedPrice"
+        android:inputType="numberDecimal"
         app:layout_constraintStart_toEndOf="@+id/textViewPriceLabel"
         app:layout_constraintTop_toBottomOf="@+id/textViewAccountingType" />
 
     <TextView
         android:id="@+id/textViewPriceLabel"
         android:layout_width="wrap_content"
-        android:layout_height="35dp"
+        android:layout_height="45dp"
         android:text="@string/textViewPriceLabel"
         android:textSize="18sp"
         app:layout_constraintStart_toStartOf="parent"
@@ -27,7 +29,7 @@
     <TextView
         android:id="@+id/textViewQuantityLabel"
         android:layout_width="wrap_content"
-        android:layout_height="35dp"
+        android:layout_height="45dp"
         android:layout_marginTop="5dp"
         android:text="@string/editTextQuantityLabel"
         android:textSize="18sp"
@@ -37,7 +39,7 @@
     <TextView
         android:id="@+id/textViewExchangeLabel"
         android:layout_width="wrap_content"
-        android:layout_height="35dp"
+        android:layout_height="45dp"
         android:layout_marginTop="5dp"
         android:text="@string/editTextExchange"
         android:textSize="18sp"
@@ -47,7 +49,7 @@
     <TextView
         android:id="@+id/textViewReturnLabel"
         android:layout_width="wrap_content"
-        android:layout_height="35dp"
+        android:layout_height="45dp"
         android:layout_marginTop="5dp"
         android:text="@string/editTextReturn"
         android:textSize="18sp"
@@ -57,7 +59,7 @@
     <EditText
         android:id="@+id/editTextQuantity"
         android:layout_width="0dp"
-        android:layout_height="35dp"
+        android:layout_height="45dp"
         android:layout_marginStart="10dp"
         android:layout_marginLeft="10dp"
         android:layout_marginTop="5dp"
@@ -72,7 +74,7 @@
     <EditText
         android:id="@+id/editTextExchange"
         android:layout_width="0dp"
-        android:layout_height="35dp"
+        android:layout_height="45dp"
         android:layout_marginStart="10dp"
         android:layout_marginLeft="10dp"
         android:layout_marginTop="5dp"
@@ -87,7 +89,7 @@
     <EditText
         android:id="@+id/editTextReturn"
         android:layout_width="0dp"
-        android:layout_height="35dp"
+        android:layout_height="45dp"
         android:layout_marginStart="10dp"
         android:layout_marginLeft="10dp"
         android:layout_marginTop="5dp"
@@ -102,14 +104,14 @@
     <Button
         android:id="@+id/buttonChangePrice"
         android:layout_width="0dp"
-        android:layout_height="35dp"
+        android:layout_height="45dp"
         android:layout_marginStart="10dp"
         android:layout_marginLeft="10dp"
         android:text="@string/btnChangePrice"
         android:textSize="14sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toEndOf="@+id/textViewPrice"
+        app:layout_constraintStart_toEndOf="@+id/editTextViewPrice"
         app:layout_constraintTop_toBottomOf="@+id/textViewAccountingType" />
 
     <TextView
@@ -140,12 +142,34 @@
         android:id="@+id/buttonSaveTmp"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginTop="5dp"
+        android:layout_marginTop="8dp"
         android:text="@string/btnSaveRecord"
         android:textSize="36sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewTotal" />
+
+    <TextView
+        android:id="@+id/textViewTotalLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="45dp"
+        android:layout_marginTop="5dp"
+        android:text="@string/textViewLabelTotalSum"
+        android:textSize="18sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewReturnLabel" />
+
+    <TextView
+        android:id="@+id/textViewTotal"
+        android:layout_width="0dp"
+        android:layout_height="45dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="5dp"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/textViewTotalLabel"
         app:layout_constraintTop_toBottomOf="@+id/editTextReturn" />
 
 </android.support.constraint.ConstraintLayout>

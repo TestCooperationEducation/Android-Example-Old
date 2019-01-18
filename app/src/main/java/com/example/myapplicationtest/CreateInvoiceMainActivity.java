@@ -2,7 +2,6 @@ package com.example.myapplicationtest;
 
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
@@ -99,7 +98,7 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
         editTextExchange = findViewById(R.id.editTextExchange);
         editTextReturn = findViewById(R.id.editTextReturn);
         editTextPaymentAmount = findViewById(R.id.editTextPaymentAmount);
-        textViewPrice = findViewById(R.id.textViewPrice);
+        textViewPrice = findViewById(R.id.editTextViewPrice);
         textViewDiscountType = findViewById(R.id.textViewDiscountType);
         textViewDiscountValue = findViewById(R.id.textViewDiscountValue);
         textViewTotalSum = findViewById(R.id.textViewTotalSum);
@@ -377,7 +376,7 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
                         arrReturn.add(Double.parseDouble(editTextReturn.getText().toString()));
                         arrSum.add((double) Math.round(Double.parseDouble(textViewPrice.getText().toString())
                                 * arrQuantity.get(iteration)));
-//                        arrSum.add(Double.parseDouble(String.format("%.3g%n", Double.parseDouble(textViewPrice.getText().toString())
+//                        arrSum.add(Double.parseDouble(String.format("%.3g%n", Double.parseDouble(editTextPrice.getText().toString())
 //                                * arrQuantity.get(iteration))));
 
                         Double tmp = (arrSum.get(iteration) + Double.parseDouble(textViewTotalSum.getText().toString()));
