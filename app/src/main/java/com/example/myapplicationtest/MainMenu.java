@@ -105,6 +105,8 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         dbHelper = new DBHelper(this);
         db = dbHelper.getWritableDatabase();
 
+//        db.execSQL("DROP TABLE IF EXISTS itemsToInvoiceTmp");
+
         sPrefConnectionStatus = getSharedPreferences(SAVED_CONNSTATUS, Context.MODE_PRIVATE);
         if (sPrefConnectionStatus.contains(SAVED_CONNSTATUS)){
             connStatus = sPrefConnectionStatus.getString(SAVED_CONNSTATUS, "");
@@ -706,7 +708,6 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         @Override
         public void onCreate(SQLiteDatabase db) {
             Log.d(LOG_TAG, "--- onCreate database ---");
-//            if (!tableExists(db, "salesPartners")) {
                 db.execSQL("create table salesPartners ("
                         + "id integer primary key autoincrement,"
                         + "serverDB_ID integer UNIQUE ON CONFLICT REPLACE,"
@@ -715,15 +716,13 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                         + "Учет text,"
                         + "DayOfTheWeek text,"
                         + "Автор text" + ");");
-//            }
-//            if (!tableExists(db, "items")) {
+
                 db.execSQL("create table items ("
                         + "id integer primary key autoincrement,"
                         + "Артикул integer UNIQUE ON CONFLICT REPLACE,"
                         + "Наименование text,"
                         + "Цена integer" + ");");
-//            }
-//            if (!tableExists(db, "itemsWithDiscount")) {
+
                 db.execSQL("create table itemsWithDiscount ("
                         + "id integer primary key autoincrement,"
                         + "serverDB_ID integer UNIQUE ON CONFLICT REPLACE,"
@@ -731,16 +730,14 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                         + "ID_скидки integer,"
                         + "ID_контрагента integer,"
                         + "Автор text" + ");");
-//            }
-//            if (!tableExists(db, "discount")) {
+
                 db.execSQL("create table discount ("
                         + "id integer primary key autoincrement,"
                         + "serverDB_ID integer UNIQUE ON CONFLICT REPLACE,"
                         + "Тип_скидки integer,"
                         + "Скидка integer,"
                         + "Автор текст" + ");");
-//            }
-//            if (!tableExists(db, "invoice")) {
+
                 db.execSQL("create table invoice ("
                         + "id integer primary key autoincrement,"
                         + "serverDB_ID integer UNIQUE ON CONFLICT REPLACE,"
@@ -757,8 +754,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                         + "DateTimeDoc text,"
                         + "InvoiceSum real,"
                         + "Comment text" + ");");
-//            }
-//            if (!tableExists(db, "payments")) {
+
                 db.execSQL("create table payments ("
                         + "id integer primary key autoincrement,"
                         + "serverDB_ID integer UNIQUE ON CONFLICT REPLACE,"
@@ -766,7 +762,17 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                         + "InvoiceNumber integer,"
                         + "сумма_внесения real,"
                         + "Автор text" + ");");
-//            }
+            if (!tableExists(db, "itemsToInvoiceTmp")) {
+                db.execSQL("create table itemsToInvoiceTmp ("
+                        + "id integer primary key autoincrement,"
+                        + "Наименование text UNIQUE ON CONFLICT REPLACE,"
+                        + "Цена integer,"
+                        + "ЦенаИзмененная integer,"
+                        + "Количество real,"
+                        + "Обмен real,"
+                        + "Возврат real,"
+                        + "Итого real" + ");");
+            }
         }
 
         @Override

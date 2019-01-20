@@ -1,12 +1,14 @@
 package com.example.myapplicationtest;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.preference.PreferenceManager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -56,6 +58,8 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implemen
     DBHelper dbHelper;
     SQLiteDatabase db;
     ArrayAdapter<String> arrayAdapter;
+    Integer iTmp;
+    Boolean bTmp = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -103,11 +107,8 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implemen
                         goToSetQuantities();
                     }
                     if (itemsList[i].equals(item) && chosen.get(i) == false) {
-                        if (tableExists(db, "itemsToInvoiceTmp")){
-                            if (resultExists(db, "itemsToInvoiceTmp", "Наименование", item)){
-                                Toast.makeText(getApplicationContext(), "Бла-бла-бла-бла-бла-бла-блаааааа", Toast.LENGTH_SHORT).show();
-                            }
-                        }
+                        iTmp = i;
+                        onSelectedItem();
                     }
                 }
             }
@@ -117,8 +118,21 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implemen
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.buttonNext:
-                Intent intent = new Intent(this, CreateInvoiceSetItemsQuantitiesActivity.class);
-                startActivity(intent);
+//                Intent intent = new Intent(this, CreateInvoiceViewTmpItemsListActivity.class);
+//                startActivity(intent);
+                String sql = "SELECT COUNT(*) FROM itemsToInvoiceTmp ";
+                Cursor cursor = db.rawQuery(sql, null);
+                int count;
+                if (!cursor.moveToFirst())
+                {
+                    cursor.close();
+                    count = 0;
+                } else {
+                    count = cursor.getInt(0);
+                }
+                cursor.close();
+                Log.d(LOG_TAG, "<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>> = " + count);
+                Toast.makeText(getApplicationContext(), "<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>" + bTmp.toString(), Toast.LENGTH_SHORT).show();
                 break;
             default:
                 break;
@@ -137,7 +151,12 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implemen
                         for (int i = 0; i < jsonArray.length(); i++) {
                             JSONObject obj = jsonArray.getJSONObject(i);
                             itemsList[i] = obj.getString("Наименование");
-                            Toast.makeText(getApplicationContext(), "Загружено", Toast.LENGTH_SHORT).show();
+                            if (resultExists(db, "itemsToInvoiceTmp", "Наименование", itemsList[i])){
+                                bTmp = true;
+                            }
+                        }
+                        if (bTmp == true){
+                            onLoadActivity();
                         }
                     }else{
                         Toast.makeText(getApplicationContext(), "Что-то пошло не так с запросом к серверу", Toast.LENGTH_SHORT).show();
@@ -145,6 +164,7 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implemen
 
                     ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_multiple_choice, itemsList);
                     listViewItems.setAdapter(arrayAdapter);
+                    Toast.makeText(getApplicationContext(), "Загружено", Toast.LENGTH_SHORT).show();
                 }
                 catch (JSONException e1) {
                     e1.printStackTrace();
@@ -236,15 +256,6 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implemen
         @Override
         public void onCreate(SQLiteDatabase db) {
             Log.d(LOG_TAG, "--- onCreate database ---");
-            db.execSQL("create table itemsToInvoiceTmp ("
-                    + "id integer primary key autoincrement,"
-                    + "Наименование text UNIQUE ON CONFLICT REPLACE,"
-                    + "Цена integer,"
-                    + "ЦенаИзмененная integer,"
-                    + "Количество real,"
-                    + "Обмен real,"
-                    + "Возврат real,"
-                    + "Итого real"+ ");");
         }
 
         @Override
@@ -290,12 +301,81 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implemen
         db = dbHelper.getWritableDatabase();
         if (tableExists(db, tableName)) {
             if (resultExists(db, tableName, fieldName, fieldValue)) {
-                Log.d(LOG_TAG, "--- Clear mytable: ---");
+                Log.d(LOG_TAG, "--- Clear itemsToInvoiceTmp: ---");
                 // удаляем все записи из таблицы
-                int clearCount = db.delete(tableName, fieldName + " LIKE " + fieldValue, null);
+                int clearCount = db.delete(tableName, fieldName + " LIKE ?", new String[]{fieldValue});
                 Log.d(LOG_TAG, "deleted rows count = " + clearCount);
-                Toast.makeText(getApplicationContext(), "Бла-бла-бла-бла-бла-бла-блаааааа", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "Удалено из списка", Toast.LENGTH_SHORT).show();
             }
         }
+    }
+
+    private void onSelectedItem(){
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        if (tableExists(db, "itemsToInvoiceTmp")){
+            if (resultExists(db, "itemsToInvoiceTmp", "Наименование", item)){
+                builder.setTitle("Номенклатура: " + item)
+                        .setMessage("Удалить или редактировать?")
+                        .setCancelable(true)
+                        .setNegativeButton("Удалить",
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        deleteRowFromLocalTable("itemsToInvoiceTmp", "Наименование", item);
+                                        dialog.cancel();
+                                    }
+                                })
+                        .setPositiveButton("Редактировать",
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        goToSetQuantities();
+                                        listViewItems.setItemChecked(iTmp, true);
+                                        dialog.cancel();
+                                    }
+                                });
+
+                AlertDialog alert = builder.create();
+                alert.show();
+            }
+        }
+    }
+
+    private void onLoadActivity(){
+
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        if (tableExists(db, "itemsToInvoiceTmp")){
+
+            if (bTmp == true){
+                builder.setTitle("Внимание")
+                        .setMessage("У вас остался несохраненный список")
+                        .setCancelable(true)
+                        .setNegativeButton("Восстановить",
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        for (int i = 0; i < listViewItems.getCount(); i++) {
+                                            if (resultExists(db, "itemsToInvoiceTmp", "Наименование", itemsList[i])){
+                                                listViewItems.setItemChecked(i, true);
+                                            }
+                                        }
+                                        dialog.cancel();
+                                    }
+                                })
+                        .setPositiveButton("Удалить",
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        clearTable("ItemsToInvoiceTmp");
+                                        dialog.cancel();
+                                    }
+                                });
+                AlertDialog alert = builder.create();
+                alert.show();
+            }
+        }
+    }
+
+    private void clearTable(String tableName){
+        Log.d(LOG_TAG, "--- Clear mytable: ---");
+        // удаляем все записи
+        int clearCount = db.delete(tableName, null, null);
+        Log.d(LOG_TAG, "deleted rows count = " + clearCount);
     }
 }

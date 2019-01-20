@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.preference.PreferenceManager;
@@ -109,10 +110,31 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
 
         if (sPrefConnectionStatus.contains(SAVED_CONNSTATUS)) {
             connStatus = sPrefConnectionStatus.getString(SAVED_CONNSTATUS, "");
-            if (connStatus.equals("success")) {
-                getPriceFromServerDB();
-            } else {
-                getPriceFromLocalDB();
+            if (resultExists(db, "itemsToInvoiceTmp", "Наименование", item)) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle("Внимание")
+                        .setMessage("Вы хотите загрузить цену из последней сессии?")
+                        .setCancelable(true)
+                        .setNegativeButton("Да",
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        getDataFromTmp();
+                                        dialog.cancel();
+                                    }
+                                })
+                        .setPositiveButton("Нет",
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        if (connStatus.equals("success")) {
+                                            getPriceFromServerDB();
+                                        } else {
+                                            getPriceFromLocalDB();
+                                        }
+                                        dialog.cancel();
+                                    }
+                                });
+                AlertDialog alert = builder.create();
+                alert.show();
             }
         }
 
@@ -222,6 +244,46 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
 
     }
 
+    private void getDataFromTmp(){
+        if (resultExists(db, "itemsToInvoiceTmp", "Наименование", item)){
+            Log.d(LOG_TAG, "--- Rows in itemsToInvoiceTmp: ---");
+            // делаем запрос всех данных из таблицы itemsToInvoiceTmp, получаем Cursor
+            Cursor c = db.query("itemsToInvoiceTmp", null, null, null, null, null, null);
+            // ставим позицию курсора на первую строку выборки
+            // если в выборке нет строк, вернется false
+            if (c.moveToFirst()) {
+                // определяем номера столбцов по имени в выборке
+                int itemName = c.getColumnIndex("Наименование");
+                int price = c.getColumnIndex("Цена");
+                int priceChanged = c.getColumnIndex("ЦенаИзмененная");
+                int quantity = c.getColumnIndex("Количество");
+                int exchangeQuantity = c.getColumnIndex("Обмен");
+                int returnQuantity = c.getColumnIndex("Возврат");
+                int total = c.getColumnIndex("Итого");
+                do {
+                    if (c.getString(itemName).equals(item)){
+                        editTextQuantity.setText(c.getString(quantity));
+                        editTextExchange.setText(c.getString(exchangeQuantity));
+                        editTextReturn.setText(c.getString(returnQuantity));
+                        if (c.getString(price).equals(c.getString(priceChanged))){
+                            editTextPrice.setText(c.getString(price));
+                        } else {
+                            editTextPrice.setText(c.getString(priceChanged));
+                        }
+                        textViewTotal.setText(c.getString(total));
+                    }
+                    // получаем значения по номерам столбцов и пишем все в лог
+                    Log.d(LOG_TAG,
+                            "ID = " + c.getInt(itemName) +
+                                    ", name = " + c.getString(price) +
+                                    ", email = " + c.getString(priceChanged));
+                    // переход на следующую строку
+                    // а если следующей нет (текущая - последняя), то false - выходим из цикла
+                } while (c.moveToNext());
+            }
+        }
+    }
+
     private void saveTmp(){
         Double tmpSum, tmpQuantity, tmpExchange, tmpReturn;
         if (editTextPrice.getText().toString().trim().length() == 0){
@@ -245,9 +307,17 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
             }
 
             if (!finalPrice.equals(priceChanged)){
-                tmpSum = priceChanged * Double.parseDouble(editTextQuantity.getText().toString());
+                if (tmpQuantity == 0d) {
+                    tmpSum  = 0d;
+                } else {
+                    tmpSum = priceChanged * Double.parseDouble(editTextQuantity.getText().toString());
+                }
             } else {
-                tmpSum = finalPrice * Double.parseDouble(editTextQuantity.getText().toString());
+                if (tmpQuantity == 0d) {
+                    tmpSum  = 0d;
+                } else {
+                    tmpSum = finalPrice * Double.parseDouble(editTextQuantity.getText().toString());
+                }
             }
 
             if (editTextExchange.getText().toString().trim().length() == 0){
@@ -288,6 +358,7 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
                 cv.put("Итого", tmpSum);
                 long rowID = db.insert("itemsToInvoiceTmp", null, cv);
                 Log.d(LOG_TAG, "row inserted, ID = " + rowID);
+                Toast.makeText(getApplicationContext(), "<<< Товар добавлен в список >>>", Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -332,12 +403,14 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
                         if ((Double.parseDouble(editTextQuantity.getText().toString()) > 0d &&
                                 Double.parseDouble(editTextQuantity.getText().toString()) < 1d)){
                             Toast.makeText(getApplicationContext(), "<<< Этот товар в пачках >>>", Toast.LENGTH_SHORT).show();
+                            editTextQuantity.setText("");
                         }
                         if (Double.parseDouble(editTextQuantity.getText().toString()) >= 1){
                             Double tmpD = Double.parseDouble(editTextQuantity.getText().toString()) %
                                     Math.floor(Double.parseDouble(editTextQuantity.getText().toString()));
                             if (tmpD > 0){
                                 Toast.makeText(getApplicationContext(), "<<< Этот товар в пачках >>>", Toast.LENGTH_SHORT).show();
+                                editTextQuantity.setText("");
                             } else {
                                 Double tmpSum;
                                 if (!finalPrice.equals(priceChanged)){
@@ -436,6 +509,23 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
                 }
             }
         });
+    }
+
+    boolean resultExists(SQLiteDatabase db, String tableName, String fieldName, String fieldValue){
+        if (tableName == null || db == null || !db.isOpen())
+        {
+            return false;
+        }
+        String sql = "SELECT COUNT(*) FROM " + tableName + " WHERE " + fieldName + " LIKE ?";
+        Cursor cursor = db.rawQuery(sql, new String[]{fieldValue});
+        if (!cursor.moveToFirst())
+        {
+            cursor.close();
+            return false;
+        }
+        int count = cursor.getInt(0);
+        cursor.close();
+        return count > 0;
     }
 
     class DBHelper extends SQLiteOpenHelper {
