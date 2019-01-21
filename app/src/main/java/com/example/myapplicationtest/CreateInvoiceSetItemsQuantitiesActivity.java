@@ -58,7 +58,7 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
     final String LOG_TAG = "myLogs";
     DBHelper dbHelper;
     SQLiteDatabase db;
-    Boolean quantityType;
+    Boolean quantityType, priceFromTmpLoaded = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,8 +71,8 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
         quantityType = false;
 
         dataArray = new ArrayList<>();
-        btnChangePrice = findViewById(R.id.buttonChangePrice);
-        btnChangePrice.setOnClickListener(this);
+//        btnChangePrice = findViewById(R.id.buttonChangePrice);
+//        btnChangePrice.setOnClickListener(this);
         btnSaveTmp = findViewById(R.id.buttonSaveTmp);
         btnSaveTmp.setOnClickListener(this);
 
@@ -110,6 +110,11 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
 
         if (sPrefConnectionStatus.contains(SAVED_CONNSTATUS)) {
             connStatus = sPrefConnectionStatus.getString(SAVED_CONNSTATUS, "");
+            if (connStatus.equals("success")) {
+                getPriceFromServerDB();
+            } else {
+                getPriceFromLocalDB();
+            }
             if (resultExists(db, "itemsToInvoiceTmp", "Наименование", item)) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setTitle("Внимание")
@@ -119,17 +124,14 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
                                 new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialog, int id) {
                                         getDataFromTmp();
+                                        priceFromTmpLoaded = true;
                                         dialog.cancel();
                                     }
                                 })
                         .setPositiveButton("Нет",
                                 new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialog, int id) {
-                                        if (connStatus.equals("success")) {
-                                            getPriceFromServerDB();
-                                        } else {
-                                            getPriceFromLocalDB();
-                                        }
+
                                         dialog.cancel();
                                     }
                                 });
@@ -143,9 +145,9 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
 
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.buttonChangePrice:
-                changePrice();
-                break;
+//            case R.id.buttonChangePrice:
+//                changePrice();
+//                break;
             case R.id.buttonSaveTmp:
                 saveTmp();
                 break;
@@ -255,7 +257,7 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
                 // определяем номера столбцов по имени в выборке
                 int itemName = c.getColumnIndex("Наименование");
                 int price = c.getColumnIndex("Цена");
-                int priceChanged = c.getColumnIndex("ЦенаИзмененная");
+                int priceChangedTmp = c.getColumnIndex("ЦенаИзмененная");
                 int quantity = c.getColumnIndex("Количество");
                 int exchangeQuantity = c.getColumnIndex("Обмен");
                 int returnQuantity = c.getColumnIndex("Возврат");
@@ -265,10 +267,13 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
                         editTextQuantity.setText(c.getString(quantity));
                         editTextExchange.setText(c.getString(exchangeQuantity));
                         editTextReturn.setText(c.getString(returnQuantity));
-                        if (c.getString(price).equals(c.getString(priceChanged))){
-                            editTextPrice.setText(c.getString(price));
-                        } else {
-                            editTextPrice.setText(c.getString(priceChanged));
+                        priceChanged = Double.parseDouble(c.getString(priceChangedTmp));
+                        if (!c.getString(price).equals(c.getString(priceChangedTmp))){
+//                            editTextPrice.setText(c.getString(price));
+//                            priceChanged = Double.parseDouble(editTextPrice.getText().toString());
+//                        } else {
+                            editTextPrice.setText(c.getString(priceChangedTmp));
+//                            priceChanged = Double.parseDouble(editTextPrice.getText().toString());
                         }
                         textViewTotal.setText(c.getString(total));
                     }
@@ -276,7 +281,7 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
                     Log.d(LOG_TAG,
                             "ID = " + c.getInt(itemName) +
                                     ", name = " + c.getString(price) +
-                                    ", email = " + c.getString(priceChanged));
+                                    ", email = " + c.getString(priceChangedTmp));
                     // переход на следующую строку
                     // а если следующей нет (текущая - последняя), то false - выходим из цикла
                 } while (c.moveToNext());
@@ -349,6 +354,7 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
             if (tmpQuantity != 0d || tmpExchange != 0d || tmpReturn != 0d){
                 ContentValues cv = new ContentValues();
                 Log.d(LOG_TAG, "--- Insert in itemsToInvoiceTmp: ---");
+                cv.put("Контрагент", salesPartner);
                 cv.put("Наименование", item);
                 cv.put("Цена", finalPrice);
                 cv.put("ЦенаИзмененная", priceChanged);
@@ -398,27 +404,34 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
 
             @Override
             public void afterTextChanged(Editable s) {
-                if (editTextQuantity.getText().toString().trim().length() > 0d){
+                if (editTextQuantity.getText().toString().trim().length() > 0){
                     if (!item.equals("Ким-ча весовая") && !item.equals("Редька по-восточному весовая")){
                         if ((Double.parseDouble(editTextQuantity.getText().toString()) > 0d &&
                                 Double.parseDouble(editTextQuantity.getText().toString()) < 1d)){
                             Toast.makeText(getApplicationContext(), "<<< Этот товар в пачках >>>", Toast.LENGTH_SHORT).show();
                             editTextQuantity.setText("");
                         }
-                        if (Double.parseDouble(editTextQuantity.getText().toString()) >= 1){
-                            Double tmpD = Double.parseDouble(editTextQuantity.getText().toString()) %
-                                    Math.floor(Double.parseDouble(editTextQuantity.getText().toString()));
-                            if (tmpD > 0){
-                                Toast.makeText(getApplicationContext(), "<<< Этот товар в пачках >>>", Toast.LENGTH_SHORT).show();
-                                editTextQuantity.setText("");
-                            } else {
-                                Double tmpSum;
-                                if (!finalPrice.equals(priceChanged)){
-                                    tmpSum = priceChanged * Double.parseDouble(editTextQuantity.getText().toString());
-                                    textViewTotal.setText(String.valueOf(tmpSum));
+                        if (editTextQuantity.getText().toString().trim().length() > 0) {
+                            if (Double.parseDouble(editTextQuantity.getText().toString()) >= 1) {
+                                Double tmpD = Double.parseDouble(editTextQuantity.getText().toString()) %
+                                        Math.floor(Double.parseDouble(editTextQuantity.getText().toString()));
+                                if (tmpD > 0) {
+                                    Toast.makeText(getApplicationContext(), "<<< Этот товар в пачках >>>", Toast.LENGTH_SHORT).show();
+                                    editTextQuantity.setText("");
                                 } else {
-                                    tmpSum = finalPrice * Double.parseDouble(editTextQuantity.getText().toString());
-                                    textViewTotal.setText(String.valueOf(tmpSum));
+                                    Double tmpSum;
+                                    if (!priceFromTmpLoaded == true) {
+                                        if (!finalPrice.equals(priceChanged)) {
+                                            tmpSum = priceChanged * Double.parseDouble(editTextQuantity.getText().toString());
+                                            textViewTotal.setText(String.valueOf(tmpSum));
+                                        } else {
+                                            tmpSum = finalPrice * Double.parseDouble(editTextQuantity.getText().toString());
+                                            textViewTotal.setText(String.valueOf(tmpSum));
+                                        }
+                                    } else {
+                                        tmpSum = priceChanged * Double.parseDouble(editTextQuantity.getText().toString());
+                                        textViewTotal.setText(String.valueOf(tmpSum));
+                                    }
                                 }
                             }
                         }
@@ -506,6 +519,36 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
                             }
                         }
                     }
+                }
+            }
+        });
+
+        editTextPrice.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                if (editTextQuantity.getText().toString().trim().length() > 0){
+                    if (editTextPrice.getText().toString().trim().length() > 0){
+                        Double tmpSum = Double.parseDouble(editTextPrice.getText().toString())
+                                * Double.parseDouble(editTextQuantity.getText().toString());
+                        textViewTotal.setText(String.valueOf(tmpSum));
+                        if (Double.parseDouble(editTextPrice.getText().toString()) != (finalPrice)){
+                            priceChanged = Double.parseDouble(editTextPrice.getText().toString());
+                        }
+                    } else {
+                        textViewTotal.setText(String.valueOf(0));
+                    }
+                } else {
+                    textViewTotal.setText(String.valueOf(0));
                 }
             }
         });

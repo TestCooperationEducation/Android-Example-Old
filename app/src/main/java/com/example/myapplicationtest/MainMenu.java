@@ -765,6 +765,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
             if (!tableExists(db, "itemsToInvoiceTmp")) {
                 db.execSQL("create table itemsToInvoiceTmp ("
                         + "id integer primary key autoincrement,"
+                        + "Контрагент text,"
                         + "Наименование text UNIQUE ON CONFLICT REPLACE,"
                         + "Цена integer,"
                         + "ЦенаИзмененная integer,"

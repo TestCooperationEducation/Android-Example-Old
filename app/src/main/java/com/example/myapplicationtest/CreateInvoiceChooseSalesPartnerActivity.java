@@ -2,11 +2,13 @@ package com.example.myapplicationtest;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
@@ -67,6 +69,7 @@ public class CreateInvoiceChooseSalesPartnerActivity extends AppCompatActivity i
         setContentView(R.layout.activity_create_invoice_choose_sales_partner);
 
         dbHelper = new DBHelper(this);
+        db = dbHelper.getReadableDatabase();
 
         EditText search = findViewById(R.id.editTextSearch);
 
@@ -85,6 +88,7 @@ public class CreateInvoiceChooseSalesPartnerActivity extends AppCompatActivity i
         sPrefConnectionStatus = getSharedPreferences(SAVED_CONNSTATUS, Context.MODE_PRIVATE);
 
         initialValues();
+        onLoadActivity();
 
         if (sPrefConnectionStatus.contains(SAVED_CONNSTATUS)) {
             connStatus = sPrefConnectionStatus.getString(SAVED_CONNSTATUS, "");
@@ -270,6 +274,81 @@ public class CreateInvoiceChooseSalesPartnerActivity extends AppCompatActivity i
                 }
             }
         }
+    }
+
+    private void onLoadActivity(){
+        String spTmp = "";
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        if (tableExists(db, "itemsToInvoiceTmp")){
+            Toast.makeText(getApplicationContext(), "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", Toast.LENGTH_SHORT).show();
+            Log.d(LOG_TAG, "--- Rows in itemsToInvoiceTmp: ---");
+            // делаем запрос всех данных из таблицы itemsToInvoiceTmp, получаем Cursor
+            Cursor c = db.query("itemsToInvoiceTmp", null, null, null, null, null, null);
+            // ставим позицию курсора на первую строку выборки
+            // если в выборке нет строк, вернется false
+            if (c.moveToFirst()) {
+                // определяем номера столбцов по имени в выборке
+                int salesPartnerTmp = c.getColumnIndex("Контрагент");
+                do {
+                    salesPartner = c.getString(salesPartnerTmp);
+                    spTmp = salesPartner;
+                } while (c.moveToNext());
+            }
+            if (spTmp != ""){
+                builder.setTitle("Внимание")
+                        .setMessage("У вас есть несохраненный документ по контрагенту: " + salesPartner)
+                        .setCancelable(true)
+                        .setNegativeButton("Восстановить",
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        createInvoice();
+                                        dialog.cancel();
+                                    }
+                                })
+                        .setPositiveButton("Удалить и создать новый",
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+
+                                        dialog.cancel();
+                                    }
+                                });
+                AlertDialog alert = builder.create();
+                alert.show();
+            }
+        }
+    }
+
+    boolean tableExists(SQLiteDatabase db, String tableName){
+        if (tableName == null || db == null || !db.isOpen())
+        {
+            return false;
+        }
+        Cursor cursor = db.rawQuery("SELECT COUNT(*) FROM sqlite_master WHERE type = ? AND name = ?", new String[] {"table", tableName});
+        if (!cursor.moveToFirst())
+        {
+            cursor.close();
+            return false;
+        }
+        int count = cursor.getInt(0);
+        cursor.close();
+        return count > 0;
+    }
+
+    boolean resultExists(SQLiteDatabase db, String tableName, String fieldName, String fieldValue){
+        if (tableName == null || db == null || !db.isOpen())
+        {
+            return false;
+        }
+        String sql = "SELECT COUNT(*) FROM " + tableName + " WHERE " + fieldName + " LIKE ?";
+        Cursor cursor = db.rawQuery(sql, new String[]{fieldValue});
+        if (!cursor.moveToFirst())
+        {
+            cursor.close();
+            return false;
+        }
+        int count = cursor.getInt(0);
+        cursor.close();
+        return count > 0;
     }
 
     class DBHelper extends SQLiteOpenHelper {

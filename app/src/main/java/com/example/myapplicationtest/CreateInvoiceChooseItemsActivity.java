@@ -40,17 +40,19 @@ import java.util.Map;
 
 public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implements View.OnClickListener {
 
-    String requestUrl = "https://caiman.ru.com/php/items.php", dbName, dbUser, dbPassword, item, connStatus;
+    String requestUrl = "https://caiman.ru.com/php/items.php", dbName, dbUser, dbPassword, item, connStatus,
+            salesPartner;
     String[] itemsList;
     ListView listViewItems;
     SharedPreferences sPrefDBName, sPrefDBPassword, sPrefDBUser, sPrefItemsList, sPrefConnectionStatus,
-            sPrefItemName;
+            sPrefItemName, sPrefSalesPartner;
     final String SAVED_DBName = "dbName";
     final String SAVED_DBUser = "dbUser";
     final String SAVED_DBPassword = "dbPassword";
     final String SAVED_ItemsListToInvoice = "itemsToInvoice";
     final String SAVED_CONNSTATUS = "connectionStatus";
     final String SAVED_ITEMNAME = "itemName";
+    final String SAVED_SALESPARTNER = "SalesPartner";
     SharedPreferences.Editor e;
     ArrayList<String> tmp;
     Button btnCreateList;
@@ -81,6 +83,9 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implemen
         sPrefItemsList = getSharedPreferences(SAVED_ItemsListToInvoice, Context.MODE_PRIVATE);
         sPrefConnectionStatus = getSharedPreferences(SAVED_CONNSTATUS, Context.MODE_PRIVATE);
         sPrefItemName = getSharedPreferences(SAVED_ITEMNAME, Context.MODE_PRIVATE);
+        sPrefSalesPartner = getSharedPreferences(SAVED_SALESPARTNER, Context.MODE_PRIVATE);
+
+        salesPartner = sPrefSalesPartner.getString(SAVED_SALESPARTNER, "");
 
         if (sPrefDBName.contains(SAVED_DBName) && sPrefDBUser.contains(SAVED_DBUser) && sPrefDBPassword.contains(SAVED_DBPassword)) {
             dbName = sPrefDBName.getString(SAVED_DBName, "");
@@ -343,8 +348,7 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implemen
 
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
         if (tableExists(db, "itemsToInvoiceTmp")){
-
-            if (bTmp == true){
+            if (resultExists(db, "itemsToInvoiceTmp", "Контрагент", salesPartner)) {
                 builder.setTitle("Внимание")
                         .setMessage("У вас остался несохраненный список")
                         .setCancelable(true)
@@ -352,7 +356,7 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implemen
                                 new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialog, int id) {
                                         for (int i = 0; i < listViewItems.getCount(); i++) {
-                                            if (resultExists(db, "itemsToInvoiceTmp", "Наименование", itemsList[i])){
+                                            if (resultExists(db, "itemsToInvoiceTmp", "Наименование", itemsList[i])) {
                                                 listViewItems.setItemChecked(i, true);
                                             }
                                         }
