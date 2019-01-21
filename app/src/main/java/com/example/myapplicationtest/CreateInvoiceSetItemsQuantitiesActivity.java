@@ -421,13 +421,13 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
                                 } else {
                                     Double tmpSum;
                                     if (!priceFromTmpLoaded == true) {
-                                        if (!finalPrice.equals(priceChanged)) {
-                                            tmpSum = priceChanged * Double.parseDouble(editTextQuantity.getText().toString());
-                                            textViewTotal.setText(String.valueOf(tmpSum));
-                                        } else {
+//                                        if (!finalPrice.equals(priceChanged)) {
+//                                            tmpSum = priceChanged * Double.parseDouble(editTextQuantity.getText().toString());
+//                                            textViewTotal.setText(String.valueOf(tmpSum));
+//                                        } else {
                                             tmpSum = finalPrice * Double.parseDouble(editTextQuantity.getText().toString());
                                             textViewTotal.setText(String.valueOf(tmpSum));
-                                        }
+//                                        }
                                     } else {
                                         tmpSum = priceChanged * Double.parseDouble(editTextQuantity.getText().toString());
                                         textViewTotal.setText(String.valueOf(tmpSum));
@@ -437,12 +437,14 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
                         }
                     } else {
                         Double tmpSum;
-                        if (!finalPrice.equals(priceChanged)){
+                        if (priceFromTmpLoaded == true) {
                             tmpSum = priceChanged * Double.parseDouble(editTextQuantity.getText().toString());
                             textViewTotal.setText(String.valueOf(tmpSum));
+                            Toast.makeText(getApplicationContext(), "finalPrice1: " + finalPrice + " priceChanged1: " + priceChanged, Toast.LENGTH_SHORT).show();
                         } else {
                             tmpSum = finalPrice * Double.parseDouble(editTextQuantity.getText().toString());
                             textViewTotal.setText(String.valueOf(tmpSum));
+                            Toast.makeText(getApplicationContext(), "finalPrice2: " + finalPrice + " priceChanged2: " + priceChanged, Toast.LENGTH_SHORT).show();
                         }
                     }
                 } else {
@@ -541,14 +543,19 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
                         Double tmpSum = Double.parseDouble(editTextPrice.getText().toString())
                                 * Double.parseDouble(editTextQuantity.getText().toString());
                         textViewTotal.setText(String.valueOf(tmpSum));
+                        Toast.makeText(getApplicationContext(), "finalPrice3: " + finalPrice + " priceChanged3: " + priceChanged, Toast.LENGTH_SHORT).show();
                         if (Double.parseDouble(editTextPrice.getText().toString()) != (finalPrice)){
                             priceChanged = Double.parseDouble(editTextPrice.getText().toString());
+                            Toast.makeText(getApplicationContext(), "finalPrice4: " + finalPrice + " priceChanged4: " + priceChanged, Toast.LENGTH_SHORT).show();
                         }
                     } else {
                         textViewTotal.setText(String.valueOf(0));
                     }
                 } else {
                     textViewTotal.setText(String.valueOf(0));
+                    if (editTextPrice.getText().toString().trim().length() > 0){
+                        priceChanged = Double.parseDouble(editTextPrice.getText().toString());
+                    }
                 }
             }
         });
