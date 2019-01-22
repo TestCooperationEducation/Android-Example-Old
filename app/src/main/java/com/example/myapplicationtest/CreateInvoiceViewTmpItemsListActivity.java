@@ -1,6 +1,7 @@
 package com.example.myapplicationtest;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -9,6 +10,7 @@ import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.widget.ArrayAdapter;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -17,9 +19,19 @@ import java.util.List;
 public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity {
 
     List<DataItemsListTmp> listTmp = new ArrayList<>();
+    SharedPreferences sPrefDBName, sPrefDBPassword, sPrefDBUser, sPrefSalesPartner,
+            sPrefAccountingType;
     final String LOG_TAG = "myLogs";
     DBHelper dbHelper;
     SQLiteDatabase db;
+    String requestUrlFinalPrice = "https://caiman.ru.com/php/price.php", dbName, dbUser, dbPassword,
+            salesPartner, accountingType, agent;
+    TextView textViewSalesPartner, textViewInvoiceTotal, textViewAgent, textViewAccountingType;
+    final String SAVED_DBName = "dbName";
+    final String SAVED_DBUser = "dbUser";
+    final String SAVED_DBPassword = "dbPassword";
+    final String SAVED_SALESPARTNER = "SalesPartner";
+    final String SAVED_ACCOUNTINGTYPE = "AccountingType";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,6 +40,20 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity {
 
         dbHelper = new DBHelper(this);
         db = dbHelper.getReadableDatabase();
+
+        textViewSalesPartner = findViewById(R.id.textViewSalesPartner);
+        textViewInvoiceTotal = findViewById(R.id.textViewTotalSum);
+        textViewAgent = findViewById(R.id.textViewAgent);
+        textViewAccountingType = findViewById(R.id.textViewAccountingType);
+
+        sPrefDBName = getSharedPreferences(SAVED_DBName, Context.MODE_PRIVATE);
+        sPrefDBUser = getSharedPreferences(SAVED_DBUser, Context.MODE_PRIVATE);
+        sPrefDBPassword = getSharedPreferences(SAVED_DBPassword, Context.MODE_PRIVATE);
+        sPrefSalesPartner = getSharedPreferences(SAVED_SALESPARTNER, Context.MODE_PRIVATE);
+        sPrefAccountingType = getSharedPreferences(SAVED_ACCOUNTINGTYPE, Context.MODE_PRIVATE);
+
+        salesPartner = sPrefSalesPartner.getString(SAVED_SALESPARTNER, "");
+        textViewAccountingType.setText(sPrefAccountingType.getString(SAVED_ACCOUNTINGTYPE, ""));
 
         setInitialData();
     }

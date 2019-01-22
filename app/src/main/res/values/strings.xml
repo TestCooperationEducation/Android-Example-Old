@@ -54,5 +54,6 @@
     <string name="textViewPriceLabel">Цена:</string>
     <string name="editTextQuantityLabel">Количество:</string>
     <string name="btnChangePrice">Изменить цену</string>
+    <string name="textViewItemNameLabel">Наименование:</string>
 
 </resources>

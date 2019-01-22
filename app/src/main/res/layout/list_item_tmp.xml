@@ -1,49 +1,123 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:padding="16dp">
-    <LinearLayout
-        android:orientation="vertical"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+    android:background="@drawable/customborder">
 
         <TextView
             android:id="@+id/exchange"
-            android:layout_width="30dp"
-            android:layout_height="wrap_content" />
+            android:layout_width="225dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/exchangeLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/editTextExchange" />
+            android:layout_gravity="end"
+            android:layout_marginEnd="8dp"
+            android:layout_marginRight="8dp"
+            android:text="@string/editTextExchange"
+            app:layout_constraintEnd_toStartOf="@+id/exchange"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
-        android:id="@+id/itemName"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"  />
+            android:id="@+id/exchangeLabel2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginRight="8dp"
+            android:text="@string/textViewItemNameLabel"
+            app:layout_constraintEnd_toStartOf="@+id/itemName"
+            app:layout_constraintTop_toBottomOf="@+id/exchange" />
 
-    <TextView
-        android:id="@+id/price"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"  />
+        <TextView
+            android:id="@+id/exchangeLabel3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginRight="8dp"
+            android:text="@string/textViewPriceLabel"
+            app:layout_constraintEnd_toStartOf="@+id/price"
+            app:layout_constraintTop_toBottomOf="@+id/itemName" />
 
-    <TextView
-        android:id="@+id/quantity"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"  />
+        <TextView
+            android:id="@+id/exchangeLabel4"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginRight="8dp"
+            android:text="@string/editTextQuantityLabel"
+            app:layout_constraintEnd_toStartOf="@+id/quantity"
+            app:layout_constraintTop_toBottomOf="@+id/price" />
 
-    <TextView
-        android:id="@+id/total"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"  />
+        <TextView
+            android:id="@+id/exchangeLabel5"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginRight="8dp"
+            android:text="@string/textViewLabelTotalSum"
+            app:layout_constraintEnd_toStartOf="@+id/total"
+            app:layout_constraintTop_toBottomOf="@+id/quantity" />
 
-    <TextView
-        android:id="@+id/returnQuantity"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"  />
-    </LinearLayout>
+        <TextView
+            android:id="@+id/exchangeLabel6"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginRight="8dp"
+            android:text="@string/editTextReturn"
+            app:layout_constraintEnd_toStartOf="@+id/returnQuantity"
+            app:layout_constraintTop_toBottomOf="@+id/total" />
 
-</LinearLayout>
+        <TextView
+            android:id="@+id/itemName"
+            android:layout_width="225dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/exchange" />
+
+        <TextView
+            android:id="@+id/price"
+            android:layout_width="225dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/itemName" />
+
+        <TextView
+            android:id="@+id/quantity"
+            android:layout_width="225dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/price" />
+
+        <TextView
+            android:id="@+id/total"
+            android:layout_width="225dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/quantity" />
+
+        <TextView
+            android:id="@+id/returnQuantity"
+            android:layout_width="225dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/total" />
+
+</android.support.constraint.ConstraintLayout>
