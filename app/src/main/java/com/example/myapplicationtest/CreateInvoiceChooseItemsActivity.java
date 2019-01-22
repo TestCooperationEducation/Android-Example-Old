@@ -123,21 +123,8 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implemen
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.buttonNext:
-//                Intent intent = new Intent(this, CreateInvoiceViewTmpItemsListActivity.class);
-//                startActivity(intent);
-                String sql = "SELECT COUNT(*) FROM itemsToInvoiceTmp ";
-                Cursor cursor = db.rawQuery(sql, null);
-                int count;
-                if (!cursor.moveToFirst())
-                {
-                    cursor.close();
-                    count = 0;
-                } else {
-                    count = cursor.getInt(0);
-                }
-                cursor.close();
-                Log.d(LOG_TAG, "<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>> = " + count);
-                Toast.makeText(getApplicationContext(), "<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>" + bTmp.toString(), Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(this, CreateInvoiceViewTmpItemsListActivity.class);
+                startActivity(intent);
                 break;
             default:
                 break;
@@ -321,7 +308,7 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implemen
             if (resultExists(db, "itemsToInvoiceTmp", "Наименование", item)){
                 builder.setTitle("Номенклатура: " + item)
                         .setMessage("Удалить или редактировать?")
-                        .setCancelable(true)
+                        .setCancelable(false)
                         .setNegativeButton("Удалить",
                                 new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialog, int id) {
@@ -351,7 +338,7 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implemen
             if (resultExists(db, "itemsToInvoiceTmp", "Контрагент", salesPartner)) {
                 builder.setTitle("Внимание")
                         .setMessage("У вас остался несохраненный список")
-                        .setCancelable(true)
+                        .setCancelable(false)
                         .setNegativeButton("Восстановить",
                                 new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialog, int id) {
@@ -381,5 +368,15 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implemen
         // удаляем все записи
         int clearCount = db.delete(tableName, null, null);
         Log.d(LOG_TAG, "deleted rows count = " + clearCount);
+    }
+
+    @Override
+    public void onResume(){
+        super.onResume();
+        for (int i = 0; i < listViewItems.getCount(); i++) {
+            if (!resultExists(db, "itemsToInvoiceTmp", "Наименование", itemsList[i])) {
+                listViewItems.setItemChecked(i, false);
+            }
+        }
     }
 }

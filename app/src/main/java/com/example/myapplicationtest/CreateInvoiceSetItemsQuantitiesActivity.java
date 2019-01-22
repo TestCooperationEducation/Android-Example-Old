@@ -49,7 +49,7 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
     final String SAVED_CONNSTATUS = "connectionStatus";
     final String SAVED_ACCOUNTINGTYPE = "AccountingType";
     final String SAVED_ITEMNAME = "itemName";
-    Double finalPrice, priceChanged;
+    Double finalPrice, priceChanged, tmpQuantityOnStart, tmpExchangeOnStart, tmpReturnOnStart;
 //    ArrayList<String> myList;
     ArrayList<DataPrice> dataArray;
     TextView textViewSalesPartner, textViewItemName, textViewAccountingType, textViewTotal;
@@ -118,8 +118,8 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
             if (resultExists(db, "itemsToInvoiceTmp", "Наименование", item)) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setTitle("Внимание")
-                        .setMessage("Вы хотите загрузить цену из последней сессии?")
-                        .setCancelable(true)
+                        .setMessage("Вы хотите загрузить данные из последней сессии?")
+                        .setCancelable(false)
                         .setNegativeButton("Да",
                                 new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialog, int id) {
@@ -139,6 +139,23 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
                 alert.show();
             }
         }
+        if (editTextQuantity.getText().toString().trim().length() == 0) {
+            tmpQuantityOnStart = 0d;
+        } else {
+            tmpQuantityOnStart = Double.parseDouble(editTextQuantity.getText().toString());
+        }
+        if (editTextExchange.getText().toString().trim().length() == 0) {
+            tmpExchangeOnStart = 0d;
+        } else {
+            tmpExchangeOnStart = Double.parseDouble(editTextExchange.getText().toString());
+        }
+        if (editTextReturn.getText().toString().trim().length() == 0) {
+            tmpReturnOnStart = 0d;
+        } else {
+            tmpReturnOnStart = Double.parseDouble(editTextReturn.getText().toString());
+        }
+
+
 
         onChangeListener();
     }
@@ -285,6 +302,9 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
                     // переход на следующую строку
                     // а если следующей нет (текущая - последняя), то false - выходим из цикла
                 } while (c.moveToNext());
+                tmpQuantityOnStart = Double.parseDouble(editTextQuantity.getText().toString());
+                tmpExchangeOnStart = Double.parseDouble(editTextExchange.getText().toString());
+                tmpReturnOnStart = Double.parseDouble(editTextReturn.getText().toString());
             }
         }
     }
@@ -295,7 +315,7 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle("Ошибка")
                     .setMessage("Цена не может быть равна нулю")
-                    .setCancelable(true)
+                    .setCancelable(false)
                     .setNegativeButton("Назад",
                             new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int id) {
@@ -365,6 +385,9 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
                 long rowID = db.insert("itemsToInvoiceTmp", null, cv);
                 Log.d(LOG_TAG, "row inserted, ID = " + rowID);
                 Toast.makeText(getApplicationContext(), "<<< Товар добавлен в список >>>", Toast.LENGTH_SHORT).show();
+                tmpQuantityOnStart = tmpQuantity;
+                tmpExchangeOnStart = tmpExchange;
+                tmpReturnOnStart = tmpReturn;
             }
         }
     }
@@ -421,13 +444,13 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
                                 } else {
                                     Double tmpSum;
                                     if (!priceFromTmpLoaded == true) {
-//                                        if (!finalPrice.equals(priceChanged)) {
-//                                            tmpSum = priceChanged * Double.parseDouble(editTextQuantity.getText().toString());
-//                                            textViewTotal.setText(String.valueOf(tmpSum));
-//                                        } else {
+                                        if (!finalPrice.equals(priceChanged)) {
+                                            tmpSum = priceChanged * Double.parseDouble(editTextQuantity.getText().toString());
+                                            textViewTotal.setText(String.valueOf(tmpSum));
+                                        } else {
                                             tmpSum = finalPrice * Double.parseDouble(editTextQuantity.getText().toString());
                                             textViewTotal.setText(String.valueOf(tmpSum));
-//                                        }
+                                        }
                                     } else {
                                         tmpSum = priceChanged * Double.parseDouble(editTextQuantity.getText().toString());
                                         textViewTotal.setText(String.valueOf(tmpSum));
@@ -442,9 +465,15 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
                             textViewTotal.setText(String.valueOf(tmpSum));
                             Toast.makeText(getApplicationContext(), "finalPrice1: " + finalPrice + " priceChanged1: " + priceChanged, Toast.LENGTH_SHORT).show();
                         } else {
-                            tmpSum = finalPrice * Double.parseDouble(editTextQuantity.getText().toString());
-                            textViewTotal.setText(String.valueOf(tmpSum));
-                            Toast.makeText(getApplicationContext(), "finalPrice2: " + finalPrice + " priceChanged2: " + priceChanged, Toast.LENGTH_SHORT).show();
+                            if (priceChanged.equals(finalPrice)){
+                                tmpSum = finalPrice * Double.parseDouble(editTextQuantity.getText().toString());
+                                textViewTotal.setText(String.valueOf(tmpSum));
+                                Toast.makeText(getApplicationContext(), "finalPrice2: " + finalPrice + " priceChanged2: " + priceChanged, Toast.LENGTH_SHORT).show();
+                            } else {
+                                tmpSum = priceChanged * Double.parseDouble(editTextQuantity.getText().toString());
+                                textViewTotal.setText(String.valueOf(tmpSum));
+                            }
+
                         }
                     }
                 } else {
@@ -594,5 +623,49 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (editTextQuantity.getText().toString().trim().length() > 0 &&
+                editTextExchange.getText().toString().trim().length() > 0 &&
+                editTextReturn.getText().toString().trim().length() > 0){
+            if (tmpQuantityOnStart != Double.parseDouble(editTextQuantity.getText().toString()) ||
+                    tmpExchangeOnStart != Double.parseDouble(editTextExchange.getText().toString()) ||
+                    tmpReturnOnStart != Double.parseDouble(editTextReturn.getText().toString())){
+                openQuitDialog();
+            }
+            if (tmpQuantityOnStart == Double.parseDouble(editTextQuantity.getText().toString()) &&
+                    tmpExchangeOnStart == Double.parseDouble(editTextExchange.getText().toString()) &&
+                    tmpReturnOnStart == Double.parseDouble(editTextReturn.getText().toString())) {
+                finish();
+            }
+        } else {
+            finish();
+        }
+
+    }
+
+    private void openQuitDialog() {
+        AlertDialog.Builder quitDialog = new AlertDialog.Builder(this);
+        quitDialog.setTitle("Выйти без сохранения этой записи?");
+
+        quitDialog.setPositiveButton("Выйти", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // TODO Auto-generated method stub
+
+                finish();
+            }
+        });
+
+        quitDialog.setNegativeButton("Остаться", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // TODO Auto-generated method stub
+            }
+        });
+
+        quitDialog.show();
     }
 }
