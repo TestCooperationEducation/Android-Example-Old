@@ -17,11 +17,13 @@ public class CreateInvoiceFilterAreaActivity extends AppCompatActivity implement
 
     ListView listViewArea;
     Button btnNext, btnChooseRoot, btnChooseAccountingType;
-    SharedPreferences sPrefArea, sPrefVisited, sPrefAccountingType, sPrefDayOfTheWeek;
+    SharedPreferences sPrefArea, sPrefVisited, sPrefFreshStatus,
+            sPrefAccountingType, sPrefDayOfTheWeek;
     final String SAVED_AREA = "Area";
     final String SAVED_VISITED = "visited";
     final String SAVED_ACCOUNTINGTYPE = "AccountingType";
     final String SAVED_DAYOFTHEWEEK = "DayOfTheWeek";
+    final String SAVED_FRESHSTATUS = "freshStatus";
     SharedPreferences.Editor e;
     String areaStr, visited, dayOfTheWeek, accountingType;
     String[] area = new String[5];
@@ -40,8 +42,13 @@ public class CreateInvoiceFilterAreaActivity extends AppCompatActivity implement
 
         sPrefArea = getSharedPreferences(SAVED_AREA, Context.MODE_PRIVATE);
         sPrefVisited = getSharedPreferences(SAVED_VISITED, Context.MODE_PRIVATE);
+        sPrefFreshStatus = getSharedPreferences(SAVED_FRESHSTATUS, Context.MODE_PRIVATE);
 //        sPrefAccountingType = getSharedPreferences(SAVED_ACCOUNTINGTYPE, Context.MODE_PRIVATE);
 //        sPrefDayOfTheWeek = getSharedPreferences(SAVED_DAYOFTHEWEEK, Context.MODE_PRIVATE);
+
+        e = sPrefFreshStatus.edit();
+        e.putString(SAVED_FRESHSTATUS, "not fresh");
+        e.apply();
 
         listViewArea = findViewById(R.id.listViewArea);
 

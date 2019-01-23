@@ -6,73 +6,107 @@
     android:layout_height="match_parent"
     tools:context=".MainMenu">
 
-    <Button
-        android:id="@+id/buttonInvoice"
+    <ScrollView
+        android:id="@+id/scrollView2"
         android:layout_width="0dp"
-        android:layout_height="100dp"
-        android:text="@string/btnInvoice"
-        android:textSize="18sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <Button
-        android:id="@+id/buttonPayments"
-        android:layout_width="0dp"
-        android:layout_height="100dp"
-        android:layout_marginTop="2dp"
-        android:text="@string/btnPayments"
-        android:textSize="18sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/buttonInvoice" />
-
-    <Button
-        android:id="@+id/buttonSalesPartners"
-        android:layout_width="0dp"
-        android:layout_height="100dp"
-        android:layout_marginTop="2dp"
-        android:text="@string/btnSalesPartners"
-        android:textSize="18sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/buttonPayments" />
-
-    <Button
-        android:id="@+id/buttonChangePrices"
-        android:layout_width="0dp"
-        android:layout_height="100dp"
-        android:layout_marginTop="2dp"
-        android:text="@string/btnChangePrices"
-        android:textSize="18sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/buttonSalesPartners" />
-
-    <Button
-        android:id="@+id/buttonViewInvoices"
-        android:layout_width="0dp"
-        android:layout_height="100dp"
-        android:layout_marginTop="2dp"
-        android:text="@string/btnViewInvoices"
-        android:textSize="18sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/buttonChangePrices" />
-
-    <Button
-        android:id="@+id/buttonReports"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginTop="2dp"
-        android:text="@string/btnReports"
-        android:textSize="18sp"
+        android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/buttonViewInvoices" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <Button
+                android:id="@+id/buttonInvoice"
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                android:text="@string/btnInvoice"
+                android:textSize="18sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/scrollView2" />
+
+            <Button
+                android:id="@+id/buttonViewInvoices"
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                android:layout_marginTop="2dp"
+                android:text="@string/btnViewInvoices"
+                android:textSize="18sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/buttonChangePrices" />
+
+            <Button
+                android:id="@+id/buttonPayments"
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                android:layout_marginTop="2dp"
+                android:text="@string/btnPayments"
+                android:textSize="18sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/buttonInvoice" />
+
+            <Button
+                android:id="@+id/buttonChangePrices"
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                android:layout_marginTop="2dp"
+                android:text="@string/btnChangePrices"
+                android:textSize="18sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/buttonSalesPartners" />
+
+            <Button
+                android:id="@+id/buttonSalesPartners"
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                android:layout_marginTop="2dp"
+                android:text="@string/btnSalesPartners"
+                android:textSize="18sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/buttonPayments" />
+
+            <Button
+                android:id="@+id/buttonReports"
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                android:layout_marginTop="2dp"
+                android:text="@string/btnReports"
+                android:textSize="18sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/buttonViewInvoices" />
+
+            <Button
+                android:id="@+id/buttonUpdateLocalDB"
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                android:text="@string/btnUpdateLocalDB"
+                android:textSize="18sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/buttonReports" />
+
+            <Button
+                android:id="@+id/buttonClearLocalDB"
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                android:text="@string/btnClearLocalDB"
+                android:textSize="18sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/scrollView2" />
+        </LinearLayout>
+    </ScrollView>
 
 </android.support.constraint.ConstraintLayout>

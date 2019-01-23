@@ -1,37 +1,51 @@
 package com.example.myapplicationtest;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.os.Build;
+import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity {
+public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity implements View.OnClickListener {
 
     List<DataItemsListTmp> listTmp = new ArrayList<>();
     SharedPreferences sPrefDBName, sPrefDBPassword, sPrefDBUser, sPrefSalesPartner,
-            sPrefAccountingType;
+            sPrefAccountingType, sPrefAgent, sPrefAreaDefault;
     final String LOG_TAG = "myLogs";
     DBHelper dbHelper;
     SQLiteDatabase db;
     String requestUrlFinalPrice = "https://caiman.ru.com/php/price.php", dbName, dbUser, dbPassword,
-            salesPartner, accountingType, agent;
+            salesPartner, accountingType, agent, areaDefault;
     TextView textViewSalesPartner, textViewInvoiceTotal, textViewAgent, textViewAccountingType;
     final String SAVED_DBName = "dbName";
     final String SAVED_DBUser = "dbUser";
     final String SAVED_DBPassword = "dbPassword";
     final String SAVED_SALESPARTNER = "SalesPartner";
     final String SAVED_ACCOUNTINGTYPE = "AccountingType";
+    final String SAVED_AGENT = "agent";
+    final String SAVED_AREADEFAULT = "areaDefault";
+    Double invoiceSum = 0d;
+    Button btnSaveInvoiceToLocalDB;
+    int invoiceNumber;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +54,9 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity {
 
         dbHelper = new DBHelper(this);
         db = dbHelper.getReadableDatabase();
+
+        btnSaveInvoiceToLocalDB = findViewById(R.id.buttonSaveInvoiceToLocalDB);
+        btnSaveInvoiceToLocalDB.setOnClickListener(this);
 
         textViewSalesPartner = findViewById(R.id.textViewSalesPartner);
         textViewInvoiceTotal = findViewById(R.id.textViewTotalSum);
@@ -51,17 +68,37 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity {
         sPrefDBPassword = getSharedPreferences(SAVED_DBPassword, Context.MODE_PRIVATE);
         sPrefSalesPartner = getSharedPreferences(SAVED_SALESPARTNER, Context.MODE_PRIVATE);
         sPrefAccountingType = getSharedPreferences(SAVED_ACCOUNTINGTYPE, Context.MODE_PRIVATE);
+        sPrefAgent = getSharedPreferences(SAVED_AGENT, Context.MODE_PRIVATE);
+        sPrefAreaDefault = getSharedPreferences(SAVED_AREADEFAULT, Context.MODE_PRIVATE);
 
+        agent = sPrefAgent.getString(SAVED_AGENT, "");
         salesPartner = sPrefSalesPartner.getString(SAVED_SALESPARTNER, "");
-        textViewAccountingType.setText(sPrefAccountingType.getString(SAVED_ACCOUNTINGTYPE, ""));
+        areaDefault = sPrefAreaDefault.getString(SAVED_AREADEFAULT, "");
+        accountingType = sPrefAccountingType.getString(SAVED_ACCOUNTINGTYPE, "");
+
+        textViewSalesPartner.setText(salesPartner);
+        textViewAccountingType.setText(accountingType);
+        textViewAgent.setText(agent);
 
         setInitialData();
+
+//        Toast.makeText(getApplicationContext(), output, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.buttonSaveInvoiceToLocalDB:
+                saveInvoiceToLocalDB();
+                break;
+            default:
+                break;
+        }
     }
 
     private void setInitialData() {
 //        String sql = "SELECT COUNT(*) FROM itemsToInvoiceTmp ";
 //        Cursor cursor = db.rawQuery(sql, null);
-//        int count;
 //        if (!cursor.moveToFirst()) {
 //            cursor.close();
 //            count = 0;
@@ -69,23 +106,24 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity {
 //            count = cursor.getInt(0);
 //        }
 //        cursor.close();
+
         Cursor c = db.query("itemsToInvoiceTmp", null, null, null, null, null, null);
-        Toast.makeText(getApplicationContext(), "111111111111111", Toast.LENGTH_SHORT).show();
-        if (c.moveToFirst()) {Toast.makeText(getApplicationContext(), "2222222222222", Toast.LENGTH_SHORT).show();
+        if (c.moveToFirst()) {
             int exchange = c.getColumnIndex("Обмен");
             int itemName = c.getColumnIndex("Наименование");
             int price = c.getColumnIndex("ЦенаИзмененная");
             int quantity = c.getColumnIndex("Количество");
             int total = c.getColumnIndex("Итого");
             int returnQuantity = c.getColumnIndex("Возврат");
-            do {Toast.makeText(getApplicationContext(), "3333", Toast.LENGTH_SHORT).show();
+            do {
                 listTmp.add(new DataItemsListTmp(Double.parseDouble(c.getString(exchange)),
                         c.getString(itemName), Integer.parseInt(c.getString(price)),
                         Double.parseDouble(c.getString(quantity)), Double.parseDouble(c.getString(total)),
                         Double.parseDouble(c.getString(returnQuantity))));
+
+                invoiceSum = invoiceSum + Double.parseDouble(c.getString(total));
             } while (c.moveToNext());
         }
-        Toast.makeText(getApplicationContext(), "4", Toast.LENGTH_SHORT).show();
 
         RecyclerView recyclerView = findViewById(R.id.recyclerViewItemsListTmp);
         // создаем адаптер
@@ -93,6 +131,65 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity {
         // устанавливаем для списка адаптер
         recyclerView.setAdapter(adapter);
         c.close();
+
+        textViewInvoiceTotal.setText(invoiceSum.toString());
+
+        if (tableExists(db, "invoiceLocalDB")){
+            if (resultExists(db, "invoiceLocalDB", "invoiceNumber")){
+                String sql = "SELECT DISTINCT invoiceNumber FROM invoiceLocalDB ORDER BY id DESC LIMIT 1";
+                c = db.rawQuery(sql, null);
+                if (c.moveToFirst()) {
+                    int iNumber = c.getColumnIndex("invoiceNumber");
+                    do {
+                        invoiceNumber = iNumber + 1;
+                    } while (c.moveToNext());
+                }
+            } else {
+                invoiceNumber = 0;
+            }
+        } else {
+            Toast.makeText(getApplicationContext(), "<<< Нет локальной таблицы накладных >>>", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void saveInvoiceToLocalDB(){
+        ContentValues cv = new ContentValues();
+        Log.d(LOG_TAG, "--- Insert in invoiceLocalDB: ---");
+
+        Instant instant = Instant.now();
+        ZoneId zoneId = ZoneId.of( "Asia/Sakhalin" );
+        ZonedDateTime zdt = ZonedDateTime.ofInstant( instant , zoneId );
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern( "yyyy/MM/dd HH:mm:ss" );
+//        String output = instant.toString();
+        String output = zdt.format( formatter );
+
+        Cursor c = db.query("itemsToInvoiceTmp", null, null, null, null, null, null);
+        if (c.moveToFirst()) {
+            int exchange = c.getColumnIndex("Обмен");
+            int itemName = c.getColumnIndex("Наименование");
+            int price = c.getColumnIndex("ЦенаИзмененная");
+            int quantity = c.getColumnIndex("Количество");
+            int total = c.getColumnIndex("Итого");
+            int returnQuantity = c.getColumnIndex("Возврат");
+            do {
+                cv.put("invoiceNumber", invoiceNumber);
+                cv.put("agentID", areaDefault);
+                cv.put("salesPartnerName", salesPartner);
+                cv.put("accountingType", accountingType);
+                cv.put("itemName", c.getString(itemName));
+                cv.put("quantity", Double.parseDouble(c.getString(quantity)));
+                cv.put("price", Integer.parseInt(c.getString(price)));
+                cv.put("total", Double.parseDouble(c.getString(total)));
+                cv.put("exchangeQuantity", Double.parseDouble(c.getString(exchange)));
+                cv.put("returnQuantity", Double.parseDouble(c.getString(returnQuantity)));
+                cv.put("dateTimeDoc", output);
+                cv.put("invoiceSum", invoiceSum);
+                Toast.makeText(getApplicationContext(), "<<< Идёт процесс добавления данных >>>", Toast.LENGTH_SHORT).show();
+            } while (c.moveToNext());
+        }
+        long rowID = db.insert("invoiceLocalDB", null, cv);
+        Log.d(LOG_TAG, "row inserted, ID = " + rowID);
+        Toast.makeText(getApplicationContext(), "<<< Завершено >>>", Toast.LENGTH_SHORT).show();
     }
 
     class DBHelper extends SQLiteOpenHelper {
@@ -111,5 +208,38 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity {
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 
         }
+    }
+
+    boolean tableExists(SQLiteDatabase db, String tableName){
+        if (tableName == null || db == null || !db.isOpen())
+        {
+            return false;
+        }
+        Cursor cursor = db.rawQuery("SELECT COUNT(*) FROM sqlite_master WHERE type = ? AND name = ?", new String[] {"table", tableName});
+        if (!cursor.moveToFirst())
+        {
+            cursor.close();
+            return false;
+        }
+        int count = cursor.getInt(0);
+        cursor.close();
+        return count > 0;
+    }
+
+    boolean resultExists(SQLiteDatabase db, String tableName, String selectField){
+        if (tableName == null || db == null || !db.isOpen())
+        {
+            return false;
+        }
+        String sql = "SELECT COUNT(?) FROM " + tableName;
+        Cursor cursor = db.rawQuery(sql, new String[]{selectField});
+        if (!cursor.moveToFirst())
+        {
+            cursor.close();
+            return false;
+        }
+        int count = cursor.getInt(0);
+        cursor.close();
+        return count > 0;
     }
 }

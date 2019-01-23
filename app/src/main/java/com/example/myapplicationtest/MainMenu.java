@@ -35,9 +35,9 @@ import static android.icu.text.MessagePattern.ArgType.SELECT;
 
 public class MainMenu extends AppCompatActivity implements View.OnClickListener {
 
-    Button btnInvoice, btnPayments, btnSalesAgents;
+    Button btnInvoice, btnPayments, btnSalesAgents, btnUpdateLocalDB, btnClearLocalTables, btnReports;
     SharedPreferences sPrefArea, sPrefAccountingType, sPrefDayOfTheWeekDefault, sPrefDBName,
-            sPrefDBPassword, sPrefDBUser, sPrefDayOfTheWeek, sPrefVisited, sPrefConnectionStatus;
+            sPrefFreshStatus, sPrefDBPassword, sPrefDBUser, sPrefDayOfTheWeek, sPrefVisited, sPrefConnectionStatus;
     final String SAVED_AREA = "Area";
     final String SAVED_ACCOUNTINGTYPE = "AccountingType";
     final String SAVED_DAYOFTHEWEEKDEFAULT = "DayOfTheWeekDefault";
@@ -47,6 +47,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
     final String SAVED_DBPassword = "dbPassword";
     final String SAVED_VISITED = "visited";
     final String SAVED_CONNSTATUS = "connectionStatus";
+    final String SAVED_FRESHSTATUS = "freshStatus";
     String loginUrl = "https://caiman.ru.com/php/login.php", dbName, dbUser, dbPassword,
             syncUrl = "https://caiman.ru.com/php/syncDB.php", connStatus;
     String[] dayOfTheWeek, salesPartnersName, accountingType, author, itemName, comment, dateTimeDoc;
@@ -57,7 +58,8 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
     DBHelper dbHelper;
     final String LOG_TAG = "myLogs";
     SQLiteDatabase db;
-    Boolean one, two, three, four, five, six, seven;
+    Boolean one, two, three, four, five, six, seven, dropped = false;
+    Integer countGlobal;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,6 +69,12 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         btnInvoice = findViewById(R.id.buttonInvoice);
         btnPayments = findViewById(R.id.buttonPayments);
         btnSalesAgents = findViewById(R.id.buttonSalesPartners);
+        btnUpdateLocalDB = findViewById(R.id.buttonUpdateLocalDB);
+        btnClearLocalTables = findViewById(R.id.buttonClearLocalDB);
+        btnReports = findViewById(R.id.buttonReports);
+        btnReports.setOnClickListener(this);
+        btnClearLocalTables.setOnClickListener(this);
+        btnUpdateLocalDB.setOnClickListener(this);
         btnInvoice.setOnClickListener(this);
         btnPayments.setOnClickListener(this);
         btnSalesAgents.setOnClickListener(this);
@@ -92,6 +100,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         sPrefDayOfTheWeekDefault = getSharedPreferences(SAVED_DAYOFTHEWEEKDEFAULT, Context.MODE_PRIVATE);
         sPrefDayOfTheWeek = getSharedPreferences(SAVED_DayOfTheWeek, Context.MODE_PRIVATE);
         sPrefVisited = getSharedPreferences(SAVED_VISITED, Context.MODE_PRIVATE);
+        sPrefFreshStatus = getSharedPreferences(SAVED_FRESHSTATUS, Context.MODE_PRIVATE);
 
         dbName = sPrefDBName.getString(SAVED_DBName, "");
         dbUser = sPrefDBUser.getString(SAVED_DBUser, "");
@@ -102,11 +111,70 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         sPrefDayOfTheWeek.edit().clear().apply();
         sPrefVisited.edit().clear().apply();
 
+
+        e = sPrefFreshStatus.edit();
+        e.putString(SAVED_FRESHSTATUS, "fresh");
+        e.apply();
+
         dbHelper = new DBHelper(this);
         db = dbHelper.getWritableDatabase();
 
-//        db.execSQL("DROP TABLE IF EXISTS itemsToInvoiceTmp");
+//        db.execSQL("DROP TABLE IF EXISTS invoiceLocalDB");
+    }
 
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.buttonInvoice:
+                createInvoice();
+                break;
+            case R.id.buttonPayments:
+                makePayments();
+                break;
+            case R.id.buttonSalesPartners:
+                manageSalesPartners();
+                break;
+            case R.id.buttonUpdateLocalDB:
+                updateLocalDB();
+                break;
+            case R.id.buttonClearLocalDB:
+                if (tableExists(db, "invoiceLocalDB")){
+                    clearTable("invoiceLocalDB");
+                }
+                break;
+            case R.id.buttonReports:
+                testCheck();
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void createInvoice(){
+        Intent intent = new Intent(getApplicationContext(), CreateInvoiceFilterAreaActivity.class);
+        startActivity(intent);
+    }
+
+    private void makePayments(){
+        Intent intent = new Intent(getApplicationContext(), MakePaymentsActivity.class);
+        startActivity(intent);
+    }
+
+    private void manageSalesPartners(){
+        Intent intent = new Intent(getApplicationContext(), ManageSalesPartnersActivity.class);
+        startActivity(intent);
+    }
+
+    private void testCheck(){
+        if (tableExists(db, "invoiceLocalDB")){
+            Toast.makeText(getApplicationContext(), "Table exists", Toast.LENGTH_SHORT).show();
+            if (resultExistsVariant(db, "invoiceLocalDB")){
+                Toast.makeText(getApplicationContext(), countGlobal, Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    private void updateLocalDB(){
         sPrefConnectionStatus = getSharedPreferences(SAVED_CONNSTATUS, Context.MODE_PRIVATE);
         if (sPrefConnectionStatus.contains(SAVED_CONNSTATUS)){
             connStatus = sPrefConnectionStatus.getString(SAVED_CONNSTATUS, "");
@@ -117,6 +185,13 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                 db.execSQL("DROP TABLE IF EXISTS discount");
                 db.execSQL("DROP TABLE IF EXISTS invoice");
                 db.execSQL("DROP TABLE IF EXISTS payments");
+                dropped = true;
+            } else {
+                Toast.makeText(getApplicationContext(), "<<< Локальная База >>>" + connStatus, Toast.LENGTH_SHORT).show();
+            }
+        }
+        if (sPrefFreshStatus.getString(SAVED_FRESHSTATUS, "").equals("fresh")){
+            if (dropped == true){
                 dbHelper.onUpgrade(db, 1, 2);
 
                 loadDateFromServer();
@@ -175,41 +250,11 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                 Thread thread7 = new Thread(runnable);
                 thread7.start();
             } else {
-                Toast.makeText(getApplicationContext(), "<<< Локальная База >>>" + connStatus, Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "<<< НЕТ подключения к Серверу >>>" + connStatus, Toast.LENGTH_SHORT).show();
             }
+        } else {
+            Toast.makeText(getApplicationContext(), "<<< Обновление возможно только при первом входе >>>" + connStatus, Toast.LENGTH_SHORT).show();
         }
-    }
-
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.buttonInvoice:
-                createInvoice();
-                break;
-            case R.id.buttonPayments:
-                makePayments();
-                break;
-            case R.id.buttonSalesPartners:
-                manageSalesPartners();
-                break;
-            default:
-                break;
-        }
-    }
-
-    private void createInvoice(){
-        Intent intent = new Intent(getApplicationContext(), CreateInvoiceFilterAreaActivity.class);
-        startActivity(intent);
-    }
-
-    private void makePayments(){
-        Intent intent = new Intent(getApplicationContext(), MakePaymentsActivity.class);
-        startActivity(intent);
-    }
-
-    private void manageSalesPartners(){
-        Intent intent = new Intent(getApplicationContext(), ManageSalesPartnersActivity.class);
-        startActivity(intent);
     }
 
     private void loadDateFromServer(){
@@ -228,7 +273,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                         e = sPrefDayOfTheWeekDefault.edit();
                         e.putString(SAVED_DAYOFTHEWEEKDEFAULT, dayOfTheWeek[0]);
                         e.apply();
-//                        Toast.makeText(getApplicationContext(), "День недели: " + dayOfTheWeek[0], Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), "Идет загрузка...", Toast.LENGTH_SHORT).show();
                         one = true;
                     }else{
                         Toast.makeText(getApplicationContext(), "Ошибка Входа. Проверьте Интернет или Учётку", Toast.LENGTH_SHORT).show();
@@ -708,60 +753,61 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         @Override
         public void onCreate(SQLiteDatabase db) {
             Log.d(LOG_TAG, "--- onCreate database ---");
-                db.execSQL("create table salesPartners ("
-                        + "id integer primary key autoincrement,"
-                        + "serverDB_ID integer UNIQUE ON CONFLICT REPLACE,"
-                        + "Наименование text,"
-                        + "Район integer,"
-                        + "Учет text,"
-                        + "DayOfTheWeek text,"
-                        + "Автор text" + ");");
+            db.execSQL("create table salesPartners ("
+                    + "id integer primary key autoincrement,"
+                    + "serverDB_ID integer UNIQUE ON CONFLICT REPLACE,"
+                    + "Наименование text,"
+                    + "Район integer,"
+                    + "Учет text,"
+                    + "DayOfTheWeek text,"
+                    + "Автор text" + ");");
 
-                db.execSQL("create table items ("
-                        + "id integer primary key autoincrement,"
-                        + "Артикул integer UNIQUE ON CONFLICT REPLACE,"
-                        + "Наименование text,"
-                        + "Цена integer" + ");");
+            db.execSQL("create table items ("
+                    + "id integer primary key autoincrement,"
+                    + "Артикул integer UNIQUE ON CONFLICT REPLACE,"
+                    + "Наименование text,"
+                    + "Цена integer" + ");");
 
-                db.execSQL("create table itemsWithDiscount ("
-                        + "id integer primary key autoincrement,"
-                        + "serverDB_ID integer UNIQUE ON CONFLICT REPLACE,"
-                        + "Артикул integer,"
-                        + "ID_скидки integer,"
-                        + "ID_контрагента integer,"
-                        + "Автор text" + ");");
+            db.execSQL("create table itemsWithDiscount ("
+                    + "id integer primary key autoincrement,"
+                    + "serverDB_ID integer UNIQUE ON CONFLICT REPLACE,"
+                    + "Артикул integer,"
+                    + "ID_скидки integer,"
+                    + "ID_контрагента integer,"
+                    + "Автор text" + ");");
 
-                db.execSQL("create table discount ("
-                        + "id integer primary key autoincrement,"
-                        + "serverDB_ID integer UNIQUE ON CONFLICT REPLACE,"
-                        + "Тип_скидки integer,"
-                        + "Скидка integer,"
-                        + "Автор текст" + ");");
+            db.execSQL("create table discount ("
+                    + "id integer primary key autoincrement,"
+                    + "serverDB_ID integer UNIQUE ON CONFLICT REPLACE,"
+                    + "Тип_скидки integer,"
+                    + "Скидка integer,"
+                    + "Автор текст" + ");");
 
-                db.execSQL("create table invoice ("
-                        + "id integer primary key autoincrement,"
-                        + "serverDB_ID integer UNIQUE ON CONFLICT REPLACE,"
-                        + "InvoiceNumber integer,"
-                        + "AgentID integer,"
-                        + "SalesPartnerID integer,"
-                        + "AccountingType text,"
-                        + "ItemID integer,"
-                        + "Quantity real,"
-                        + "Price real,"
-                        + "Total real,"
-                        + "ExchangeQuantity real,"
-                        + "ReturnQuantity  real,"
-                        + "DateTimeDoc text,"
-                        + "InvoiceSum real,"
-                        + "Comment text" + ");");
+            db.execSQL("create table invoice ("
+                    + "id integer primary key autoincrement,"
+                    + "serverDB_ID integer UNIQUE ON CONFLICT REPLACE,"
+                    + "InvoiceNumber integer,"
+                    + "AgentID integer,"
+                    + "SalesPartnerID integer,"
+                    + "AccountingType text,"
+                    + "ItemID integer,"
+                    + "Quantity real,"
+                    + "Price real,"
+                    + "Total real,"
+                    + "ExchangeQuantity real,"
+                    + "ReturnQuantity  real,"
+                    + "DateTimeDoc text,"
+                    + "InvoiceSum real,"
+                    + "Comment text" + ");");
 
-                db.execSQL("create table payments ("
-                        + "id integer primary key autoincrement,"
-                        + "serverDB_ID integer UNIQUE ON CONFLICT REPLACE,"
-                        + "DateTimeDoc text,"
-                        + "InvoiceNumber integer,"
-                        + "сумма_внесения real,"
-                        + "Автор text" + ");");
+            db.execSQL("create table payments ("
+                    + "id integer primary key autoincrement,"
+                    + "serverDB_ID integer UNIQUE ON CONFLICT REPLACE,"
+                    + "DateTimeDoc text,"
+                    + "InvoiceNumber integer,"
+                    + "сумма_внесения real,"
+                    + "Автор text" + ");");
+
             if (!tableExists(db, "itemsToInvoiceTmp")) {
                 db.execSQL("create table itemsToInvoiceTmp ("
                         + "id integer primary key autoincrement,"
@@ -773,6 +819,23 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                         + "Обмен real,"
                         + "Возврат real,"
                         + "Итого real" + ");");
+            }
+
+            if (!tableExists(db, "invoiceLocalDB")) {
+                db.execSQL("create table invoiceLocalDB ("
+                        + "id integer primary key autoincrement,"
+                        + "invoiceNumber integer,"
+                        + "agentID integer,"
+                        + "salesPartnerName text,"
+                        + "accountingType text,"
+                        + "itemName text,"
+                        + "quantity real,"
+                        + "price integer,"
+                        + "total real,"
+                        + "exchangeQuantity real,"
+                        + "returnQuantity real,"
+                        + "dateTimeDoc text,"
+                        + "invoiceSum text" + ");");
             }
         }
 
@@ -798,6 +861,24 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         return count > 0;
     }
 
+    boolean resultExistsVariant(SQLiteDatabase db, String tableName){
+        if (tableName == null || db == null || !db.isOpen())
+        {
+            return false;
+        }
+        String sql = "SELECT COUNT(invoiceNumber) FROM invoiceLocalDB";
+        Cursor cursor = db.rawQuery(sql, null);
+        if (!cursor.moveToFirst())
+        {
+            cursor.close();
+            return false;
+        }
+        int count = cursor.getInt(0);
+        cursor.close();
+        countGlobal = count;
+        return count > 0;
+    }
+
     boolean resultExists(SQLiteDatabase db, String tableName, String selectField, String fieldName, String fieldValue){
         if (tableName == null || db == null || !db.isOpen())
         {
@@ -817,7 +898,15 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
 
     private void loadMessage(){
         if (one && two && three && four && five && six && seven){
-            Toast.makeText(getApplicationContext(), "Данные загружены", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "<<< Данные загружены >>>", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private void clearTable(String tableName){
+        Log.d(LOG_TAG, "--- Clear mytable: ---");
+        // удаляем все записи
+        int clearCount = db.delete(tableName, null, null);
+        Log.d(LOG_TAG, "deleted rows count = " + clearCount);
+        Toast.makeText(getApplicationContext(), "<<< Таблицы очищены >>>", Toast.LENGTH_SHORT).show();
     }
 }

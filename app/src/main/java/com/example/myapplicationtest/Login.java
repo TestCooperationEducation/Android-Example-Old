@@ -28,7 +28,8 @@ import java.util.Map;
 public class Login extends AppCompatActivity implements View.OnClickListener {
 
     Button btnLogin, btnSettings;
-    SharedPreferences sPrefLogin, sPrefPassword, sPrefDBName, sPrefDBPassword, sPrefDBUser, sPrefAreaDefault, sPrefConnectionStatus;
+    SharedPreferences sPrefLogin, sPrefPassword, sPrefDBName, sPrefDBPassword, sPrefDBUser,
+            sPrefAreaDefault, sPrefConnectionStatus, sPrefAgent;
     final String SAVED_LOGIN = "Login";
     final String SAVED_PASSWORD = "Password";
     final String SAVED_DBName = "dbName";
@@ -36,8 +37,10 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
     final String SAVED_DBPassword = "dbPassword";
     final String SAVED_AREADEFAULT = "areaDefault";
     final String SAVED_CONNSTATUS = "connectionStatus";
+    final String SAVED_AGENT = "agent";
     SharedPreferences.Editor e;
-    String loginUrl = "https://caiman.ru.com/php/login.php", dbName, dbUser, dbPassword, Login, Password;
+    String loginUrl = "https://caiman.ru.com/php/login.php", dbName, dbUser, dbPassword, Login,
+            Password, agent;
     String[] area;
 
     @Override
@@ -57,6 +60,7 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
         sPrefDBPassword = getSharedPreferences(SAVED_DBPassword, Context.MODE_PRIVATE);
         sPrefAreaDefault = getSharedPreferences(SAVED_AREADEFAULT, Context.MODE_PRIVATE);
         sPrefConnectionStatus = getSharedPreferences(SAVED_CONNSTATUS, Context.MODE_PRIVATE);
+        sPrefAgent = getSharedPreferences(SAVED_AGENT, Context.MODE_PRIVATE);
 
         sPrefConnectionStatus.edit().clear().apply();
 
@@ -122,8 +126,13 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
                         for (int i = 0; i < jsonArray.length(); i++) {
                             JSONObject obj = jsonArray.getJSONObject(i);
                             area[i] = obj.getString("Район");
+                            agent = obj.getString("Фамилия") + " "
+                                    + obj.getString("Имя") + " " + obj.getString("Отчество");
                         }
                         loadMainMenu();
+                        e = sPrefAgent.edit();
+                        e.putString(SAVED_AGENT, agent);
+                        e.apply();
                     }else{
                         Toast.makeText(getApplicationContext(), "Ошибка Входа. Проверьте Интернет или Учётку", Toast.LENGTH_SHORT).show();
                     }
