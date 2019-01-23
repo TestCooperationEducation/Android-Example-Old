@@ -45,7 +45,10 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
     final String SAVED_AREADEFAULT = "areaDefault";
     Double invoiceSum = 0d;
     Button btnSaveInvoiceToLocalDB;
-    int invoiceNumber;
+    Integer invoiceNumber, tmpCount;
+    ArrayList<String> arrItems;
+    ArrayList<Double> arrQuantity, arrExchange, arrReturn, arrSum;
+    ArrayList<Integer> arrPriceChanged;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,7 +56,14 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
         setContentView(R.layout.activity_create_invoice_view_tmp_items_list);
 
         dbHelper = new DBHelper(this);
-        db = dbHelper.getReadableDatabase();
+        db = dbHelper.getWritableDatabase();
+
+        arrItems = new ArrayList<>();
+        arrSum = new ArrayList<>();
+        arrQuantity = new ArrayList<>();
+        arrExchange = new ArrayList<>();
+        arrReturn = new ArrayList<>();
+        arrPriceChanged = new ArrayList<>();
 
         btnSaveInvoiceToLocalDB = findViewById(R.id.buttonSaveInvoiceToLocalDB);
         btnSaveInvoiceToLocalDB.setOnClickListener(this);
@@ -97,15 +107,17 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
     }
 
     private void setInitialData() {
-//        String sql = "SELECT COUNT(*) FROM itemsToInvoiceTmp ";
-//        Cursor cursor = db.rawQuery(sql, null);
-//        if (!cursor.moveToFirst()) {
-//            cursor.close();
-//            count = 0;
-//        } else {
-//            count = cursor.getInt(0);
-//        }
-//        cursor.close();
+        Integer count;
+        String sql = "SELECT COUNT(*) FROM itemsToInvoiceTmp ";
+        Cursor cursor = db.rawQuery(sql, null);
+        if (!cursor.moveToFirst()) {
+            cursor.close();
+            count = 0;
+        } else {
+            count = cursor.getInt(0);
+        }
+        cursor.close();
+        tmpCount = count;
 
         Cursor c = db.query("itemsToInvoiceTmp", null, null, null, null, null, null);
         if (c.moveToFirst()) {
@@ -122,6 +134,13 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
                         Double.parseDouble(c.getString(returnQuantity))));
 
                 invoiceSum = invoiceSum + Double.parseDouble(c.getString(total));
+                arrExchange.add(Double.parseDouble(c.getString(exchange)));
+                arrItems.add(c.getString(itemName));
+                arrPriceChanged.add(Integer.parseInt(c.getString(price)));
+                arrQuantity.add(Double.parseDouble(c.getString(quantity)));
+                arrSum.add(Double.parseDouble(c.getString(total)));
+                arrReturn.add(Double.parseDouble(c.getString(returnQuantity)));
+
             } while (c.moveToNext());
         }
 
@@ -136,7 +155,7 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
 
         if (tableExists(db, "invoiceLocalDB")){
             if (resultExists(db, "invoiceLocalDB", "invoiceNumber")){
-                String sql = "SELECT DISTINCT invoiceNumber FROM invoiceLocalDB ORDER BY id DESC LIMIT 1";
+                sql = "SELECT DISTINCT invoiceNumber FROM invoiceLocalDB ORDER BY id DESC LIMIT 1";
                 c = db.rawQuery(sql, null);
                 if (c.moveToFirst()) {
                     int iNumber = c.getColumnIndex("invoiceNumber");
@@ -145,7 +164,8 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
                     } while (c.moveToNext());
                 }
             } else {
-                invoiceNumber = 0;
+                invoiceNumber = 1;
+
             }
         } else {
             Toast.makeText(getApplicationContext(), "<<< Нет локальной таблицы накладных >>>", Toast.LENGTH_SHORT).show();
@@ -163,32 +183,23 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
 //        String output = instant.toString();
         String output = zdt.format( formatter );
 
-        Cursor c = db.query("itemsToInvoiceTmp", null, null, null, null, null, null);
-        if (c.moveToFirst()) {
-            int exchange = c.getColumnIndex("Обмен");
-            int itemName = c.getColumnIndex("Наименование");
-            int price = c.getColumnIndex("ЦенаИзмененная");
-            int quantity = c.getColumnIndex("Количество");
-            int total = c.getColumnIndex("Итого");
-            int returnQuantity = c.getColumnIndex("Возврат");
-            do {
-                cv.put("invoiceNumber", invoiceNumber);
-                cv.put("agentID", areaDefault);
-                cv.put("salesPartnerName", salesPartner);
-                cv.put("accountingType", accountingType);
-                cv.put("itemName", c.getString(itemName));
-                cv.put("quantity", Double.parseDouble(c.getString(quantity)));
-                cv.put("price", Integer.parseInt(c.getString(price)));
-                cv.put("total", Double.parseDouble(c.getString(total)));
-                cv.put("exchangeQuantity", Double.parseDouble(c.getString(exchange)));
-                cv.put("returnQuantity", Double.parseDouble(c.getString(returnQuantity)));
-                cv.put("dateTimeDoc", output);
-                cv.put("invoiceSum", invoiceSum);
-                Toast.makeText(getApplicationContext(), "<<< Идёт процесс добавления данных >>>", Toast.LENGTH_SHORT).show();
-            } while (c.moveToNext());
+        Toast.makeText(getApplicationContext(), "<<< Идёт процесс добавления данных >>>", Toast.LENGTH_SHORT).show();
+        for (int i = 0; i < arrItems.size(); i++){
+            cv.put("invoiceNumber", invoiceNumber);
+            cv.put("agentID", areaDefault);
+            cv.put("salesPartnerName", salesPartner);
+            cv.put("accountingType", accountingType);
+            cv.put("itemName", arrItems.get(i));
+            cv.put("quantity", arrQuantity.get(i));
+            cv.put("price", arrPriceChanged.get(i));
+            cv.put("total", arrSum.get(i));
+            cv.put("exchangeQuantity", arrExchange.get(i));
+            cv.put("returnQuantity", arrReturn.get(i));
+            cv.put("dateTimeDoc", output);
+            cv.put("invoiceSum", invoiceSum);
+            long rowID = db.insert("invoiceLocalDB", null, cv);
+            Log.d(LOG_TAG, "row inserted, ID = " + rowID);
         }
-        long rowID = db.insert("invoiceLocalDB", null, cv);
-        Log.d(LOG_TAG, "row inserted, ID = " + rowID);
         Toast.makeText(getApplicationContext(), "<<< Завершено >>>", Toast.LENGTH_SHORT).show();
     }
 

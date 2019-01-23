@@ -128,6 +128,9 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
             case R.id.buttonInvoice:
                 createInvoice();
                 break;
+            case R.id.buttonViewInvoices:
+                viewInvoices();
+                break;
             case R.id.buttonPayments:
                 makePayments();
                 break;
@@ -155,6 +158,11 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         startActivity(intent);
     }
 
+    private void viewInvoices(){
+        Intent intent = new Intent(getApplicationContext(), ViewInvoicesMenuActivity.class);
+        startActivity(intent);
+    }
+
     private void makePayments(){
         Intent intent = new Intent(getApplicationContext(), MakePaymentsActivity.class);
         startActivity(intent);
@@ -167,10 +175,20 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
 
     private void testCheck(){
         if (tableExists(db, "invoiceLocalDB")){
-            Toast.makeText(getApplicationContext(), "Table exists", Toast.LENGTH_SHORT).show();
-            if (resultExistsVariant(db, "invoiceLocalDB")){
-                Toast.makeText(getApplicationContext(), countGlobal, Toast.LENGTH_SHORT).show();
+//            Toast.makeText(getApplicationContext(), "Table exists", Toast.LENGTH_SHORT).show();
+            Integer countt, tmp;
+            String sql = "SELECT COUNT(*) FROM invoiceLocalDB ";
+            Cursor cursor = db.rawQuery(sql, null);
+            if (!cursor.moveToFirst()) {
+                cursor.close();
+                countt = 0;
+            } else {
+                countt = cursor.getInt(0);
             }
+            cursor.close();
+            tmp = countt;
+            Toast.makeText(getApplicationContext(), tmp.toString(), Toast.LENGTH_SHORT).show();
+            Log.d(LOG_TAG, "<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>" + countt);
         }
     }
 
@@ -866,7 +884,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         {
             return false;
         }
-        String sql = "SELECT COUNT(invoiceNumber) FROM invoiceLocalDB";
+        String sql = "SELECT COUNT(*) FROM invoiceLocalDB";
         Cursor cursor = db.rawQuery(sql, null);
         if (!cursor.moveToFirst())
         {

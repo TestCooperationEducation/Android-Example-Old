@@ -49,7 +49,8 @@
         <activity android:name=".CreateInvoiceManageItemsActivity" />
         <activity android:name=".CreateInvoiceChooseItemsActivity" />
         <activity android:name=".CreateInvoiceSetItemsQuantitiesActivity" />
-        <activity android:name=".CreateInvoiceViewTmpItemsListActivity"></activity>
+        <activity android:name=".CreateInvoiceViewTmpItemsListActivity" />
+        <activity android:name=".ViewInvoicesMenuActivity"></activity>
     </application>
 
 </manifest>

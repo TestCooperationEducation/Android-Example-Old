@@ -125,6 +125,19 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implemen
             case R.id.buttonNext:
                 Intent intent = new Intent(this, CreateInvoiceViewTmpItemsListActivity.class);
                 startActivity(intent);
+//                Integer count, tmp;
+//                String sql = "SELECT COUNT(*) FROM itemsToInvoiceTmp ";
+//                Cursor cursor = db.rawQuery(sql, null);
+//                if (!cursor.moveToFirst()) {
+//                    cursor.close();
+//                    count = 0;
+//                } else {
+//                    count = cursor.getInt(0);
+//                }
+//                cursor.close();
+//                tmp = count;
+//                Toast.makeText(getApplicationContext(), tmp.toString(), Toast.LENGTH_SHORT).show();
+//                Log.d(LOG_TAG, "<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>" + count);
                 break;
             default:
                 break;
