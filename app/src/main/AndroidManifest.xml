@@ -50,7 +50,11 @@
         <activity android:name=".CreateInvoiceChooseItemsActivity" />
         <activity android:name=".CreateInvoiceSetItemsQuantitiesActivity" />
         <activity android:name=".CreateInvoiceViewTmpItemsListActivity" />
-        <activity android:name=".ViewInvoicesMenuActivity"></activity>
+        <activity android:name=".ViewInvoicesMenuActivity" />
+        <activity android:name=".ViewInvoicesNotSyncedActivity" />
+        <activity android:name=".ViewInvoicesSyncedActivity" />
+        <activity android:name=".ViewInvoicesFilterSPNameActivity" />
+        <activity android:name=".ViewInvoicesFilterCompleteActivity"></activity>
     </application>
 
 </manifest>

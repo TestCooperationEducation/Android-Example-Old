@@ -1,7 +1,6 @@
 package com.example.myapplicationtest;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,23 +9,23 @@ import android.widget.TextView;
 
 import java.util.List;
 
-public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
+public class DataAdapterViewTmpItemsListToInvoice extends RecyclerView.Adapter<DataAdapterViewTmpItemsListToInvoice.ViewHolder> {
     private LayoutInflater inflater;
     private List<DataItemsListTmp> listTmp;
 
-    DataAdapter(Context context, List<DataItemsListTmp> listTmp) {
+    DataAdapterViewTmpItemsListToInvoice(Context context, List<DataItemsListTmp> listTmp) {
         this.listTmp = listTmp;
         this.inflater = LayoutInflater.from(context);
     }
 
     @Override
-    public DataAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public DataAdapterViewTmpItemsListToInvoice.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = inflater.inflate(R.layout.list_item_tmp, parent, false);
         return new ViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(DataAdapter.ViewHolder holder, int position) {
+    public void onBindViewHolder(DataAdapterViewTmpItemsListToInvoice.ViewHolder holder, int position) {
         DataItemsListTmp itemsListTmp = listTmp.get(position);
         holder.itemNameView.setText(itemsListTmp.getItemName());
         holder.exchangeView.setText(itemsListTmp.getExchange().toString());

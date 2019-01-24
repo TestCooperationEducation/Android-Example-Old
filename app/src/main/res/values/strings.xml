@@ -57,5 +57,16 @@
     <string name="textViewItemNameLabel">Наименование:</string>
     <string name="btnUpdateLocalDB">Обновить Локальную БД</string>
     <string name="btnClearLocalDB">Очистить локальные таблицы</string>
+    <string name="textViewDateTimeDocServerLabel">Дата на сервере:</string>
+    <string name="textViewDateTimeDocLocalLabel">Дата создания:</string>
+    <string name="textViewInvoiceNumberServerLabel">Номер на сервере:</string>
+    <string name="textViewAccountingTypeLabel">Тип учёта:</string>
+    <string name="textViewSalesPartnerLabel">Контрагент:</string>
+    <string name="textViewPaymentStatusLabel">Статус оплаты:</string>
+    <string name="btnInvoicesFilterComplete">Фильтр подробный</string>
+    <string name="btnInvoicesFilterSPName">Фильтр по контрагенту</string>
+    <string name="btnInvoicesSynced">За сегодня. Синхронизированные</string>
+    <string name="btnInvoicesNotSynced">за сегодня. несинхронизированные</string>
+    <string name="btnSyncInvoicesWithServer">Синхронизировать</string>
 
 </resources>

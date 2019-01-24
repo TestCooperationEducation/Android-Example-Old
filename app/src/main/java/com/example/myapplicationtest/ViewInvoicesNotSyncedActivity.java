@@ -2,7 +2,6 @@ package com.example.myapplicationtest;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -12,7 +11,6 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import java.time.Instant;
@@ -22,35 +20,25 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity implements View.OnClickListener {
+public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements View.OnClickListener {
 
-    List<DataItemsListTmp> listTmp = new ArrayList<>();
-    SharedPreferences sPrefDBName, sPrefDBPassword, sPrefDBUser, sPrefSalesPartner,
-            sPrefAccountingType, sPrefAgent, sPrefAreaDefault;
+    List<DataInvoiceLocal> listTmp = new ArrayList<>();
     final String LOG_TAG = "myLogs";
     DBHelper dbHelper;
     SQLiteDatabase db;
-    String requestUrlFinalPrice = "https://caiman.ru.com/php/price.php", dbName, dbUser, dbPassword,
-            salesPartner, accountingType, agent, areaDefault;
-    TextView textViewSalesPartner, textViewInvoiceTotal, textViewAgent, textViewAccountingType;
-    final String SAVED_DBName = "dbName";
-    final String SAVED_DBUser = "dbUser";
-    final String SAVED_DBPassword = "dbPassword";
-    final String SAVED_SALESPARTNER = "SalesPartner";
-    final String SAVED_ACCOUNTINGTYPE = "AccountingType";
-    final String SAVED_AGENT = "agent";
-    final String SAVED_AREADEFAULT = "areaDefault";
-    Double invoiceSum = 0d;
     Button btnSaveInvoiceToLocalDB;
-    Integer invoiceNumber, tmpCount;
+    Integer invoiceNumberServer;
+    String dateTimeDocServer, paymentStatus, dateTimeDocLocalGlobal, accountingTypeGlobal,
+            salesPartnerNameGlobal;
     ArrayList<String> arrItems;
     ArrayList<Double> arrQuantity, arrExchange, arrReturn, arrSum;
     ArrayList<Integer> arrPriceChanged;
+    Double invoiceSumGlobal;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_create_invoice_view_tmp_items_list);
+        setContentView(R.layout.activity_view_invoices_not_synced);
 
         dbHelper = new DBHelper(this);
         db = dbHelper.getWritableDatabase();
@@ -64,39 +52,13 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
 
         btnSaveInvoiceToLocalDB = findViewById(R.id.buttonSaveInvoiceToLocalDB);
         btnSaveInvoiceToLocalDB.setOnClickListener(this);
-
-        textViewSalesPartner = findViewById(R.id.textViewSalesPartner);
-        textViewInvoiceTotal = findViewById(R.id.textViewTotalSum);
-        textViewAgent = findViewById(R.id.textViewAgent);
-        textViewAccountingType = findViewById(R.id.textViewAccountingType);
-
-        sPrefDBName = getSharedPreferences(SAVED_DBName, Context.MODE_PRIVATE);
-        sPrefDBUser = getSharedPreferences(SAVED_DBUser, Context.MODE_PRIVATE);
-        sPrefDBPassword = getSharedPreferences(SAVED_DBPassword, Context.MODE_PRIVATE);
-        sPrefSalesPartner = getSharedPreferences(SAVED_SALESPARTNER, Context.MODE_PRIVATE);
-        sPrefAccountingType = getSharedPreferences(SAVED_ACCOUNTINGTYPE, Context.MODE_PRIVATE);
-        sPrefAgent = getSharedPreferences(SAVED_AGENT, Context.MODE_PRIVATE);
-        sPrefAreaDefault = getSharedPreferences(SAVED_AREADEFAULT, Context.MODE_PRIVATE);
-
-        agent = sPrefAgent.getString(SAVED_AGENT, "");
-        salesPartner = sPrefSalesPartner.getString(SAVED_SALESPARTNER, "");
-        areaDefault = sPrefAreaDefault.getString(SAVED_AREADEFAULT, "");
-        accountingType = sPrefAccountingType.getString(SAVED_ACCOUNTINGTYPE, "");
-
-        textViewSalesPartner.setText(salesPartner);
-        textViewAccountingType.setText(accountingType);
-        textViewAgent.setText(agent);
-
-        setInitialData();
-
-//        Toast.makeText(getApplicationContext(), output, Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.buttonSaveInvoiceToLocalDB:
-                saveInvoiceToLocalDB();
+            case R.id.buttonSyncInvoicesWithServer:
+                saveInvoicesToServerDB();
                 break;
             default:
                 break;
@@ -104,34 +66,49 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
     }
 
     private void setInitialData() {
-        Integer count;
-        String sql = "SELECT COUNT(*) FROM itemsToInvoiceTmp ";
-        Cursor cursor = db.rawQuery(sql, null);
-        if (!cursor.moveToFirst()) {
-            cursor.close();
-            count = 0;
-        } else {
-            count = cursor.getInt(0);
-        }
-        cursor.close();
-        tmpCount = count;
+//        Integer count;
+//        String sql = "SELECT COUNT(*) FROM itemsToInvoiceTmp ";
+//        Cursor cursor = db.rawQuery(sql, null);
+//        if (!cursor.moveToFirst()) {
+//            cursor.close();
+//            count = 0;
+//        } else {
+//            count = cursor.getInt(0);
+//        }
+//        cursor.close();
+//        tmpCount = count;
 
-        Cursor c = db.query("itemsToInvoiceTmp", null, null, null, null, null, null);
+        String sql = "SELECT DISTINCT invoiceNumber FROM invoiceLocalDB INNER JOIN syncedInvoice " +
+                "ON invoiceLocalDB.invoiceNumber NOT LIKE syncedInvoice.invoiceNumber ";
+        Cursor c = db.rawQuery(sql, null);
         if (c.moveToFirst()) {
-            int exchange = c.getColumnIndex("Обмен");
-            int itemName = c.getColumnIndex("Наименование");
-            int price = c.getColumnIndex("ЦенаИзмененная");
-            int quantity = c.getColumnIndex("Количество");
-            int total = c.getColumnIndex("Итого");
-            int returnQuantity = c.getColumnIndex("Возврат");
+            int iNumber = c.getColumnIndex("invoiceNumber");
             do {
-                listTmp.add(new DataItemsListTmp(Double.parseDouble(c.getString(exchange)),
-                        c.getString(itemName), Integer.parseInt(c.getString(price)),
-                        Double.parseDouble(c.getString(quantity)), Double.parseDouble(c.getString(total)),
-                        Double.parseDouble(c.getString(returnQuantity))));
+                invoiceNumber = iNumber + 1;
+            } while (c.moveToNext());
+        }
 
-                invoiceSum = invoiceSum + Double.parseDouble(c.getString(total));
-                arrExchange.add(Double.parseDouble(c.getString(exchange)));
+        Cursor c = db.query("invoiceLocalDB", null, null, null, null, null, null);
+        if (c.moveToFirst()) {
+            int salesPartnerName = c.getColumnIndex("salesPartnerName");
+            int accountingType = c.getColumnIndex("accountingType");
+            int dateTimeDocLocal = c.getColumnIndex("dateTimeDoc");
+            int invoiceSum = c.getColumnIndex("invoiceSum");
+            int agentID = c.getColumnIndex("agentID");
+            int itemName = c.getColumnIndex("itemName");
+            int quantity = c.getColumnIndex("quantity");
+            int price = c.getColumnIndex("price");
+            int total = c.getColumnIndex("total");
+            int exchangeQuantity = c.getColumnIndex("exchangeQuantity");
+            int returnQuantity = c.getColumnIndex("returnQuantity");
+            invoiceSumGlobal = Double.parseDouble(c.getString(invoiceSum));
+            do {
+                listTmp.add(new DataInvoiceLocal(salesPartnerNameGlobal,
+                        accountingTypeGlobal, invoiceNumberServer,
+                        dateTimeDocServer, dateTimeDocLocalGlobal,
+                        invoiceSumGlobal, paymentStatus));
+
+                arrExchange.add(Double.parseDouble(c.getString(exchangeQuantity)));
                 arrItems.add(c.getString(itemName));
                 arrPriceChanged.add(Integer.parseInt(c.getString(price)));
                 arrQuantity.add(Double.parseDouble(c.getString(quantity)));
@@ -169,7 +146,7 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
         }
     }
 
-    private void saveInvoiceToLocalDB(){
+    private void saveInvoicesToServerDB(){
         ContentValues cv = new ContentValues();
         Log.d(LOG_TAG, "--- Insert in invoiceLocalDB: ---");
 

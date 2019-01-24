@@ -855,6 +855,13 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                         + "dateTimeDoc text,"
                         + "invoiceSum text" + ");");
             }
+
+            if (!tableExists(db, "syncedInvoice")) {
+                db.execSQL("create table syncedInvoice ("
+                        + "id integer primary key autoincrement,"
+                        + "invoiceNumber integer,"
+                        + "agentID integer" + ");");
+            }
         }
 
         @Override
