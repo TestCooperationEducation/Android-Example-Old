@@ -20,20 +20,20 @@ public class DataAdapterViewInvoicesFromLocalDB extends RecyclerView.Adapter<Dat
 
     @Override
     public DataAdapterViewInvoicesFromLocalDB.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = inflater.inflate(R.layout.list_item_tmp, parent, false);
+        View view = inflater.inflate(R.layout.list_invoices_local, parent, false);
         return new DataAdapterViewInvoicesFromLocalDB.ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(DataAdapterViewInvoicesFromLocalDB.ViewHolder holder, int position) {
-        DataInvoiceLocal itemsListTmp = listTmp.get(position);
-        holder.salesPartnerNameView.setText(itemsListTmp.getSalesPartnerName());
-        holder.accountingTypeView.setText(itemsListTmp.getAccountingType());
-        holder.invoiceNumberServerView.setText(itemsListTmp.getInvoiceNumberServer().toString());
-        holder.dateTimeDocServerView.setText(itemsListTmp.getDateTimeDocServer());
-        holder.dateTimeDocLocalView.setText(itemsListTmp.getDateTimeDocLocal());
-        holder.invoiceSumView.setText(itemsListTmp.getInvoiceSum().toString());
-        holder.paymentStatusView.setText(itemsListTmp.getPaymentStatus());
+        DataInvoiceLocal invoiceLocal = listTmp.get(position);
+        holder.salesPartnerNameView.setText(invoiceLocal.getSalesPartnerName());
+        holder.accountingTypeView.setText(invoiceLocal.getAccountingType());
+        holder.invoiceNumberServerView.setText(invoiceLocal.getInvoiceNumberServer().toString());
+        holder.dateTimeDocServerView.setText(invoiceLocal.getDateTimeDocServer());
+        holder.dateTimeDocLocalView.setText(invoiceLocal.getDateTimeDocLocal());
+        holder.invoiceSumView.setText(invoiceLocal.getInvoiceSum().toString());
+        holder.paymentStatusView.setText(invoiceLocal.getPaymentStatus());
     }
 
     @Override

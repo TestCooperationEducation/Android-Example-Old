@@ -35,7 +35,8 @@ import static android.icu.text.MessagePattern.ArgType.SELECT;
 
 public class MainMenu extends AppCompatActivity implements View.OnClickListener {
 
-    Button btnInvoice, btnPayments, btnSalesAgents, btnUpdateLocalDB, btnClearLocalTables, btnReports;
+    Button btnInvoice, btnPayments, btnSalesAgents, btnUpdateLocalDB, btnClearLocalTables,
+            btnReports, btnViewInvoices;
     SharedPreferences sPrefArea, sPrefAccountingType, sPrefDayOfTheWeekDefault, sPrefDBName,
             sPrefFreshStatus, sPrefDBPassword, sPrefDBUser, sPrefDayOfTheWeek, sPrefVisited, sPrefConnectionStatus;
     final String SAVED_AREA = "Area";
@@ -72,6 +73,8 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         btnUpdateLocalDB = findViewById(R.id.buttonUpdateLocalDB);
         btnClearLocalTables = findViewById(R.id.buttonClearLocalDB);
         btnReports = findViewById(R.id.buttonReports);
+        btnViewInvoices = findViewById(R.id.buttonViewInvoices);
+        btnViewInvoices.setOnClickListener(this);
         btnReports.setOnClickListener(this);
         btnClearLocalTables.setOnClickListener(this);
         btnUpdateLocalDB.setOnClickListener(this);
@@ -928,7 +931,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
     }
 
     private void clearTable(String tableName){
-        Log.d(LOG_TAG, "--- Clear mytable: ---");
+        Log.d(LOG_TAG, "--- Clear " + tableName + " : ---");
         // удаляем все записи
         int clearCount = db.delete(tableName, null, null);
         Log.d(LOG_TAG, "deleted rows count = " + clearCount);

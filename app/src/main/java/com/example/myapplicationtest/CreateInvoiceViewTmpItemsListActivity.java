@@ -157,7 +157,7 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
                 if (c.moveToFirst()) {
                     int iNumber = c.getColumnIndex("invoiceNumber");
                     do {
-                        invoiceNumber = iNumber + 1;
+                        invoiceNumber = Integer.parseInt(c.getString(iNumber)) + 1;
                     } while (c.moveToNext());
                 }
             } else {
