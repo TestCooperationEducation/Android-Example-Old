@@ -40,11 +40,11 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
     DBHelper dbHelper;
     SQLiteDatabase db;
     Button btnSaveInvoiceToLocalDB;
-    Integer invoiceNumberServer;
+    Integer invoiceNumberServer, invoiceNumberLocalTmp;
     SharedPreferences sPrefDBName, sPrefDBPassword, sPrefDBUser, sPrefLogin;
     String paymentStatus, invoiceNumbers = "", dbName, dbUser, dbPassword,
             requestUrlSaveRecord = "https://caiman.ru.com/php/saveNewInvoice.php", area,
-            accountingTypeTmp, loginSecurity, statusSave;
+            accountingTypeTmp, loginSecurity, statusSave, dateTimeDocLocalTmp;
     final String SAVED_DBName = "dbName";
     final String SAVED_DBUser = "dbUser";
     final String SAVED_DBPassword = "dbPassword";
@@ -125,7 +125,7 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
             if (c.moveToFirst()) {
                 int iNumber = c.getColumnIndex("invoiceNumber");
                 do {
-                    invoiceNumbers = invoiceNumbers + "/br" + c.getString(iNumber) ;
+                    invoiceNumbers = invoiceNumbers + "----" + c.getString(iNumber) ;
                     invoiceNumbersList.add(Integer.parseInt(c.getString(iNumber)));
                 } while (c.moveToNext());
             }
@@ -137,12 +137,12 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
             if (c.moveToFirst()) {
                 int iNumber = c.getColumnIndex("invoiceNumber");
                 do {
-                    invoiceNumbers = invoiceNumbers + "---" + c.getString(iNumber);
+                    invoiceNumbers = invoiceNumbers + "----" + c.getString(iNumber);
                     invoiceNumbersList.add(Integer.parseInt(c.getString(iNumber)));
                 } while (c.moveToNext());
             }
             c.close();
-            Toast.makeText(getApplicationContext(), "Ничего не синзронизировано: " + invoiceNumbers, Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "Ничего не синхронизировано: " + invoiceNumbers, Toast.LENGTH_SHORT).show();
         }
 
         for (int i = 0; i < invoiceNumbersList.size(); i++){
@@ -188,9 +188,13 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
                 int returnQuantity = c.getColumnIndex("returnQuantity");
                 int dateTimeDocLocal = c.getColumnIndex("dateTimeDoc");
                 int invoiceSum = c.getColumnIndex("invoiceSum");
+                invoiceNumberLocalTmp = Integer.parseInt(c.getString(invoiceNumberLocal));
                 area = String.valueOf(c.getInt(agentID));
                 String salesPartnerNameTmp = c.getString(salesPartnerName);
+                accountingTypeTmp = c.getString(accountingType);
                 Double invoiceSumGTmp = Double.parseDouble(c.getString(invoiceSum));
+                dateTimeDocLocalTmp = c.getString(dateTimeDocLocal);
+
                 do {
                     DataInvoice dt = new DataInvoice(salesPartnerNameTmp, accountingTypeTmp, c.getString(itemName),
                             Double.parseDouble(c.getString(price)), Double.parseDouble(c.getString(quantity)),
@@ -255,6 +259,8 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
                     parameters.put("area", area);
                     parameters.put("accountingType", accountingTypeTmp);
                     parameters.put("loginSecurity", loginSecurity);
+                    parameters.put("invoiceNumberLocal", invoiceNumberLocalTmp.toString());
+                    parameters.put("dateTimeDocLocal", dateTimeDocLocalTmp);
                     parameters.put("array", newDataArray);
                     return parameters;
                 }
