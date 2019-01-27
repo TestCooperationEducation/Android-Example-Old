@@ -44,7 +44,7 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
     SharedPreferences sPrefDBName, sPrefDBPassword, sPrefDBUser, sPrefLogin;
     String paymentStatus, invoiceNumbers = "", dbName, dbUser, dbPassword,
             requestUrlSaveRecord = "https://caiman.ru.com/php/saveNewInvoice.php", area,
-            accountingTypeTmp, loginSecurity, statusSave, dateTimeDocLocalTmp;
+            accountingTypeTmp, loginSecurity, statusSave = "", dateTimeDocLocalTmp;
     final String SAVED_DBName = "dbName";
     final String SAVED_DBUser = "dbUser";
     final String SAVED_DBPassword = "dbPassword";
