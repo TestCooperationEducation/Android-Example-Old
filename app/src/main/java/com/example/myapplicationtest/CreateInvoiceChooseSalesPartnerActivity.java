@@ -44,7 +44,7 @@ public class CreateInvoiceChooseSalesPartnerActivity extends AppCompatActivity i
     ListView listViewSalesPartners, listViewAccountingType;
     SharedPreferences sPrefArea, sPrefAccountingType, sPrefDBName, sPrefDBPassword, sPrefDBUser,
             sPrefDayOfTheWeek, sPrefSalesPartner, sPrefAreaDefault, sPrefDayOfTheWeekDefault,
-            sPrefConnectionStatus;
+            sPrefConnectionStatus, sPrefAccountingTypeDefault;
     ArrayAdapter<String> arrayAdapter;
     final String SAVED_AREA = "Area";
     final String SAVED_AREADEFAULT = "areaDefault";
@@ -56,6 +56,7 @@ public class CreateInvoiceChooseSalesPartnerActivity extends AppCompatActivity i
     final String SAVED_DAYOFTHEWEEKDEFAULT = "DayOfTheWeekDefault";
     final String SAVED_SALESPARTNER = "SalesPartner";
     final String SAVED_CONNSTATUS = "connectionStatus";
+    final String SAVED_ACCOUNTINGTYPEDEFAULT = "AccountingTypeDefault";
     SharedPreferences.Editor e;
     String requestUrl = "https://caiman.ru.com/php/filter_new.php", salesPartner, dbName, dbUser, dbPassword,
             area, accountingType, dayOfTheWeek, connStatus;
@@ -86,6 +87,7 @@ public class CreateInvoiceChooseSalesPartnerActivity extends AppCompatActivity i
         sPrefDayOfTheWeekDefault = getSharedPreferences(SAVED_DAYOFTHEWEEKDEFAULT, Context.MODE_PRIVATE);
         sPrefAreaDefault= getSharedPreferences(SAVED_AREADEFAULT, Context.MODE_PRIVATE);
         sPrefConnectionStatus = getSharedPreferences(SAVED_CONNSTATUS, Context.MODE_PRIVATE);
+        sPrefAccountingTypeDefault = getSharedPreferences(SAVED_ACCOUNTINGTYPEDEFAULT, Context.MODE_PRIVATE);
 
         initialValues();
         onLoadActivity();
@@ -233,6 +235,26 @@ public class CreateInvoiceChooseSalesPartnerActivity extends AppCompatActivity i
         e = sPrefSalesPartner.edit();
         e.putString(SAVED_SALESPARTNER, salesPartner);
         e.apply();
+        if (!sPrefAccountingType.contains(SAVED_ACCOUNTINGTYPE)){
+            String accountingTypeDefault;
+            String sql = "SELECT Учет FROM salesPartners WHERE Наименование LIKE ? AND DayOfTheWeek LIKE ? AND Район LIKE ?";
+            Cursor c = db.rawQuery(sql, new String[]{salesPartner, dayOfTheWeek, area});
+            if (c.moveToFirst()) {
+                int idColIndex = c.getColumnIndex("Учет");
+                do {
+                    Log.d(LOG_TAG,"ID = " + c.getString(idColIndex));
+                    accountingTypeDefault = c.getString(idColIndex);
+                } while (c.moveToNext());
+                e = sPrefAccountingTypeDefault.edit();
+                e.putString(SAVED_ACCOUNTINGTYPEDEFAULT, accountingTypeDefault);
+                e.apply();
+            } else {
+                Log.d(LOG_TAG, "0 rows");
+                Toast.makeText(getApplicationContext(), "Ошибка: 003",
+                        Toast.LENGTH_SHORT).show();
+            }
+            c.close();
+        }
         Intent intent = new Intent(getApplicationContext(), CreateInvoiceChooseTypeOfInvoiceActivity.class);
         startActivity(intent);
     }
@@ -247,9 +269,15 @@ public class CreateInvoiceChooseSalesPartnerActivity extends AppCompatActivity i
                 area = sPrefArea.getString(SAVED_AREA, "");
             } else {
                 area = sPrefAreaDefault.getString(SAVED_AREADEFAULT, "");
+                e = sPrefArea.edit();
+                e.putString(SAVED_AREA, area);
+                e.apply();
             }
             if (sPrefAccountingType.contains(SAVED_ACCOUNTINGTYPE)){
                 accountingType = sPrefAccountingType.getString(SAVED_ACCOUNTINGTYPE, "");
+                e = sPrefAccountingTypeDefault.edit();
+                e.putString(SAVED_ACCOUNTINGTYPEDEFAULT, accountingType);
+                e.apply();
             } else {
 
             }

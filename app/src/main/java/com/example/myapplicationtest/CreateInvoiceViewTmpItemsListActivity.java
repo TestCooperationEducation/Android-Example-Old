@@ -26,12 +26,12 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
 
     List<DataItemsListTmp> listTmp = new ArrayList<>();
     SharedPreferences sPrefDBName, sPrefDBPassword, sPrefDBUser, sPrefSalesPartner,
-            sPrefAccountingType, sPrefAgent, sPrefAreaDefault;
+            sPrefAccountingType, sPrefAgent, sPrefAreaDefault, sPrefArea, sPrefAccountingTypeDefault;
     final String LOG_TAG = "myLogs";
     DBHelper dbHelper;
     SQLiteDatabase db;
     String requestUrlFinalPrice = "https://caiman.ru.com/php/price.php", dbName, dbUser, dbPassword,
-            salesPartner, accountingType, agent, areaDefault;
+            salesPartner, accountingType, agent, areaDefault, area, accountingTypeDefault;
     TextView textViewSalesPartner, textViewInvoiceTotal, textViewAgent, textViewAccountingType;
     final String SAVED_DBName = "dbName";
     final String SAVED_DBUser = "dbUser";
@@ -40,6 +40,8 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
     final String SAVED_ACCOUNTINGTYPE = "AccountingType";
     final String SAVED_AGENT = "agent";
     final String SAVED_AREADEFAULT = "areaDefault";
+    final String SAVED_AREA = "Area";
+    final String SAVED_ACCOUNTINGTYPEDEFAULT = "AccountingTypeDefault";
     Double invoiceSum = 0d;
     Button btnSaveInvoiceToLocalDB;
     Integer invoiceNumber, tmpCount;
@@ -77,11 +79,15 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
         sPrefAccountingType = getSharedPreferences(SAVED_ACCOUNTINGTYPE, Context.MODE_PRIVATE);
         sPrefAgent = getSharedPreferences(SAVED_AGENT, Context.MODE_PRIVATE);
         sPrefAreaDefault = getSharedPreferences(SAVED_AREADEFAULT, Context.MODE_PRIVATE);
+        sPrefArea= getSharedPreferences(SAVED_AREA, Context.MODE_PRIVATE);
+        sPrefAccountingTypeDefault = getSharedPreferences(SAVED_ACCOUNTINGTYPEDEFAULT, Context.MODE_PRIVATE);
 
         agent = sPrefAgent.getString(SAVED_AGENT, "");
         salesPartner = sPrefSalesPartner.getString(SAVED_SALESPARTNER, "");
         areaDefault = sPrefAreaDefault.getString(SAVED_AREADEFAULT, "");
         accountingType = sPrefAccountingType.getString(SAVED_ACCOUNTINGTYPE, "");
+        area = sPrefArea.getString(SAVED_AREA, "");
+        accountingTypeDefault = sPrefAccountingTypeDefault.getString(SAVED_ACCOUNTINGTYPEDEFAULT, "");
 
         textViewSalesPartner.setText(salesPartner);
         textViewAccountingType.setText(accountingType);
@@ -142,12 +148,9 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
         }
 
         RecyclerView recyclerView = findViewById(R.id.recyclerViewItemsListTmp);
-        // создаем адаптер
         DataAdapterViewTmpItemsListToInvoice adapter = new DataAdapterViewTmpItemsListToInvoice(this, listTmp);
-        // устанавливаем для списка адаптер
         recyclerView.setAdapter(adapter);
         c.close();
-
         textViewInvoiceTotal.setText(invoiceSum.toString());
 
         if (tableExists(db, "invoiceLocalDB")){
@@ -184,8 +187,10 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
         for (int i = 0; i < arrItems.size(); i++){
             cv.put("invoiceNumber", invoiceNumber);
             cv.put("agentID", areaDefault);
+            cv.put("area", area);
             cv.put("salesPartnerName", salesPartner);
             cv.put("accountingType", accountingType);
+            cv.put("accountingTypeDefault", accountingTypeDefault);
             cv.put("itemName", arrItems.get(i));
             cv.put("quantity", arrQuantity.get(i));
             cv.put("price", arrPriceChanged.get(i));

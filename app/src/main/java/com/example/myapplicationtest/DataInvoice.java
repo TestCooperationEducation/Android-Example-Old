@@ -1,14 +1,22 @@
 package com.example.myapplicationtest;
 
 public class DataInvoice {
-    private String salesPartner, accountingType, item;
+    private String salesPartnerName, accountingTypeDoc, accountingTypeSP, itemName, dateTimeDocLocal;
+    private Integer invoiceNumber, agentID, areaSP;
     private Double price, quantity, totalCost, exchange, returns, invoiceSum;
 
-    public DataInvoice(String salesPartner, String accountingType, String item, Double price,
-                       Double quantity, Double totalCost, Double exchange, Double returns, Double invoiceSum) {
-        this.salesPartner = salesPartner;
-        this.accountingType = accountingType;
-        this.item = item;
+    public DataInvoice(String salesPartnerName, String accountingTypeDoc, String accountingTypeSP,
+                       String itemName, String dateTimeDocLocal, Integer invoiceNumber, Integer agentID,
+                       Integer areaSP, Double price, Double quantity, Double totalCost, Double exchange,
+                       Double returns, Double invoiceSum) {
+        this.salesPartnerName = salesPartnerName;
+        this.accountingTypeDoc = accountingTypeDoc;
+        this.accountingTypeSP = accountingTypeSP;
+        this.itemName = itemName;
+        this.dateTimeDocLocal = dateTimeDocLocal;
+        this.invoiceNumber = invoiceNumber;
+        this.agentID = agentID;
+        this.areaSP = areaSP;
         this.price = price;
         this.quantity = quantity;
         this.totalCost = totalCost;
@@ -17,28 +25,68 @@ public class DataInvoice {
         this.invoiceSum = invoiceSum;
     }
 
-    public String getSalesPartner() {
-        return salesPartner;
+    public String getSalesPartnerName() {
+        return salesPartnerName;
     }
 
-    public void setSalesPartner(String salesPartner) {
-        this.salesPartner = salesPartner;
+    public void setSalesPartnerName(String salesPartnerName) {
+        this.salesPartnerName = salesPartnerName;
     }
 
-    public String getAccountingType() {
-        return accountingType;
+    public String getAccountingTypeDoc() {
+        return accountingTypeDoc;
     }
 
-    public void setAccountingType(String accountingType) {
-        this.accountingType = accountingType;
+    public void setAccountingTypeDoc(String accountingTypeDoc) {
+        this.accountingTypeDoc = accountingTypeDoc;
     }
 
-    public String getItem() {
-        return item;
+    public String getAccountingTypeSP() {
+        return accountingTypeSP;
     }
 
-    public void setItem(String item) {
-        this.item = item;
+    public void setAccountingTypeSP(String accountingTypeSP) {
+        this.accountingTypeSP = accountingTypeSP;
+    }
+
+    public String getItemName() {
+        return itemName;
+    }
+
+    public void setItemName(String itemName) {
+        this.itemName = itemName;
+    }
+
+    public String getDateTimeDocLocal() {
+        return dateTimeDocLocal;
+    }
+
+    public void setDateTimeDocLocal(String dateTimeDocLocal) {
+        this.dateTimeDocLocal = dateTimeDocLocal;
+    }
+
+    public Integer getInvoiceNumber() {
+        return invoiceNumber;
+    }
+
+    public void setInvoiceNumber(Integer invoiceNumber) {
+        this.invoiceNumber = invoiceNumber;
+    }
+
+    public Integer getAgentID() {
+        return agentID;
+    }
+
+    public void setAgentID(Integer agentID) {
+        this.agentID = agentID;
+    }
+
+    public Integer getAreaSP() {
+        return areaSP;
+    }
+
+    public void setAreaSP(Integer areaSP) {
+        this.areaSP = areaSP;
     }
 
     public Double getPrice() {
