@@ -847,17 +847,17 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                         + "id integer primary key autoincrement,"
                         + "invoiceNumber integer,"
                         + "agentID integer,"
-                        + "area integer,"
+                        + "areaSP integer,"
                         + "salesPartnerName text,"
-                        + "accountingType text,"
-                        + "accountingTypeDefault text,"
+                        + "accountingTypeDoc text,"
+                        + "accountingTypeSP text,"
                         + "itemName text,"
                         + "quantity real,"
                         + "price integer,"
-                        + "total real,"
+                        + "totalCost real,"
                         + "exchangeQuantity real,"
                         + "returnQuantity real,"
-                        + "dateTimeDoc text,"
+                        + "dateTimeDocLocal text,"
                         + "invoiceSum text" + ");");
             }
 

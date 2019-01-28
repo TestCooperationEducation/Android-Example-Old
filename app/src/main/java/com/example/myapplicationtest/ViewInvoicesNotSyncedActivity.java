@@ -147,28 +147,28 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
             }
             c.close();
             for (int i = 0; i < invoiceNumbersList.size(); i++){
-                Toast.makeText(getApplicationContext(), "Ничего не синхронизировано: " + invoiceNumbersList.get(i), Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "Ничего не синхронизировано: " + invoiceNumbers, Toast.LENGTH_SHORT).show();
             }
 //            Toast.makeText(getApplicationContext(), "Ничего не синхронизировано: " + invoiceNumbers, Toast.LENGTH_SHORT).show();
         }
 
         for (int i = 0; i < invoiceNumbersList.size(); i++){
-            String sql = "SELECT salesPartnerName, accountingType, dateTimeDoc, invoiceSum" +
+            String sql = "SELECT salesPartnerName, accountingTypeDoc, dateTimeDocLocal, invoiceSum" +
                     " FROM invoiceLocalDB WHERE invoiceNumber LIKE ?";
             Cursor c = db.rawQuery(sql, new String[]{invoiceNumbersList.get(i).toString()});
             if (c.moveToFirst()) {
-                int salesPartnerName = c.getColumnIndex("salesPartnerName");
-                int accountingType = c.getColumnIndex("accountingType");
-                int dateTimeDocLocal = c.getColumnIndex("dateTimeDoc");
-                int invoiceSum = c.getColumnIndex("invoiceSum");
-                String salesPartnerNameTmp = c.getString(salesPartnerName);
-                String accountingTypeTmp = c.getString(accountingType);
-                String dateTimeDocLocalTmp = c.getString(dateTimeDocLocal);
-                Double invoiceSumGTmp = Double.parseDouble(c.getString(invoiceSum));
+                int salesPartnerNameTmp = c.getColumnIndex("salesPartnerName");
+                int accountingTypeDocTmp = c.getColumnIndex("accountingTypeDoc");
+                int dateTimeDocLocalTmp = c.getColumnIndex("dateTimeDocLocal");
+                int invoiceSumTmp = c.getColumnIndex("invoiceSum");
+                String salesPartnerName = c.getString(salesPartnerNameTmp);
+                String accountingTypeDoc = c.getString(accountingTypeDocTmp);
+                String dateTimeDocLocal = c.getString(dateTimeDocLocalTmp);
+                Double invoiceSum = Double.parseDouble(c.getString(invoiceSumTmp));
                 paymentStatus = "";
-                listTmp.add(new DataInvoiceLocal(salesPartnerNameTmp, accountingTypeTmp,
-                        Integer.parseInt(invoiceNumberServerTmp.get(0)), dateTimeDocServer.get(0), dateTimeDocLocalTmp,
-                        invoiceSumGTmp, paymentStatus));
+                listTmp.add(new DataInvoiceLocal(salesPartnerName, accountingTypeDoc,
+                        Integer.parseInt(invoiceNumberServerTmp.get(0)), dateTimeDocServer.get(0), dateTimeDocLocal,
+                        invoiceSum, paymentStatus));
                 c.moveToNext();
             }
             c.close();
@@ -184,40 +184,44 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
             String sql = "SELECT * FROM invoiceLocalDB ";
             Cursor c = db.rawQuery(sql, null);
             if (c.moveToFirst()) {
-                int invoiceNumberLocal = c.getColumnIndex("invoiceNumber");
-                int agentID = c.getColumnIndex("agentID");
-                int areaSPTmp = c.getColumnIndex("area");
+                int invoiceNumberLocalTmp = c.getColumnIndex("invoiceNumber");
+                int agentIDTmp = c.getColumnIndex("agentID");
+                int areaSPTmp = c.getColumnIndex("areaSP");
                 int salesPartnerNameTmp = c.getColumnIndex("salesPartnerName");
-                int accountingType = c.getColumnIndex("accountingType");
-                int accountingTypeDefault = c.getColumnIndex("accountingTypeDefault");
-                int itemName = c.getColumnIndex("itemName");
-                int quantity = c.getColumnIndex("quantity");
-                int price = c.getColumnIndex("price");
-                int total = c.getColumnIndex("total");
-                int exchangeQuantity = c.getColumnIndex("exchangeQuantity");
-                int returnQuantity = c.getColumnIndex("returnQuantity");
-                int dateTimeDocLocal = c.getColumnIndex("dateTimeDoc");
-                int invoiceSum = c.getColumnIndex("invoiceSum");
-                Integer invoiceNumberLocalTmp = Integer.parseInt(c.getString(invoiceNumberLocal));
-                Integer areaSP = c.getInt(areaSPTmp);
-                String salesPartnerName = c.getString(salesPartnerNameTmp);
-                String accountingTypeTmp = c.getString(accountingType);
-                String accountingTypeDefaultTmp = c.getString(accountingTypeDefault);
-                Double invoiceSumTmp = Double.parseDouble(c.getString(invoiceSum));
-                String dateTimeDocLocalTmp = c.getString(dateTimeDocLocal);
-
+                int accountingTypeDocTmp = c.getColumnIndex("accountingTypeDoc");
+                int accountingTypeSPTmp = c.getColumnIndex("accountingTypeSP");
+                int itemNameTmp = c.getColumnIndex("itemName");
+                int quantityTmp = c.getColumnIndex("quantity");
+                int priceTmp = c.getColumnIndex("price");
+                int totalCostTmp = c.getColumnIndex("totalCost");
+                int exchangeTmp = c.getColumnIndex("exchangeQuantity");
+                int returnTmp = c.getColumnIndex("returnQuantity");
+                int dateTimeDocLocalTmp = c.getColumnIndex("dateTimeDocLocal");
+                int invoiceSumTmp = c.getColumnIndex("invoiceSum");
                 do {
-                    DataInvoice dt = new DataInvoice(salesPartnerNameTmp, accountingTypeTmp, c.getString(itemName),
-                            Double.parseDouble(c.getString(price)), Double.parseDouble(c.getString(quantity)),
-                            Double.parseDouble(c.getString(total)), Double.parseDouble(c.getString(exchangeQuantity)),
-                            Double.parseDouble(c.getString(returnQuantity)), invoiceSumTmp);
+                    Integer invoiceNumberLocal = Integer.parseInt(c.getString(invoiceNumberLocalTmp));
+                    Integer agentID = Integer.parseInt(c.getString(agentIDTmp));
+                    Integer areaSP = c.getInt(areaSPTmp);
+                    String salesPartnerName = c.getString(salesPartnerNameTmp);
+                    String accountingTypeDoc = c.getString(accountingTypeDocTmp);
+                    String accountingTypeSP = c.getString(accountingTypeSPTmp);
+                    String itemName = c.getString(itemNameTmp);
+                    Double quantity = Double.parseDouble(c.getString(quantityTmp));
+                    Double price = Double.parseDouble(c.getString(priceTmp));
+                    Double totalCost = Double.parseDouble(c.getString(totalCostTmp));
+                    Double exchangeQuantity = Double.parseDouble(c.getString(exchangeTmp));
+                    Double returnQuantity = Double.parseDouble(c.getString(returnTmp));
+                    String dateTimeDocLocal = c.getString(dateTimeDocLocalTmp);
+                    Double invoiceSum = Double.parseDouble(c.getString(invoiceSumTmp));
+                    Log.d(LOG_TAG, "invoiceNumber: " + invoiceNumberLocal.toString());
+                    DataInvoice dt = new DataInvoice(salesPartnerName, accountingTypeDoc, accountingTypeSP,
+                            itemName, dateTimeDocLocal, invoiceNumberLocal, agentID, areaSP, price,
+                            quantity, totalCost, exchangeQuantity, returnQuantity, invoiceSum);
                     dataArray.add(dt);
 
                 } while (c.moveToNext());
             }
             c.close();
-            Toast.makeText(getApplicationContext(), invoiceNumberLocalTmp.toString(), Toast.LENGTH_SHORT).show();
-
             sendToServer();
 //        }
     }
@@ -232,19 +236,19 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
             public void onResponse(String response) {
                 try{
                     JSONArray jsonArray = new JSONArray(response);
-                    Integer[] invoiceNumber = new Integer[jsonArray.length()];
-                    String[] dateTimeDoc = new String[jsonArray.length()];
-                    if (jsonArray.length() == 1){
-                        for (int i = 0; i < jsonArray.length(); i++) {
-                            JSONObject obj = jsonArray.getJSONObject(i);
-                            dateTimeDoc[i] = obj.getString("dateTimeDoc");
-                            invoiceNumber[i] = obj.getInt("invoiceNumber");
-                        }
-                        invoiceNumberServerTmp.add(String.valueOf(invoiceNumber[0]));
-                        dateTimeDocServer.add(dateTimeDoc[0]);
-                    }else{
-                        Toast.makeText(getApplicationContext(), "Ошибка загрузки. Проверьте Интернет или Учётку", Toast.LENGTH_SHORT).show();
-                    }
+//                    Integer[] invoiceNumber = new Integer[jsonArray.length()];
+//                    String[] dateTimeDoc = new String[jsonArray.length()];
+//                    if (jsonArray.length() == 1){
+//                        for (int i = 0; i < jsonArray.length(); i++) {
+//                            JSONObject obj = jsonArray.getJSONObject(i);
+//                            dateTimeDoc[i] = obj.getString("dateTimeDoc");
+//                            invoiceNumber[i] = obj.getInt("invoiceNumber");
+//                        }
+//                        invoiceNumberServerTmp.add(String.valueOf(invoiceNumber[0]));
+//                        dateTimeDocServer.add(dateTimeDoc[0]);
+//                    }else{
+//                        Toast.makeText(getApplicationContext(), "Ошибка загрузки. Проверьте Интернет или Учётку", Toast.LENGTH_SHORT).show();
+//                    }
                 }
                 catch (JSONException e1) {
                     e1.printStackTrace();
@@ -252,13 +256,13 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
 
                 Log.d("response", "result: " + response);
 //                    invoiceNumberServerTmp.add(response);
-                Toast.makeText(getApplicationContext(), "Номер накладной: " + invoiceNumberServerTmp.get(0), Toast.LENGTH_SHORT).show();
-                dataArray.clear();
-                if (invoiceNumberServerTmp.get(0).matches("-?\\d+")) {
-                    Toast.makeText(getApplicationContext(), "Документ сохранён", Toast.LENGTH_SHORT).show();
-                    statusSave = "Сохранено";
-//                        textViewStatusSave.setText(statusSave);
-                }
+//                Toast.makeText(getApplicationContext(), "Номер накладной: " + invoiceNumberServerTmp.get(0), Toast.LENGTH_SHORT).show();
+//                dataArray.clear();
+//                if (invoiceNumberServerTmp.get(0).matches("-?\\d+")) {
+//                    Toast.makeText(getApplicationContext(), "Документ сохранён", Toast.LENGTH_SHORT).show();
+//                    statusSave = "Сохранено";
+////                        textViewStatusSave.setText(statusSave);
+//                }
             }
         }, new Response.ErrorListener(){
             @Override

@@ -15,12 +15,23 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.google.gson.Gson;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -31,6 +42,7 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
     DBHelper dbHelper;
     SQLiteDatabase db;
     String requestUrlFinalPrice = "https://caiman.ru.com/php/price.php", dbName, dbUser, dbPassword,
+            requestUrlSaveRecord = "https://caiman.ru.com/php/saveNewInvoice_new.php",
             salesPartner, accountingType, agent, areaDefault, area, accountingTypeDefault;
     TextView textViewSalesPartner, textViewInvoiceTotal, textViewAgent, textViewAccountingType;
     final String SAVED_DBName = "dbName";
@@ -46,8 +58,8 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
     Button btnSaveInvoiceToLocalDB;
     Integer invoiceNumber, tmpCount;
     ArrayList<String> arrItems;
-    ArrayList<Double> arrQuantity, arrExchange, arrReturn, arrSum;
-    ArrayList<Integer> arrPriceChanged;
+    ArrayList<Double> arrQuantity, arrExchange, arrReturn, arrSum, arrPriceChanged;
+    List<DataInvoice> dataArray;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,6 +75,7 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
         arrExchange = new ArrayList<>();
         arrReturn = new ArrayList<>();
         arrPriceChanged = new ArrayList<>();
+        dataArray = new ArrayList<>();
 
         btnSaveInvoiceToLocalDB = findViewById(R.id.buttonSaveInvoiceToLocalDB);
         btnSaveInvoiceToLocalDB.setOnClickListener(this);
@@ -82,6 +95,9 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
         sPrefArea= getSharedPreferences(SAVED_AREA, Context.MODE_PRIVATE);
         sPrefAccountingTypeDefault = getSharedPreferences(SAVED_ACCOUNTINGTYPEDEFAULT, Context.MODE_PRIVATE);
 
+        dbName = sPrefDBName.getString(SAVED_DBName, "");
+        dbUser = sPrefDBUser.getString(SAVED_DBUser, "");
+        dbPassword = sPrefDBPassword.getString(SAVED_DBPassword, "");
         agent = sPrefAgent.getString(SAVED_AGENT, "");
         salesPartner = sPrefSalesPartner.getString(SAVED_SALESPARTNER, "");
         areaDefault = sPrefAreaDefault.getString(SAVED_AREADEFAULT, "");
@@ -139,7 +155,7 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
                 invoiceSum = invoiceSum + Double.parseDouble(c.getString(total));
                 arrExchange.add(Double.parseDouble(c.getString(exchange)));
                 arrItems.add(c.getString(itemName));
-                arrPriceChanged.add(Integer.parseInt(c.getString(price)));
+                arrPriceChanged.add(Double.parseDouble(c.getString(price)));
                 arrQuantity.add(Double.parseDouble(c.getString(quantity)));
                 arrSum.add(Double.parseDouble(c.getString(total)));
                 arrReturn.add(Double.parseDouble(c.getString(returnQuantity)));
@@ -183,26 +199,89 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
 //        String output = instant.toString();
         String output = zdt.format( formatter );
 
-        Toast.makeText(getApplicationContext(), "<<< Идёт процесс добавления данных >>>", Toast.LENGTH_SHORT).show();
+//        Toast.makeText(getApplicationContext(), "<<< Идёт процесс добавления данных >>>", Toast.LENGTH_SHORT).show();
         for (int i = 0; i < arrItems.size(); i++){
             cv.put("invoiceNumber", invoiceNumber);
             cv.put("agentID", areaDefault);
-            cv.put("area", area);
+            cv.put("areaSP", area);
             cv.put("salesPartnerName", salesPartner);
-            cv.put("accountingType", accountingType);
-            cv.put("accountingTypeDefault", accountingTypeDefault);
+            cv.put("accountingTypeDoc", accountingType);
+            cv.put("accountingTypeSP", accountingTypeDefault);
             cv.put("itemName", arrItems.get(i));
             cv.put("quantity", arrQuantity.get(i));
             cv.put("price", arrPriceChanged.get(i));
-            cv.put("total", arrSum.get(i));
+            cv.put("totalCost", arrSum.get(i));
             cv.put("exchangeQuantity", arrExchange.get(i));
             cv.put("returnQuantity", arrReturn.get(i));
-            cv.put("dateTimeDoc", output);
+            cv.put("dateTimeDocLocal", output);
             cv.put("invoiceSum", invoiceSum);
             long rowID = db.insert("invoiceLocalDB", null, cv);
             Log.d(LOG_TAG, "row inserted, ID = " + rowID);
+            DataInvoice dt = new DataInvoice(salesPartner, accountingType, accountingTypeDefault,
+                    arrItems.get(i), output, invoiceNumber, Integer.parseInt(areaDefault), Integer.parseInt(area), arrPriceChanged.get(i),
+                    arrQuantity.get(i), arrSum.get(i), arrExchange.get(i), arrReturn.get(i), invoiceSum);
+            dataArray.add(dt);
         }
+        sendToServer();
         Toast.makeText(getApplicationContext(), "<<< Завершено >>>", Toast.LENGTH_SHORT).show();
+    }
+
+    private void sendToServer(){
+        Gson gson = new Gson();
+        final String newDataArray = gson.toJson(dataArray);
+
+        StringRequest request = new StringRequest(Request.Method.POST,
+                requestUrlSaveRecord, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                try{
+                    JSONArray jsonArray = new JSONArray(response);
+//                    Integer[] invoiceNumber = new Integer[jsonArray.length()];
+//                    String[] dateTimeDoc = new String[jsonArray.length()];
+//                    if (jsonArray.length() == 1){
+//                        for (int i = 0; i < jsonArray.length(); i++) {
+//                            JSONObject obj = jsonArray.getJSONObject(i);
+//                            dateTimeDoc[i] = obj.getString("dateTimeDoc");
+//                            invoiceNumber[i] = obj.getInt("invoiceNumber");
+//                        }
+//                        invoiceNumberServerTmp.add(String.valueOf(invoiceNumber[0]));
+//                        dateTimeDocServer.add(dateTimeDoc[0]);
+//                    }else{
+//                        Toast.makeText(getApplicationContext(), "Ошибка загрузки. Проверьте Интернет или Учётку", Toast.LENGTH_SHORT).show();
+//                    }
+                }
+                catch (JSONException e1) {
+                    e1.printStackTrace();
+                }
+
+                Log.d("response", "result: " + response);
+//                    invoiceNumberServerTmp.add(response);
+//                Toast.makeText(getApplicationContext(), "Номер накладной: " + invoiceNumberServerTmp.get(0), Toast.LENGTH_SHORT).show();
+//                dataArray.clear();
+//                if (invoiceNumberServerTmp.get(0).matches("-?\\d+")) {
+//                    Toast.makeText(getApplicationContext(), "Документ сохранён", Toast.LENGTH_SHORT).show();
+//                    statusSave = "Сохранено";
+////                        textViewStatusSave.setText(statusSave);
+//                }
+            }
+        }, new Response.ErrorListener(){
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Toast.makeText(getApplicationContext(), "Сообщите об этой ошибке. Код 001", Toast.LENGTH_SHORT).show();
+                Log.e("TAG", "Error " + error.getMessage());
+            }
+        }){
+            @Override
+            protected Map<String, String> getParams() {
+                Map<String, String> parameters = new HashMap<>();
+                parameters.put("dbName", dbName);
+                parameters.put("dbUser", dbUser);
+                parameters.put("dbPassword", dbPassword);
+                parameters.put("array", newDataArray);
+                return parameters;
+            }
+        };
+        VolleySingleton.getInstance(this).getRequestQueue().add(request);
     }
 
     class DBHelper extends SQLiteOpenHelper {

@@ -496,52 +496,52 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
     }
 
     private void saveRecord(){
-        invoiceSum = Double.parseDouble(textViewTotalSum.getText().toString());
-        for (int i = 0; i < arrTotal.size(); i ++){
-            DataInvoice dt = new DataInvoice(salesPartner, accountingType, arrItems.get(i),
-                    arrPrice.get(i), arrQuantity.get(i), arrSum.get(i), arrExchange.get(i),
-                    arrReturn.get(i), invoiceSum);
-            dataArray.add(dt);
-        }
-        Gson gson = new Gson();
-        final String newDataArray = gson.toJson(dataArray);
-
-        StringRequest request = new StringRequest(Request.Method.POST,
-                requestUrlSaveRecord, new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                Log.d("response", "result: " + response);
-                invoiceNumber = response;
-                Toast.makeText(getApplicationContext(), "Номер накладной: " + invoiceNumber, Toast.LENGTH_SHORT).show();
-                dataArray.clear();
-                if (invoiceNumber.matches("-?\\d+")) {
-                    Toast.makeText(getApplicationContext(), "Документ сохранён", Toast.LENGTH_SHORT).show();
-                    statusSave = "Сохранено";
-                    textViewStatusSave.setText(statusSave);
-                }
-            }
-        }, new Response.ErrorListener(){
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Toast.makeText(getApplicationContext(), "Сообщите об этой ошибке. Код 001", Toast.LENGTH_SHORT).show();
-                Log.e("TAG", "Error " + error.getMessage());
-            }
-        }){
-            @Override
-            protected Map<String, String> getParams() {
-                Map<String, String> parameters = new HashMap<>();
-                parameters.put("dbName", dbName);
-                parameters.put("dbUser", dbUser);
-                parameters.put("dbPassword", dbPassword);
-                parameters.put("area", area);
-                parameters.put("accountingType", accountingType);
-                parameters.put("loginSecurity", loginSecurity);
-//                parameters.put("dayOfTheWeek", dayOfTheWeek);
-                parameters.put("array", newDataArray);
-                return parameters;
-            }
-        };
-        VolleySingleton.getInstance(this).getRequestQueue().add(request);
+//        invoiceSum = Double.parseDouble(textViewTotalSum.getText().toString());
+//        for (int i = 0; i < arrTotal.size(); i ++){
+//            DataInvoice dt = new DataInvoice(salesPartner, accountingType, arrItems.get(i),
+//                    arrPrice.get(i), arrQuantity.get(i), arrSum.get(i), arrExchange.get(i),
+//                    arrReturn.get(i), invoiceSum);
+//            dataArray.add(dt);
+//        }
+//        Gson gson = new Gson();
+//        final String newDataArray = gson.toJson(dataArray);
+//
+//        StringRequest request = new StringRequest(Request.Method.POST,
+//                requestUrlSaveRecord, new Response.Listener<String>() {
+//            @Override
+//            public void onResponse(String response) {
+//                Log.d("response", "result: " + response);
+//                invoiceNumber = response;
+//                Toast.makeText(getApplicationContext(), "Номер накладной: " + invoiceNumber, Toast.LENGTH_SHORT).show();
+//                dataArray.clear();
+//                if (invoiceNumber.matches("-?\\d+")) {
+//                    Toast.makeText(getApplicationContext(), "Документ сохранён", Toast.LENGTH_SHORT).show();
+//                    statusSave = "Сохранено";
+//                    textViewStatusSave.setText(statusSave);
+//                }
+//            }
+//        }, new Response.ErrorListener(){
+//            @Override
+//            public void onErrorResponse(VolleyError error) {
+//                Toast.makeText(getApplicationContext(), "Сообщите об этой ошибке. Код 001", Toast.LENGTH_SHORT).show();
+//                Log.e("TAG", "Error " + error.getMessage());
+//            }
+//        }){
+//            @Override
+//            protected Map<String, String> getParams() {
+//                Map<String, String> parameters = new HashMap<>();
+//                parameters.put("dbName", dbName);
+//                parameters.put("dbUser", dbUser);
+//                parameters.put("dbPassword", dbPassword);
+//                parameters.put("area", area);
+//                parameters.put("accountingType", accountingType);
+//                parameters.put("loginSecurity", loginSecurity);
+////                parameters.put("dayOfTheWeek", dayOfTheWeek);
+//                parameters.put("array", newDataArray);
+//                return parameters;
+//            }
+//        };
+//        VolleySingleton.getInstance(this).getRequestQueue().add(request);
     }
 
     private void makePaymentPrompt(){
