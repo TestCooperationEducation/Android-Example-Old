@@ -1,8 +1,10 @@
 package com.example.myapplicationtest;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -38,7 +40,8 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
     Button btnInvoice, btnPayments, btnSalesAgents, btnUpdateLocalDB, btnClearLocalTables,
             btnReports, btnViewInvoices;
     SharedPreferences sPrefArea, sPrefAccountingType, sPrefDayOfTheWeekDefault, sPrefDBName,
-            sPrefFreshStatus, sPrefDBPassword, sPrefDBUser, sPrefDayOfTheWeek, sPrefVisited, sPrefConnectionStatus;
+            sPrefFreshStatus, sPrefDBPassword, sPrefDBUser, sPrefDayOfTheWeek, sPrefVisited,
+            sPrefConnectionStatus, sPrefAreaDefault;
     final String SAVED_AREA = "Area";
     final String SAVED_ACCOUNTINGTYPE = "AccountingType";
     final String SAVED_DAYOFTHEWEEKDEFAULT = "DayOfTheWeekDefault";
@@ -49,8 +52,9 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
     final String SAVED_VISITED = "visited";
     final String SAVED_CONNSTATUS = "connectionStatus";
     final String SAVED_FRESHSTATUS = "freshStatus";
+    final String SAVED_AREADEFAULT = "areaDefault";
     String loginUrl = "https://caiman.ru.com/php/login.php", dbName, dbUser, dbPassword,
-            syncUrl = "https://caiman.ru.com/php/syncDB.php", connStatus;
+            syncUrl = "https://caiman.ru.com/php/syncDB.php", connStatus, areaDefault;
     String[] dayOfTheWeek, salesPartnersName, accountingType, author, itemName, comment, dateTimeDoc;
     Integer[] itemPrice, discountID, spID, area, serverDB_ID, itemNumber, discountType, discount,
             invoiceNumber, agentID, salesPartnerID;
@@ -99,10 +103,12 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         sPrefDayOfTheWeek = getSharedPreferences(SAVED_DayOfTheWeek, Context.MODE_PRIVATE);
         sPrefVisited = getSharedPreferences(SAVED_VISITED, Context.MODE_PRIVATE);
         sPrefFreshStatus = getSharedPreferences(SAVED_FRESHSTATUS, Context.MODE_PRIVATE);
+        sPrefAreaDefault = getSharedPreferences(SAVED_AREADEFAULT, Context.MODE_PRIVATE);
 
         dbName = sPrefDBName.getString(SAVED_DBName, "");
         dbUser = sPrefDBUser.getString(SAVED_DBUser, "");
         dbPassword = sPrefDBPassword.getString(SAVED_DBPassword, "");
+        areaDefault = sPrefAreaDefault.getString(SAVED_AREADEFAULT, "");
 
         sPrefArea.edit().clear().apply();
         sPrefAccountingType.edit().clear().apply();
@@ -139,9 +145,30 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                 updateLocalDB();
                 break;
             case R.id.buttonClearLocalDB:
-                if (tableExists(db, "invoiceLocalDB")){
-                    clearTable("invoiceLocalDB");
-                }
+                final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle("Режим разработки")
+                        .setMessage("Удалить к чертям всё?")
+                        .setCancelable(true)
+                        .setNegativeButton("Да",
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        if (tableExists(db, "invoiceLocalDB")){
+                                            clearTable("invoiceLocalDB");
+                                        }
+                                        if (tableExists(db, "syncedInvoice")){
+                                            clearTable("syncedInvoice");
+                                        }
+                                        dialog.cancel();
+                                    }
+                                })
+                        .setPositiveButton("Ой",
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        dialog.cancel();
+                                    }
+                                });
+                AlertDialog alert = builder.create();
+                alert.show();
                 break;
             case R.id.buttonReports:
                 testCheck();
@@ -666,6 +693,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                 parameters.put("dbName", dbName);
                 parameters.put("dbUser", dbUser);
                 parameters.put("dbPassword", dbPassword);
+                parameters.put("agentID", areaDefault);
                 parameters.put("tableName", "invoice");
                 return parameters;
             }
@@ -733,6 +761,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                 parameters.put("dbName", dbName);
                 parameters.put("dbUser", dbUser);
                 parameters.put("dbPassword", dbPassword);
+                parameters.put("agentID", areaDefault);
                 parameters.put("tableName", "платежи");
                 return parameters;
             }
@@ -853,6 +882,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                         + "totalCost real,"
                         + "exchangeQuantity real,"
                         + "returnQuantity real,"
+                        + "comment text DEFAULT 'none',"
                         + "dateTimeDocLocal text,"
                         + "invoiceSum text" + ");");
             }

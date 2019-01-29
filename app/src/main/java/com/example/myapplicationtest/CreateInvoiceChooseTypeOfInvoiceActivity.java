@@ -7,12 +7,14 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
 public class CreateInvoiceChooseTypeOfInvoiceActivity extends AppCompatActivity implements View.OnClickListener {
 
     Button btnInvoiceTypeOne, btnInvoiceTypeTwo;
     final String SAVED_ACCOUNTINGTYPE = "AccountingType";
-    SharedPreferences sPrefAccountingType;
+    final String SAVED_ItemsListSaveStatus = "itemsListSaveStatus";
+    SharedPreferences sPrefAccountingType, sPrefItemsListSaveStatus;
     SharedPreferences.Editor e;
 
     @Override
@@ -26,6 +28,7 @@ public class CreateInvoiceChooseTypeOfInvoiceActivity extends AppCompatActivity 
         btnInvoiceTypeTwo.setOnClickListener(this);
 
         sPrefAccountingType = getSharedPreferences(SAVED_ACCOUNTINGTYPE, Context.MODE_PRIVATE);
+        sPrefItemsListSaveStatus = getSharedPreferences(SAVED_ItemsListSaveStatus, Context.MODE_PRIVATE);
     }
 
     public void onClick(View v) {
@@ -46,6 +49,17 @@ public class CreateInvoiceChooseTypeOfInvoiceActivity extends AppCompatActivity 
                 break;
             default:
                 break;
+        }
+    }
+
+    @Override
+    public void onResume(){
+        super.onResume();
+        String itemsListSaveStatus = sPrefItemsListSaveStatus.getString(SAVED_ItemsListSaveStatus, "");
+        if (itemsListSaveStatus.equals("saved")){
+            finish();
+        } else {
+
         }
     }
 }

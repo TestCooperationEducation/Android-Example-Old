@@ -207,6 +207,7 @@ public class MakePaymentPartialActivity extends AppCompatActivity implements Vie
                 parameters.put("dbPassword", dbPassword);
                 parameters.put("invoiceNumber", invoiceNumber);
                 parameters.put("agent", agent);
+                parameters.put("agentID", areaDefault);
                 parameters.put("paymentAmount", newDataArray);
                 return parameters;
             }

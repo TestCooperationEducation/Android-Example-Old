@@ -44,7 +44,7 @@ public class CreateInvoiceChooseSalesPartnerActivity extends AppCompatActivity i
     ListView listViewSalesPartners, listViewAccountingType;
     SharedPreferences sPrefArea, sPrefAccountingType, sPrefDBName, sPrefDBPassword, sPrefDBUser,
             sPrefDayOfTheWeek, sPrefSalesPartner, sPrefAreaDefault, sPrefDayOfTheWeekDefault,
-            sPrefConnectionStatus, sPrefAccountingTypeDefault;
+            sPrefConnectionStatus, sPrefAccountingTypeDefault, sPrefItemsListSaveStatus;
     ArrayAdapter<String> arrayAdapter;
     final String SAVED_AREA = "Area";
     final String SAVED_AREADEFAULT = "areaDefault";
@@ -57,6 +57,7 @@ public class CreateInvoiceChooseSalesPartnerActivity extends AppCompatActivity i
     final String SAVED_SALESPARTNER = "SalesPartner";
     final String SAVED_CONNSTATUS = "connectionStatus";
     final String SAVED_ACCOUNTINGTYPEDEFAULT = "AccountingTypeDefault";
+    final String SAVED_ItemsListSaveStatus = "itemsListSaveStatus";
     SharedPreferences.Editor e;
     String requestUrl = "https://caiman.ru.com/php/filter_new.php", salesPartner, dbName, dbUser, dbPassword,
             area, accountingType, dayOfTheWeek, connStatus;
@@ -88,6 +89,7 @@ public class CreateInvoiceChooseSalesPartnerActivity extends AppCompatActivity i
         sPrefAreaDefault= getSharedPreferences(SAVED_AREADEFAULT, Context.MODE_PRIVATE);
         sPrefConnectionStatus = getSharedPreferences(SAVED_CONNSTATUS, Context.MODE_PRIVATE);
         sPrefAccountingTypeDefault = getSharedPreferences(SAVED_ACCOUNTINGTYPEDEFAULT, Context.MODE_PRIVATE);
+        sPrefItemsListSaveStatus = getSharedPreferences(SAVED_ItemsListSaveStatus, Context.MODE_PRIVATE);
 
         initialValues();
         onLoadActivity();
@@ -126,6 +128,10 @@ public class CreateInvoiceChooseSalesPartnerActivity extends AppCompatActivity i
 
             }
         });
+
+        e = sPrefItemsListSaveStatus.edit();
+        e.putString(SAVED_ItemsListSaveStatus, "notSaved");
+        e.apply();
     }
 
     @Override
@@ -308,14 +314,9 @@ public class CreateInvoiceChooseSalesPartnerActivity extends AppCompatActivity i
         String spTmp = "";
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
         if (tableExists(db, "itemsToInvoiceTmp")){
-            Toast.makeText(getApplicationContext(), "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", Toast.LENGTH_SHORT).show();
             Log.d(LOG_TAG, "--- Rows in itemsToInvoiceTmp: ---");
-            // делаем запрос всех данных из таблицы itemsToInvoiceTmp, получаем Cursor
             Cursor c = db.query("itemsToInvoiceTmp", null, null, null, null, null, null);
-            // ставим позицию курсора на первую строку выборки
-            // если в выборке нет строк, вернется false
             if (c.moveToFirst()) {
-                // определяем номера столбцов по имени в выборке
                 int salesPartnerTmp = c.getColumnIndex("Контрагент");
                 do {
                     salesPartner = c.getString(salesPartnerTmp);
@@ -393,6 +394,17 @@ public class CreateInvoiceChooseSalesPartnerActivity extends AppCompatActivity i
 
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+
+        }
+    }
+
+    @Override
+    public void onResume(){
+        super.onResume();
+        String itemsListSaveStatus = sPrefItemsListSaveStatus.getString(SAVED_ItemsListSaveStatus, "");
+        if (itemsListSaveStatus.equals("saved")){
+            finish();
+        } else {
 
         }
     }

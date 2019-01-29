@@ -122,7 +122,7 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
             invoiceNumberServerTmp.add(String.valueOf(0));
             dateTimeDocServer.add("");
         }
-        if (resultExists(db, "syncedInvoice","invoiceNumber")){
+        if (!resultExists(db, "syncedInvoice","invoiceNumber")){
             String sql = "SELECT DISTINCT invoiceNumber FROM invoiceLocalDB INNER JOIN syncedInvoice " +
                     "ON invoiceLocalDB.invoiceNumber NOT LIKE syncedInvoice.invoiceNumber ";
             Cursor c = db.rawQuery(sql, null);

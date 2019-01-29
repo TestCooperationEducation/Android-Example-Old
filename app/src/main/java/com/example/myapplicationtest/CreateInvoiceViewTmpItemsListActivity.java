@@ -135,7 +135,7 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.buttonSaveInvoiceToLocalDB:
-                saveInvoiceToLocalDB();
+                savePrompt();
                 break;
             default:
                 break;
@@ -198,7 +198,6 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
                 }
             } else {
                 invoiceNumber = 1;
-
             }
         } else {
             Toast.makeText(getApplicationContext(), "<<< Нет локальной таблицы накладных >>>", Toast.LENGTH_SHORT).show();
@@ -238,9 +237,14 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
                         arrQuantity.get(i), arrSum.get(i), arrExchange.get(i), arrReturn.get(i), invoiceSum);
                 dataArray.add(dt);
             }
+
             e = sPrefItemsListSaveStatus.edit();
             e.putString(SAVED_ItemsListSaveStatus, "saved");
             e.apply();
+
+            if (tableExists(db, "itemsToInvoiceTmp")){
+                clearTable("itemsToInvoiceTmp");
+            }
 
             sendToServer();
         } else {
@@ -285,12 +289,12 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
 //                    invoiceNumberServerTmp.add(response);
 //                Toast.makeText(getApplicationContext(), "Номер накладной: " + invoiceNumberServerTmp.get(0), Toast.LENGTH_SHORT).show();
 //                dataArray.clear();
-                if (String.valueOf(invoiceNumberFromRequest[invoiceNumberFromRequest.length - 1]).matches("-?\\d+")) {
-                    Toast.makeText(getApplicationContext(), "Документ сохранён", Toast.LENGTH_SHORT).show();
-                    statusSave = "Сохранено";
+//                if (String.valueOf(invoiceNumberFromRequest[invoiceNumberFromRequest.length - 1]).matches("-?\\d+")) {
+//                    Toast.makeText(getApplicationContext(), "Документ сохранён", Toast.LENGTH_SHORT).show();
+//                    statusSave = "Сохранено";
 
 //                        textViewStatusSave.setText(statusSave);
-                }
+//                }
             }
         }, new Response.ErrorListener(){
             @Override
@@ -329,6 +333,29 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
         }
     }
 
+    private void savePrompt(){
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Внимание")
+                .setMessage("Хотите сохранить накладную?")
+                .setCancelable(false)
+                .setNegativeButton("Да",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                saveInvoiceToLocalDB();
+                                dialog.cancel();
+                            }
+                        })
+                .setPositiveButton("Нет",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                finish();
+                                dialog.cancel();
+                            }
+                        });
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
+
     private void paymentPrompt(){
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Внимание")
@@ -344,6 +371,7 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
                 .setPositiveButton("Нет",
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
+                                finish();
                                 dialog.cancel();
                             }
                         });
@@ -436,6 +464,7 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
                 parameters.put("dbPassword", dbPassword);
                 parameters.put("invoiceNumber", invoiceNumber.toString());
                 parameters.put("agent", agent);
+                parameters.put("agentID", areaDefault);
                 parameters.put("paymentAmount", newDataArray);
                 return parameters;
             }
@@ -451,6 +480,13 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
         Intent intent = new Intent(this, MakePaymentPartialActivity.class);
         intent.putExtra(EXTRA_INVOICESUM, invoiceSum.toString());
         startActivity(intent);
+    }
+
+    private void clearTable(String tableName){
+        Log.d(LOG_TAG, "--- Clear: " + tableName + " ---");
+        // удаляем все записи
+        int clearCount = db.delete(tableName, null, null);
+        Log.d(LOG_TAG, "deleted rows count = " + clearCount);
     }
 
     class DBHelper extends SQLiteOpenHelper {
@@ -519,5 +555,16 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
         int count = cursor.getInt(0);
         cursor.close();
         return count > 0;
+    }
+
+    @Override
+    public void onResume(){
+        super.onResume();
+        String itemsListSaveStatus = sPrefItemsListSaveStatus.getString(SAVED_ItemsListSaveStatus, "");
+        if (itemsListSaveStatus.equals("saved")){
+            finish();
+        } else {
+
+        }
     }
 }

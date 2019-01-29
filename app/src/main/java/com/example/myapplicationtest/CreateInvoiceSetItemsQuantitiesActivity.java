@@ -16,6 +16,7 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -260,7 +261,25 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
     }
 
     private void getPriceFromLocalDB(){
-
+//        db = dbHelper.getReadableDatabase();
+//        String sql;
+//        sql = "SELECT  FROM items";
+//        Cursor c = db.rawQuery(sql, null);
+//        if (c.moveToFirst()) {
+//            int idColIndex = c.getColumnIndex("Наименование");
+//            do {
+//                Log.d(LOG_TAG,"ID = " + c.getString(idColIndex));
+//                itemsList.add(c.getString(idColIndex));
+//            } while (c.moveToNext());
+//            onLoadActivity();
+//        } else {
+//            Log.d(LOG_TAG, "0 rows");
+//            Toast.makeText(getApplicationContext(), "Ошибка: CreateInvoiceChooseSalesPartner receiveDataFromLocalDB 001",
+//                    Toast.LENGTH_SHORT).show();
+//        }
+//        arrayAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_multiple_choice, itemsList);
+//        listViewItems.setAdapter(arrayAdapter);
+//        c.close();
     }
 
     private void getDataFromTmp(){

@@ -45,7 +45,7 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implemen
     ArrayList<String> itemsList;
     ListView listViewItems;
     SharedPreferences sPrefDBName, sPrefDBPassword, sPrefDBUser, sPrefItemsList, sPrefConnectionStatus,
-            sPrefItemName, sPrefSalesPartner, sPrefItemsListSaveStatus;
+            sPrefItemName, sPrefSalesPartner, sPrefItemsListSaveStatus, sPrefNextInvoiceNumberTmp;
     final String SAVED_DBName = "dbName";
     final String SAVED_DBUser = "dbUser";
     final String SAVED_DBPassword = "dbPassword";
@@ -54,6 +54,7 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implemen
     final String SAVED_ITEMNAME = "itemName";
     final String SAVED_SALESPARTNER = "SalesPartner";
     final String SAVED_ItemsListSaveStatus = "itemsListSaveStatus";
+    final String SAVED_NextInvoiceNumberTmp = "nextInvoiceNumberTmp";
     SharedPreferences.Editor e;
     ArrayList<String> tmp;
     Button btnCreateList;
@@ -123,6 +124,12 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implemen
                 }
             }
         });
+
+        e = sPrefItemsListSaveStatus.edit();
+        e.putString(SAVED_ItemsListSaveStatus, "notSaved");
+        e.apply();
+
+//        setNextInvoiceNumber();
     }
 
     public void onClick(View v) {
@@ -289,7 +296,7 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implemen
         return count > 0;
     }
 
-    boolean resultExists(SQLiteDatabase db, String tableName, String fieldName, String fieldValue){
+    boolean valueExists(SQLiteDatabase db, String tableName, String fieldName, String fieldValue){
         if (tableName == null || db == null || !db.isOpen())
         {
             return false;
@@ -306,10 +313,27 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implemen
         return count > 0;
     }
 
+    boolean resultExists(SQLiteDatabase db, String tableName, String selectField){
+        if (tableName == null || db == null || !db.isOpen())
+        {
+            return false;
+        }
+        String sql = "SELECT COUNT(?) FROM " + tableName;
+        Cursor cursor = db.rawQuery(sql, new String[]{selectField});
+        if (!cursor.moveToFirst())
+        {
+            cursor.close();
+            return false;
+        }
+        int count = cursor.getInt(0);
+        cursor.close();
+        return count > 0;
+    }
+
     private void deleteRowFromLocalTable(String tableName, String fieldName, String fieldValue){
         db = dbHelper.getWritableDatabase();
         if (tableExists(db, tableName)) {
-            if (resultExists(db, tableName, fieldName, fieldValue)) {
+            if (valueExists(db, tableName, fieldName, fieldValue)) {
                 Log.d(LOG_TAG, "--- Clear itemsToInvoiceTmp: ---");
                 // удаляем все записи из таблицы
                 int clearCount = db.delete(tableName, fieldName + " LIKE ?", new String[]{fieldValue});
@@ -322,7 +346,7 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implemen
     private void onSelectedItem(){
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
         if (tableExists(db, "itemsToInvoiceTmp")){
-            if (resultExists(db, "itemsToInvoiceTmp", "Наименование", item)){
+            if (valueExists(db, "itemsToInvoiceTmp", "Наименование", item)){
                 builder.setTitle("Номенклатура: " + item)
                         .setMessage("Удалить или редактировать?")
                         .setCancelable(false)
@@ -352,7 +376,7 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implemen
 
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
         if (tableExists(db, "itemsToInvoiceTmp")){
-            if (resultExists(db, "itemsToInvoiceTmp", "Контрагент", salesPartner)) {
+            if (valueExists(db, "itemsToInvoiceTmp", "Контрагент", salesPartner)) {
                 builder.setTitle("Внимание")
                         .setMessage("У вас остался несохраненный список")
                         .setCancelable(false)
@@ -360,7 +384,7 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implemen
                                 new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialog, int id) {
                                         for (int i = 0; i < listViewItems.getCount(); i++) {
-                                            if (resultExists(db, "itemsToInvoiceTmp", "Наименование", itemsList.get(i))) {
+                                            if (valueExists(db, "itemsToInvoiceTmp", "Наименование", itemsList.get(i))) {
                                                 listViewItems.setItemChecked(i, true);
                                             }
                                         }
@@ -381,7 +405,7 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implemen
     }
 
     private void clearTable(String tableName){
-        Log.d(LOG_TAG, "--- Clear mytable: ---");
+        Log.d(LOG_TAG, "--- Clear: " + tableName + " ---");
         // удаляем все записи
         int clearCount = db.delete(tableName, null, null);
         Log.d(LOG_TAG, "deleted rows count = " + clearCount);
@@ -392,16 +416,40 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implemen
         super.onResume();
         itemsListSaveStatus = sPrefItemsListSaveStatus.getString(SAVED_ItemsListSaveStatus, "");
         if (itemsListSaveStatus.equals("saved")){
-//            if (tableExists(db, "invoiceLocalDB")){
-//                clearTable("invoiceLocalDB");
-//            }
-//            finish();
+            finish();
+            Toast.makeText(getApplicationContext(), "<<< Ayyyyyyyyyyy >>>", Toast.LENGTH_SHORT).show();
         } else {
             for (int i = 0; i < listViewItems.getCount(); i++) {
-                if (!resultExists(db, "itemsToInvoiceTmp", "Наименование", itemsList.get(i))) {
+                if (!valueExists(db, "itemsToInvoiceTmp", "Наименование", itemsList.get(i))) {
                     listViewItems.setItemChecked(i, false);
                 }
             }
+        }
+    }
+
+    private void setNextInvoiceNumber(){
+        Integer invoiceNumber;
+        if (tableExists(db, "invoiceLocalDB")){
+            if (resultExists(db, "invoiceLocalDB", "invoiceNumber")){
+                String sql = "SELECT DISTINCT invoiceNumber FROM invoiceLocalDB ORDER BY id DESC LIMIT 1";
+                Cursor c = db.rawQuery(sql, null);
+                if (c.moveToFirst()) {
+                    int iNumber = c.getColumnIndex("invoiceNumber");
+                    do {
+                        invoiceNumber = Integer.parseInt(c.getString(iNumber)) + 1;
+                        e = sPrefNextInvoiceNumberTmp.edit();
+                        e.putString(SAVED_NextInvoiceNumberTmp, invoiceNumber.toString());
+                        e.apply();
+                    } while (c.moveToNext());
+                }
+            } else {
+                invoiceNumber = 1;
+                e = sPrefNextInvoiceNumberTmp.edit();
+                e.putString(SAVED_NextInvoiceNumberTmp, invoiceNumber.toString());
+                e.apply();
+            }
+        } else {
+            Toast.makeText(getApplicationContext(), "<<< Нет локальной таблицы накладных >>>", Toast.LENGTH_SHORT).show();
         }
     }
 }
