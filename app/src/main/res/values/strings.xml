@@ -39,7 +39,7 @@
     <string name="textViewInvoiceDebt">Долг по накладной</string>
     <string name="btnSelect">Подробно</string>
     <string name="btnViewInvoice">Просмотреть накладную</string>
-    <string name="editTextPaymentSum">Сумма внесения</string>
+    <string name="editTextPaymentSum">Сумма внесения:</string>
     <string name="editTextSearchDebtor">Поиск</string>
     <string name="btnViewInvoices">Просмотр накладных</string>
     <string name="btnChangePrices">Изменить цены</string>
@@ -68,5 +68,6 @@
     <string name="btnInvoicesSynced">За сегодня. Синхронизированные</string>
     <string name="btnInvoicesNotSynced">за сегодня. несинхронизированные</string>
     <string name="btnSyncInvoicesWithServer">Синхронизировать</string>
+    <string name="textViewInvoiceSum">Сумма по накладной:</string>
 
 </resources>

@@ -95,7 +95,7 @@ public class CreateInvoiceChooseSalesPartnerActivity extends AppCompatActivity i
         if (sPrefConnectionStatus.contains(SAVED_CONNSTATUS)) {
             connStatus = sPrefConnectionStatus.getString(SAVED_CONNSTATUS, "");
             if (connStatus.equals("success")) {
-                receiveDataFromServer();
+                receiveDataFromLocalDB();
             } else {
                 receiveDataFromLocalDB();
             }

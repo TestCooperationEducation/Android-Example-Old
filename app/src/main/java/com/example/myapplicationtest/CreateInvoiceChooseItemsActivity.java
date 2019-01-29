@@ -41,11 +41,11 @@ import java.util.Map;
 public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implements View.OnClickListener {
 
     String requestUrl = "https://caiman.ru.com/php/items.php", dbName, dbUser, dbPassword, item, connStatus,
-            salesPartner;
-    String[] itemsList;
+            salesPartner, itemsListSaveStatus;
+    ArrayList<String> itemsList;
     ListView listViewItems;
     SharedPreferences sPrefDBName, sPrefDBPassword, sPrefDBUser, sPrefItemsList, sPrefConnectionStatus,
-            sPrefItemName, sPrefSalesPartner;
+            sPrefItemName, sPrefSalesPartner, sPrefItemsListSaveStatus;
     final String SAVED_DBName = "dbName";
     final String SAVED_DBUser = "dbUser";
     final String SAVED_DBPassword = "dbPassword";
@@ -53,6 +53,7 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implemen
     final String SAVED_CONNSTATUS = "connectionStatus";
     final String SAVED_ITEMNAME = "itemName";
     final String SAVED_SALESPARTNER = "SalesPartner";
+    final String SAVED_ItemsListSaveStatus = "itemsListSaveStatus";
     SharedPreferences.Editor e;
     ArrayList<String> tmp;
     Button btnCreateList;
@@ -71,6 +72,8 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implemen
         dbHelper = new DBHelper(this);
         db = dbHelper.getWritableDatabase();
 
+        itemsList = new ArrayList<>();
+
         listViewItems = findViewById(R.id.listViewItemsToSelect);
 
 //        myList = new ArrayList<>();
@@ -84,8 +87,10 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implemen
         sPrefConnectionStatus = getSharedPreferences(SAVED_CONNSTATUS, Context.MODE_PRIVATE);
         sPrefItemName = getSharedPreferences(SAVED_ITEMNAME, Context.MODE_PRIVATE);
         sPrefSalesPartner = getSharedPreferences(SAVED_SALESPARTNER, Context.MODE_PRIVATE);
+        sPrefItemsListSaveStatus = getSharedPreferences(SAVED_ItemsListSaveStatus, Context.MODE_PRIVATE);
 
         salesPartner = sPrefSalesPartner.getString(SAVED_SALESPARTNER, "");
+        itemsListSaveStatus = sPrefItemsListSaveStatus.getString(SAVED_ItemsListSaveStatus, "");
 
         if (sPrefDBName.contains(SAVED_DBName) && sPrefDBUser.contains(SAVED_DBUser) && sPrefDBPassword.contains(SAVED_DBPassword)) {
             dbName = sPrefDBName.getString(SAVED_DBName, "");
@@ -96,7 +101,7 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implemen
         if (sPrefConnectionStatus.contains(SAVED_CONNSTATUS)) {
             connStatus = sPrefConnectionStatus.getString(SAVED_CONNSTATUS, "");
             if (connStatus.equals("success")) {
-                receiveItemsListFromServerDB();
+                receiveItemsListFromLocalDB();
             } else {
                 receiveItemsListFromLocalDB();
             }
@@ -108,10 +113,10 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implemen
                 item = ((TextView) view).getText().toString();
                 SparseBooleanArray chosen = listViewItems.getCheckedItemPositions();
                 for (int i = 0; i < listViewItems.getCount(); i++) {
-                    if (itemsList[i].equals(item) && chosen.get(i) == true) {
+                    if (itemsList.get(i).equals(item) && chosen.get(i) == true) {
                         goToSetQuantities();
                     }
-                    if (itemsList[i].equals(item) && chosen.get(i) == false) {
+                    if (itemsList.get(i).equals(item) && chosen.get(i) == false) {
                         iTmp = i;
                         onSelectedItem();
                     }
@@ -144,61 +149,59 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implemen
         }
     }
 
-    private void receiveItemsListFromServerDB(){
-        StringRequest request = new StringRequest(Request.Method.POST,
-                requestUrl, new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                try{
-                    JSONArray jsonArray = new JSONArray(response);
-                    itemsList = new String[jsonArray.length()];
-                    if (jsonArray.length() > 0){
-                        for (int i = 0; i < jsonArray.length(); i++) {
-                            JSONObject obj = jsonArray.getJSONObject(i);
-                            itemsList[i] = obj.getString("Наименование");
-                            if (resultExists(db, "itemsToInvoiceTmp", "Наименование", itemsList[i])){
-                                bTmp = true;
-                            }
-                        }
-                        if (bTmp == true){
-                            onLoadActivity();
-                        }
-                    }else{
-                        Toast.makeText(getApplicationContext(), "Что-то пошло не так с запросом к серверу", Toast.LENGTH_SHORT).show();
-                    }
-
-                    ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_multiple_choice, itemsList);
-                    listViewItems.setAdapter(arrayAdapter);
-                    Toast.makeText(getApplicationContext(), "Загружено", Toast.LENGTH_SHORT).show();
-                }
-                catch (JSONException e1) {
-                    e1.printStackTrace();
-                }
-            }
-        }, new Response.ErrorListener(){
-            @Override
-            public void onErrorResponse(VolleyError error){
-                Toast.makeText(getApplicationContext(), "Проблемы соединения с сервером", Toast.LENGTH_SHORT).show();
-                Log.e("TAG", "Error " + error.getMessage());
-            }
-        }){
-            @Override
-            protected Map<String, String> getParams() {
-                Map<String, String> parameters = new HashMap<>();
-                parameters.put("dbName", dbName);
-                parameters.put("dbUser", dbUser);
-                parameters.put("dbPassword", dbPassword);
-                return parameters;
-            }
-        };
-        VolleySingleton.getInstance(this).getRequestQueue().add(request);
-    }
+//    private void receiveItemsListFromServerDB(){
+//        StringRequest request = new StringRequest(Request.Method.POST,
+//                requestUrl, new Response.Listener<String>() {
+//            @Override
+//            public void onResponse(String response) {
+//                try{
+//                    JSONArray jsonArray = new JSONArray(response);
+//                    itemsList = new String[jsonArray.length()];
+//                    if (jsonArray.length() > 0){
+//                        for (int i = 0; i < jsonArray.length(); i++) {
+//                            JSONObject obj = jsonArray.getJSONObject(i);
+//                            itemsList[i] = obj.getString("Наименование");
+//                            if (resultExists(db, "itemsToInvoiceTmp", "Наименование", itemsList[i])){
+//                                bTmp = true;
+//                            }
+//                        }
+//                        if (bTmp == true){
+//                            onLoadActivity();
+//                        }
+//                    }else{
+//                        Toast.makeText(getApplicationContext(), "Что-то пошло не так с запросом к серверу", Toast.LENGTH_SHORT).show();
+//                    }
+//
+//                    ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_multiple_choice, itemsList);
+//                    listViewItems.setAdapter(arrayAdapter);
+//                    Toast.makeText(getApplicationContext(), "Загружено", Toast.LENGTH_SHORT).show();
+//                }
+//                catch (JSONException e1) {
+//                    e1.printStackTrace();
+//                }
+//            }
+//        }, new Response.ErrorListener(){
+//            @Override
+//            public void onErrorResponse(VolleyError error){
+//                Toast.makeText(getApplicationContext(), "Проблемы соединения с сервером", Toast.LENGTH_SHORT).show();
+//                Log.e("TAG", "Error " + error.getMessage());
+//            }
+//        }){
+//            @Override
+//            protected Map<String, String> getParams() {
+//                Map<String, String> parameters = new HashMap<>();
+//                parameters.put("dbName", dbName);
+//                parameters.put("dbUser", dbUser);
+//                parameters.put("dbPassword", dbPassword);
+//                return parameters;
+//            }
+//        };
+//        VolleySingleton.getInstance(this).getRequestQueue().add(request);
+//    }
 
     private void receiveItemsListFromLocalDB(){
         db = dbHelper.getReadableDatabase();
         String sql;
-        ArrayList<String> itemsList;
-        itemsList = new ArrayList<>();
         sql = "SELECT Наименование FROM items";
         Cursor c = db.rawQuery(sql, null);
         if (c.moveToFirst()) {
@@ -207,6 +210,7 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implemen
                 Log.d(LOG_TAG,"ID = " + c.getString(idColIndex));
                 itemsList.add(c.getString(idColIndex));
             } while (c.moveToNext());
+            onLoadActivity();
         } else {
             Log.d(LOG_TAG, "0 rows");
             Toast.makeText(getApplicationContext(), "Ошибка: CreateInvoiceChooseSalesPartner receiveDataFromLocalDB 001",
@@ -356,7 +360,7 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implemen
                                 new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialog, int id) {
                                         for (int i = 0; i < listViewItems.getCount(); i++) {
-                                            if (resultExists(db, "itemsToInvoiceTmp", "Наименование", itemsList[i])) {
+                                            if (resultExists(db, "itemsToInvoiceTmp", "Наименование", itemsList.get(i))) {
                                                 listViewItems.setItemChecked(i, true);
                                             }
                                         }
@@ -386,9 +390,17 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implemen
     @Override
     public void onResume(){
         super.onResume();
-        for (int i = 0; i < listViewItems.getCount(); i++) {
-            if (!resultExists(db, "itemsToInvoiceTmp", "Наименование", itemsList[i])) {
-                listViewItems.setItemChecked(i, false);
+        itemsListSaveStatus = sPrefItemsListSaveStatus.getString(SAVED_ItemsListSaveStatus, "");
+        if (itemsListSaveStatus.equals("saved")){
+//            if (tableExists(db, "invoiceLocalDB")){
+//                clearTable("invoiceLocalDB");
+//            }
+//            finish();
+        } else {
+            for (int i = 0; i < listViewItems.getCount(); i++) {
+                if (!resultExists(db, "itemsToInvoiceTmp", "Наименование", itemsList.get(i))) {
+                    listViewItems.setItemChecked(i, false);
+                }
             }
         }
     }

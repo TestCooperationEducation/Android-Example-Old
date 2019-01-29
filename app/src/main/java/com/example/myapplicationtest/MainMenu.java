@@ -90,11 +90,6 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         six = false;
         seven = false;
 
-//        Intent intent = getIntent();
-//        String agentName = intent.getStringExtra(Login.EXTRA_AGENTNAME);
-//        TextView textView = findViewById(R.id.textViewAgent);
-//        textView.setText(agentName);
-
         sPrefDBName = getSharedPreferences(SAVED_DBName, Context.MODE_PRIVATE);
         sPrefDBUser = getSharedPreferences(SAVED_DBUser, Context.MODE_PRIVATE);
         sPrefDBPassword = getSharedPreferences(SAVED_DBPassword, Context.MODE_PRIVATE);
@@ -191,7 +186,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
             cursor.close();
             tmp = countt;
             Toast.makeText(getApplicationContext(), tmp.toString(), Toast.LENGTH_SHORT).show();
-            Log.d(LOG_TAG, "<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>" + countt);
+            Log.d(LOG_TAG, "<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>" + countt);
         }
     }
 
@@ -703,7 +698,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                             if (!resultExists(db, "payments","Автор", "Автор", "Рождественская Яна Андреевна")){
                                 ContentValues cv = new ContentValues();
                                 Log.d(LOG_TAG, "--- Insert in payments: ---");
-                                cv.put("serverDB_ID", serverDB_ID[i]);
+//                                cv.put("serverDB_ID", serverDB_ID[i]);
                                 cv.put("DateTimeDoc", dateTimeDoc[i]);
                                 cv.put("InvoiceNumber", invoiceNumber[i]);
                                 cv.put("сумма_внесения", paymentAmount[i]);
@@ -821,13 +816,14 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                     + "InvoiceSum real,"
                     + "Comment text" + ");");
 
-            db.execSQL("create table payments ("
-                    + "id integer primary key autoincrement,"
-                    + "serverDB_ID integer UNIQUE ON CONFLICT REPLACE,"
-                    + "DateTimeDoc text,"
-                    + "InvoiceNumber integer,"
-                    + "сумма_внесения real,"
-                    + "Автор text" + ");");
+            if (!tableExists(db, "payments")) {
+                db.execSQL("create table payments ("
+                        + "id integer primary key autoincrement,"
+                        + "DateTimeDoc text,"
+                        + "InvoiceNumber integer,"
+                        + "сумма_внесения real,"
+                        + "Автор text" + ");");
+            }
 
             if (!tableExists(db, "itemsToInvoiceTmp")) {
                 db.execSQL("create table itemsToInvoiceTmp ("

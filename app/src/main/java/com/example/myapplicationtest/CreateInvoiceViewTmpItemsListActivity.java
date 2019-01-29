@@ -2,10 +2,13 @@ package com.example.myapplicationtest;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
@@ -23,6 +26,7 @@ import com.google.gson.Gson;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.time.Instant;
 import java.time.ZoneId;
@@ -36,14 +40,16 @@ import java.util.Map;
 public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity implements View.OnClickListener {
 
     List<DataItemsListTmp> listTmp = new ArrayList<>();
-    SharedPreferences sPrefDBName, sPrefDBPassword, sPrefDBUser, sPrefSalesPartner,
-            sPrefAccountingType, sPrefAgent, sPrefAreaDefault, sPrefArea, sPrefAccountingTypeDefault;
+    SharedPreferences sPrefDBName, sPrefDBPassword, sPrefDBUser, sPrefSalesPartner, sPrefInvoiceNumberTmp,
+            sPrefAccountingType, sPrefAgent, sPrefAreaDefault, sPrefArea, sPrefAccountingTypeDefault, sPrefItemsListSaveStatus;
     final String LOG_TAG = "myLogs";
     DBHelper dbHelper;
     SQLiteDatabase db;
+    SharedPreferences.Editor e;
     String requestUrlFinalPrice = "https://caiman.ru.com/php/price.php", dbName, dbUser, dbPassword,
             requestUrlSaveRecord = "https://caiman.ru.com/php/saveNewInvoice_new.php",
-            salesPartner, accountingType, agent, areaDefault, area, accountingTypeDefault;
+            requestUrlMakePayment = "https://caiman.ru.com/php/makePayment.php",
+            salesPartner, accountingType, agent, areaDefault, area, accountingTypeDefault, statusSave;
     TextView textViewSalesPartner, textViewInvoiceTotal, textViewAgent, textViewAccountingType;
     final String SAVED_DBName = "dbName";
     final String SAVED_DBUser = "dbUser";
@@ -54,12 +60,18 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
     final String SAVED_AREADEFAULT = "areaDefault";
     final String SAVED_AREA = "Area";
     final String SAVED_ACCOUNTINGTYPEDEFAULT = "AccountingTypeDefault";
+    final String SAVED_INVOICENUMBERTMP = "invoiceNumberTmp";
+    final String SAVED_ItemsListSaveStatus = "itemsListSaveStatus";
     Double invoiceSum = 0d;
     Button btnSaveInvoiceToLocalDB;
     Integer invoiceNumber, tmpCount;
     ArrayList<String> arrItems;
     ArrayList<Double> arrQuantity, arrExchange, arrReturn, arrSum, arrPriceChanged;
     List<DataInvoice> dataArray;
+    List<DataPay> dataPay;
+    ArrayList<Integer> invoiceNumbersList;
+    String[] dateTimeDocServerFromRequest, invoiceNumberFromRequest;
+    public static final String EXTRA_INVOICESUM = "com.example.myapplicationtest.INVOICESUM";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,6 +88,7 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
         arrReturn = new ArrayList<>();
         arrPriceChanged = new ArrayList<>();
         dataArray = new ArrayList<>();
+        dataPay = new ArrayList<>();
 
         btnSaveInvoiceToLocalDB = findViewById(R.id.buttonSaveInvoiceToLocalDB);
         btnSaveInvoiceToLocalDB.setOnClickListener(this);
@@ -94,6 +107,10 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
         sPrefAreaDefault = getSharedPreferences(SAVED_AREADEFAULT, Context.MODE_PRIVATE);
         sPrefArea= getSharedPreferences(SAVED_AREA, Context.MODE_PRIVATE);
         sPrefAccountingTypeDefault = getSharedPreferences(SAVED_ACCOUNTINGTYPEDEFAULT, Context.MODE_PRIVATE);
+        sPrefInvoiceNumberTmp = getSharedPreferences(SAVED_INVOICENUMBERTMP, Context.MODE_PRIVATE);
+        sPrefItemsListSaveStatus = getSharedPreferences(SAVED_ItemsListSaveStatus, Context.MODE_PRIVATE);
+
+        sPrefInvoiceNumberTmp.edit().clear().apply();
 
         dbName = sPrefDBName.getString(SAVED_DBName, "");
         dbUser = sPrefDBUser.getString(SAVED_DBUser, "");
@@ -126,17 +143,17 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
     }
 
     private void setInitialData() {
-        Integer count;
-        String sql = "SELECT COUNT(*) FROM itemsToInvoiceTmp ";
-        Cursor cursor = db.rawQuery(sql, null);
-        if (!cursor.moveToFirst()) {
-            cursor.close();
-            count = 0;
-        } else {
-            count = cursor.getInt(0);
-        }
-        cursor.close();
-        tmpCount = count;
+//        Integer count;
+//        String sql = "SELECT COUNT(*) FROM itemsToInvoiceTmp ";
+//        Cursor cursor = db.rawQuery(sql, null);
+//        if (!cursor.moveToFirst()) {
+//            cursor.close();
+//            count = 0;
+//        } else {
+//            count = cursor.getInt(0);
+//        }
+//        cursor.close();
+//        tmpCount = count;
 
         Cursor c = db.query("itemsToInvoiceTmp", null, null, null, null, null, null);
         if (c.moveToFirst()) {
@@ -171,7 +188,7 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
 
         if (tableExists(db, "invoiceLocalDB")){
             if (resultExists(db, "invoiceLocalDB", "invoiceNumber")){
-                sql = "SELECT DISTINCT invoiceNumber FROM invoiceLocalDB ORDER BY id DESC LIMIT 1";
+                String sql = "SELECT DISTINCT invoiceNumber FROM invoiceLocalDB ORDER BY id DESC LIMIT 1";
                 c = db.rawQuery(sql, null);
                 if (c.moveToFirst()) {
                     int iNumber = c.getColumnIndex("invoiceNumber");
@@ -196,73 +213,84 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
         ZoneId zoneId = ZoneId.of( "Asia/Sakhalin" );
         ZonedDateTime zdt = ZonedDateTime.ofInstant( instant , zoneId );
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern( "yyyy/MM/dd HH:mm:ss" );
-//        String output = instant.toString();
         String output = zdt.format( formatter );
 
-//        Toast.makeText(getApplicationContext(), "<<< Идёт процесс добавления данных >>>", Toast.LENGTH_SHORT).show();
-        for (int i = 0; i < arrItems.size(); i++){
-            cv.put("invoiceNumber", invoiceNumber);
-            cv.put("agentID", areaDefault);
-            cv.put("areaSP", area);
-            cv.put("salesPartnerName", salesPartner);
-            cv.put("accountingTypeDoc", accountingType);
-            cv.put("accountingTypeSP", accountingTypeDefault);
-            cv.put("itemName", arrItems.get(i));
-            cv.put("quantity", arrQuantity.get(i));
-            cv.put("price", arrPriceChanged.get(i));
-            cv.put("totalCost", arrSum.get(i));
-            cv.put("exchangeQuantity", arrExchange.get(i));
-            cv.put("returnQuantity", arrReturn.get(i));
-            cv.put("dateTimeDocLocal", output);
-            cv.put("invoiceSum", invoiceSum);
-            long rowID = db.insert("invoiceLocalDB", null, cv);
-            Log.d(LOG_TAG, "row inserted, ID = " + rowID);
-            DataInvoice dt = new DataInvoice(salesPartner, accountingType, accountingTypeDefault,
-                    arrItems.get(i), output, invoiceNumber, Integer.parseInt(areaDefault), Integer.parseInt(area), arrPriceChanged.get(i),
-                    arrQuantity.get(i), arrSum.get(i), arrExchange.get(i), arrReturn.get(i), invoiceSum);
-            dataArray.add(dt);
+        if (!valueExists(db, "invoiceLocalDB", "invoiceNumber", "invoiceNumber", invoiceNumber.toString())){
+            for (int i = 0; i < arrItems.size(); i++){
+                cv.put("invoiceNumber", invoiceNumber);
+                cv.put("agentID", areaDefault);
+                cv.put("areaSP", area);
+                cv.put("salesPartnerName", salesPartner);
+                cv.put("accountingTypeDoc", accountingType);
+                cv.put("accountingTypeSP", accountingTypeDefault);
+                cv.put("itemName", arrItems.get(i));
+                cv.put("quantity", arrQuantity.get(i));
+                cv.put("price", arrPriceChanged.get(i));
+                cv.put("totalCost", arrSum.get(i));
+                cv.put("exchangeQuantity", arrExchange.get(i));
+                cv.put("returnQuantity", arrReturn.get(i));
+                cv.put("dateTimeDocLocal", output);
+                cv.put("invoiceSum", invoiceSum);
+                long rowID = db.insert("invoiceLocalDB", null, cv);
+                Log.d(LOG_TAG, "row inserted, ID = " + rowID);
+                DataInvoice dt = new DataInvoice(salesPartner, accountingType, accountingTypeDefault,
+                        arrItems.get(i), output, invoiceNumber, Integer.parseInt(areaDefault), Integer.parseInt(area), arrPriceChanged.get(i),
+                        arrQuantity.get(i), arrSum.get(i), arrExchange.get(i), arrReturn.get(i), invoiceSum);
+                dataArray.add(dt);
+            }
+            e = sPrefItemsListSaveStatus.edit();
+            e.putString(SAVED_ItemsListSaveStatus, "saved");
+            e.apply();
+
+            sendToServer();
+        } else {
+            Toast.makeText(getApplicationContext(), "<<< Уже сохранено >>>", Toast.LENGTH_SHORT).show();
         }
-        sendToServer();
-        Toast.makeText(getApplicationContext(), "<<< Завершено >>>", Toast.LENGTH_SHORT).show();
     }
 
     private void sendToServer(){
         Gson gson = new Gson();
         final String newDataArray = gson.toJson(dataArray);
-
         StringRequest request = new StringRequest(Request.Method.POST,
                 requestUrlSaveRecord, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
                 try{
                     JSONArray jsonArray = new JSONArray(response);
-//                    Integer[] invoiceNumber = new Integer[jsonArray.length()];
-//                    String[] dateTimeDoc = new String[jsonArray.length()];
-//                    if (jsonArray.length() == 1){
-//                        for (int i = 0; i < jsonArray.length(); i++) {
-//                            JSONObject obj = jsonArray.getJSONObject(i);
-//                            dateTimeDoc[i] = obj.getString("dateTimeDoc");
-//                            invoiceNumber[i] = obj.getInt("invoiceNumber");
-//                        }
-//                        invoiceNumberServerTmp.add(String.valueOf(invoiceNumber[0]));
-//                        dateTimeDocServer.add(dateTimeDoc[0]);
-//                    }else{
-//                        Toast.makeText(getApplicationContext(), "Ошибка загрузки. Проверьте Интернет или Учётку", Toast.LENGTH_SHORT).show();
-//                    }
+                    invoiceNumberFromRequest = new String[jsonArray.length()];
+                    dateTimeDocServerFromRequest = new String[jsonArray.length()];
+
+                    ContentValues cv = new ContentValues();
+                    Log.d(LOG_TAG, "--- Insert in syncedInvoice: ---");
+
+                    if (jsonArray.length() > 0){
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            JSONObject obj = jsonArray.getJSONObject(i);
+                            invoiceNumberFromRequest[i] = obj.getString("invoiceNumber");
+                            dateTimeDocServerFromRequest[i] = obj.getString("dateTimeDoc");
+                        }
+                        cv.put("invoiceNumber", Integer.parseInt(invoiceNumberFromRequest[0]));
+                        cv.put("agentID", areaDefault);
+                        long rowID = db.insert("syncedInvoice", null, cv);
+                        Log.d(LOG_TAG, "row inserted, ID = " + rowID);
+                        paymentPrompt();
+                    }else{
+                        Toast.makeText(getApplicationContext(), "Ошибка загрузки. Проверьте Интернет или Учётку", Toast.LENGTH_SHORT).show();
+                    }
                 }
                 catch (JSONException e1) {
                     e1.printStackTrace();
                 }
-
                 Log.d("response", "result: " + response);
 //                    invoiceNumberServerTmp.add(response);
 //                Toast.makeText(getApplicationContext(), "Номер накладной: " + invoiceNumberServerTmp.get(0), Toast.LENGTH_SHORT).show();
 //                dataArray.clear();
-//                if (invoiceNumberServerTmp.get(0).matches("-?\\d+")) {
-//                    Toast.makeText(getApplicationContext(), "Документ сохранён", Toast.LENGTH_SHORT).show();
-//                    statusSave = "Сохранено";
-////                        textViewStatusSave.setText(statusSave);
-//                }
+                if (String.valueOf(invoiceNumberFromRequest[invoiceNumberFromRequest.length - 1]).matches("-?\\d+")) {
+                    Toast.makeText(getApplicationContext(), "Документ сохранён", Toast.LENGTH_SHORT).show();
+                    statusSave = "Сохранено";
+
+//                        textViewStatusSave.setText(statusSave);
+                }
             }
         }, new Response.ErrorListener(){
             @Override
@@ -282,6 +310,147 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
             }
         };
         VolleySingleton.getInstance(this).getRequestQueue().add(request);
+    }
+
+    private void checkSave(){
+        String sql = "SELECT DISTINCT invoiceNumber FROM invoiceLocalDB ORDER BY id ";
+        Cursor c = db.rawQuery(sql, null);
+        if (c.moveToFirst()) {
+            int invoiceNumberTmp = c.getColumnIndex("invoiceNumber");
+            do {
+                invoiceNumbersList.add(c.getInt(invoiceNumberTmp));
+            } while (c.moveToNext());
+        }
+        c.close();
+
+        if (invoiceNumbersList.size() == invoiceNumberFromRequest.length){
+            Log.d(LOG_TAG, "Равны: " + String.valueOf(invoiceNumberFromRequest.length));
+            Toast.makeText(getApplicationContext(), "Равны: " + String.valueOf(invoiceNumberFromRequest.length), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void paymentPrompt(){
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Внимание")
+                .setMessage("Внести Платёж?")
+                .setCancelable(false)
+                .setNegativeButton("Да",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                checkPaymentSum();
+                                dialog.cancel();
+                            }
+                        })
+                .setPositiveButton("Нет",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialog.cancel();
+                            }
+                        });
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+    private void checkPaymentSum(){
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Проверьте сумму")
+                .setMessage("Внести всю сумму?")
+                .setCancelable(false)
+                .setNegativeButton("Да",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                makePayment();
+                                dialog.cancel();
+                            }
+                        })
+                .setPositiveButton("Нет",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                makePaymentPartial();
+                                dialog.cancel();
+                            }
+                        });
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+    private void makePayment(){
+        Instant instant = Instant.now();
+        ZoneId zoneId = ZoneId.of( "Asia/Sakhalin" );
+        ZonedDateTime zdt = ZonedDateTime.ofInstant( instant , zoneId );
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern( "yyyy/MM/dd HH:mm:ss" );
+//        String output = instant.toString();
+        String output = zdt.format( formatter );
+
+        ContentValues cv = new ContentValues();
+        Log.d(LOG_TAG, "--- Insert in payments: ---");
+        cv.put("DateTimeDoc", output);
+        cv.put("InvoiceNumber", invoiceNumber);
+        cv.put("сумма_внесения", invoiceSum);
+        cv.put("Автор", agent);
+        long rowID = db.insert("payments", null, cv);
+        Log.d(LOG_TAG, "row inserted, ID = " + rowID);
+
+        DataPay dt = new DataPay(invoiceSum);
+        dataPay.add(dt);
+
+        Gson gson = new Gson();
+        final String newDataArray = gson.toJson(dataPay);
+
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        StringRequest request = new StringRequest(Request.Method.POST,
+                requestUrlMakePayment, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                Log.d("response", "result: " + response);
+                dataPay.clear();
+                if (response.equals("Бабло внесено")) {
+                    Toast.makeText(getApplicationContext(), response, Toast.LENGTH_SHORT).show();
+                    builder.setTitle("Успешно")
+                            .setMessage("Деньги внесены")
+                            .setCancelable(false)
+                            .setPositiveButton("Назад",
+                                    new DialogInterface.OnClickListener() {
+                                        public void onClick(DialogInterface dialog, int id) {
+                                            finish();
+                                            dialog.cancel();
+                                        }
+                                    });
+                    AlertDialog alert = builder.create();
+                    alert.show();
+                }
+            }
+        }, new Response.ErrorListener(){
+            @Override
+            public void onErrorResponse(VolleyError error){
+                Toast.makeText(getApplicationContext(), "Сообщите об этой ошибке. Код 002", Toast.LENGTH_SHORT).show();
+                Log.e("TAG", "Error " + error.getMessage());
+            }
+        }){
+            @Override
+            protected Map<String, String> getParams(){
+                Map<String, String> parameters = new HashMap<>();
+                parameters.put("dbName", dbName);
+                parameters.put("dbUser", dbUser);
+                parameters.put("dbPassword", dbPassword);
+                parameters.put("invoiceNumber", invoiceNumber.toString());
+                parameters.put("agent", agent);
+                parameters.put("paymentAmount", newDataArray);
+                return parameters;
+            }
+        };
+        VolleySingleton.getInstance(this).getRequestQueue().add(request);
+    }
+
+    private void makePaymentPartial(){
+        e = sPrefInvoiceNumberTmp.edit();
+        e.putString(SAVED_INVOICENUMBERTMP, invoiceNumber.toString());
+        e.apply();
+
+        Intent intent = new Intent(this, MakePaymentPartialActivity.class);
+        intent.putExtra(EXTRA_INVOICESUM, invoiceSum.toString());
+        startActivity(intent);
     }
 
     class DBHelper extends SQLiteOpenHelper {
@@ -325,6 +494,23 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
         }
         String sql = "SELECT COUNT(?) FROM " + tableName;
         Cursor cursor = db.rawQuery(sql, new String[]{selectField});
+        if (!cursor.moveToFirst())
+        {
+            cursor.close();
+            return false;
+        }
+        int count = cursor.getInt(0);
+        cursor.close();
+        return count > 0;
+    }
+
+    boolean valueExists(SQLiteDatabase db, String tableName, String selectField, String fieldName, String value){
+        if (tableName == null || db == null || !db.isOpen())
+        {
+            return false;
+        }
+        String sql = "SELECT COUNT(?) FROM " + tableName + " WHERE " + fieldName + " LIKE " + "?";
+        Cursor cursor = db.rawQuery(sql, new String[]{selectField, value});
         if (!cursor.moveToFirst())
         {
             cursor.close();

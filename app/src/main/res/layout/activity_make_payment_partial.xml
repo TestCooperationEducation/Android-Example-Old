@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MakePaymentPartialActivity">
+
+    <TextView
+        android:id="@+id/textViewInvoiceSumLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
+        android:layout_marginEnd="8dp"
+        android:text="@string/textViewInvoiceSum"
+        android:textSize="19sp"
+        app:layout_constraintEnd_toStartOf="@+id/textViewInvoiceSum"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textViewInvoiceSum"
+        android:layout_width="150dp"
+        android:layout_height="40dp"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textViewPaymentSumLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:text="@string/editTextPaymentSum"
+        android:textSize="24sp"
+        app:layout_constraintEnd_toStartOf="@+id/editTextPaymentSum"
+        app:layout_constraintTop_toBottomOf="@+id/textViewInvoiceSumLabel" />
+
+    <EditText
+        android:id="@+id/editTextPaymentSum"
+        android:layout_width="150dp"
+        android:layout_height="40dp"
+        android:layout_marginTop="8dp"
+        android:hint="@string/btnMakePaymentDebtor"
+        android:inputType="numberDecimal"
+        android:textSize="19sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewInvoiceSumLabel" />
+
+    <Button
+        android:id="@+id/buttonMakePaymentPartial"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:text="@string/btnMakePaymentDebtor"
+        android:textSize="36sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewPaymentSumLabel" />
+</android.support.constraint.ConstraintLayout>
