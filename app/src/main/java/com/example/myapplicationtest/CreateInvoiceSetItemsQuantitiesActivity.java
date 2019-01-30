@@ -114,6 +114,8 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
             if (connStatus.equals("success")) {
                 getPriceFromServerDB();
             } else {
+                finalPrice = 0d;
+                priceChanged = finalPrice;
                 getPriceFromLocalDB();
             }
             if (resultExists(db, "itemsToInvoiceTmp", "Наименование", item)) {
@@ -242,7 +244,10 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
         }, new Response.ErrorListener(){
             @Override
             public void onErrorResponse(VolleyError error){
-                Toast.makeText(getApplicationContext(), "Response Error, fuck!", Toast.LENGTH_SHORT).show();
+                finalPrice = 0d;
+                priceChanged = finalPrice;
+                onConnectionFailed();
+                Toast.makeText(getApplicationContext(), "<<< Нет соединения >>>", Toast.LENGTH_SHORT).show();
                 Log.e("TAG", "Error " + error.getMessage());
             }
         }){
@@ -686,5 +691,24 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
         });
 
         quitDialog.show();
+    }
+
+    private void onConnectionFailed(){
+//        e = sPrefConnectionStatus.edit();
+//        e.putString(SAVED_CONNSTATUS, "failed");
+//        e.apply();
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Нет ответа от Сервера")
+                .setMessage("Придется вписать цену вручную")
+                .setCancelable(false)
+                .setNegativeButton("Ok",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialog.cancel();
+                            }
+                        });
+        AlertDialog alert = builder.create();
+        alert.show();
     }
 }

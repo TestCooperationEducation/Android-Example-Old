@@ -602,7 +602,7 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
                     .setNegativeButton("Да, я хочу внести всю сумму",
                             new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int id) {
-                                    makePayment();
+//                                    makePayment();
 //                                dialog.cancel();
                                 }
                             });
@@ -617,7 +617,7 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
                     .setNegativeButton("Да, все равно внести",
                             new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int id) {
-                                    makePayment();
+//                                    makePayment();
 //                                dialog.cancel();
                                 }
                             });
@@ -626,52 +626,52 @@ public class CreateInvoiceMainActivity extends AppCompatActivity implements View
         }
     }
 
-    private void makePayment(){
-        DataPay dt = new DataPay(paymentAmount);
-        dataPay.add(dt);
-
-        Gson gson = new Gson();
-        final String newDataArray = gson.toJson(dataPay);
-
-        StringRequest request = new StringRequest(Request.Method.POST,
-                requestUrlMakePayment, new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                Log.d("response", "result: " + response);
-                dataPay.clear();
-                if (response.equals("Бабло внесено")) {
-                    Toast.makeText(getApplicationContext(), response, Toast.LENGTH_SHORT).show();
-                    if (paymentAmount == Double.parseDouble(textViewTotalSum.getText().toString())){
-                        textViewStatusPay.setText("Оплачено полностью");
-                        statusPay = "Оплачено";
-                    } else {
-                        textViewStatusPay.setText("Оплачено частично");
-                        statusPay = "Оплачено";
-                    }
-                    clearAll();
-                }
-            }
-        }, new Response.ErrorListener(){
-            @Override
-            public void onErrorResponse(VolleyError error){
-                Toast.makeText(getApplicationContext(), "Сообщите об этой ошибке. Код 002", Toast.LENGTH_SHORT).show();
-                Log.e("TAG", "Error " + error.getMessage());
-            }
-        }){
-            @Override
-            protected Map<String, String> getParams(){
-                Map<String, String> parameters = new HashMap<>();
-                parameters.put("dbName", dbName);
-                parameters.put("dbUser", dbUser);
-                parameters.put("dbPassword", dbPassword);
-                parameters.put("invoiceNumber", invoiceNumber);
-                parameters.put("author", author);
-                parameters.put("paymentAmount", newDataArray);
-                return parameters;
-            }
-        };
-        VolleySingleton.getInstance(this).getRequestQueue().add(request);
-    }
+//    private void makePayment(){
+//        DataPay dt = new DataPay(paymentAmount);
+//        dataPay.add(dt);
+//
+//        Gson gson = new Gson();
+//        final String newDataArray = gson.toJson(dataPay);
+//
+//        StringRequest request = new StringRequest(Request.Method.POST,
+//                requestUrlMakePayment, new Response.Listener<String>() {
+//            @Override
+//            public void onResponse(String response) {
+//                Log.d("response", "result: " + response);
+//                dataPay.clear();
+//                if (response.equals("Бабло внесено")) {
+//                    Toast.makeText(getApplicationContext(), response, Toast.LENGTH_SHORT).show();
+//                    if (paymentAmount == Double.parseDouble(textViewTotalSum.getText().toString())){
+//                        textViewStatusPay.setText("Оплачено полностью");
+//                        statusPay = "Оплачено";
+//                    } else {
+//                        textViewStatusPay.setText("Оплачено частично");
+//                        statusPay = "Оплачено";
+//                    }
+//                    clearAll();
+//                }
+//            }
+//        }, new Response.ErrorListener(){
+//            @Override
+//            public void onErrorResponse(VolleyError error){
+//                Toast.makeText(getApplicationContext(), "Сообщите об этой ошибке. Код 002", Toast.LENGTH_SHORT).show();
+//                Log.e("TAG", "Error " + error.getMessage());
+//            }
+//        }){
+//            @Override
+//            protected Map<String, String> getParams(){
+//                Map<String, String> parameters = new HashMap<>();
+//                parameters.put("dbName", dbName);
+//                parameters.put("dbUser", dbUser);
+//                parameters.put("dbPassword", dbPassword);
+//                parameters.put("invoiceNumber", invoiceNumber);
+//                parameters.put("author", author);
+//                parameters.put("paymentAmount", newDataArray);
+//                return parameters;
+//            }
+//        };
+//        VolleySingleton.getInstance(this).getRequestQueue().add(request);
+//    }
 
     private void clearAll(){
         while (arrTotal.size() > 0){

@@ -124,6 +124,8 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         db = dbHelper.getWritableDatabase();
 
 //        db.execSQL("DROP TABLE IF EXISTS invoiceLocalDB");
+//        db.execSQL("DROP TABLE IF EXISTS syncedInvoice");
+//        db.execSQL("DROP TABLE IF EXISTS syncedPayments");
     }
 
     @Override
@@ -142,10 +144,28 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                 manageSalesPartners();
                 break;
             case R.id.buttonUpdateLocalDB:
-                updateLocalDB();
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle("Обновление локальной базы данных")
+                        .setMessage("Все таблицы будут перезаписаны!")
+                        .setCancelable(true)
+                        .setNegativeButton("Да",
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        updateLocalDB();
+                                        dialog.cancel();
+                                    }
+                                })
+                        .setPositiveButton("Нет",
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        dialog.cancel();
+                                    }
+                                });
+                AlertDialog alert = builder.create();
+                alert.show();
                 break;
             case R.id.buttonClearLocalDB:
-                final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder = new AlertDialog.Builder(this);
                 builder.setTitle("Режим разработки")
                         .setMessage("Удалить к чертям всё?")
                         .setCancelable(true)
@@ -158,6 +178,12 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                                         if (tableExists(db, "syncedInvoice")){
                                             clearTable("syncedInvoice");
                                         }
+                                        if (tableExists(db, "payments")){
+                                            clearTable("payments");
+                                        }
+                                        if (tableExists(db, "syncedPayments")){
+                                            clearTable("syncedPayments");
+                                        }
                                         dialog.cancel();
                                     }
                                 })
@@ -167,7 +193,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                                         dialog.cancel();
                                     }
                                 });
-                AlertDialog alert = builder.create();
+                alert = builder.create();
                 alert.show();
                 break;
             case R.id.buttonReports:
@@ -199,9 +225,9 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
     }
 
     private void testCheck(){
+        String tmp = "No local invoice table";
         if (tableExists(db, "invoiceLocalDB")){
-//            Toast.makeText(getApplicationContext(), "Table exists", Toast.LENGTH_SHORT).show();
-            Integer countt, tmp;
+            Integer countt;
             String sql = "SELECT COUNT(*) FROM invoiceLocalDB ";
             Cursor cursor = db.rawQuery(sql, null);
             if (!cursor.moveToFirst()) {
@@ -211,10 +237,89 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                 countt = cursor.getInt(0);
             }
             cursor.close();
-            tmp = countt;
-            Toast.makeText(getApplicationContext(), tmp.toString(), Toast.LENGTH_SHORT).show();
-            Log.d(LOG_TAG, "<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>" + countt);
+            tmp = countt.toString();
+            Log.d(LOG_TAG, "<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>" + countt);
         }
+
+        String tmp2 = "No tmp list of items table";
+        if (tableExists(db, "itemsToInvoiceTmp")){
+            Integer countt;
+            String sql = "SELECT COUNT(*) FROM itemsToInvoiceTmp ";
+            Cursor cursor = db.rawQuery(sql, null);
+            if (!cursor.moveToFirst()) {
+                cursor.close();
+                countt = 0;
+            } else {
+                countt = cursor.getInt(0);
+            }
+            cursor.close();
+            tmp2 = countt.toString();
+            Log.d(LOG_TAG, "<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>" + countt);
+        }
+
+        String tmp3 = "No synced table";
+        if (tableExists(db, "syncedInvoice")){
+            Integer countt;
+            String sql = "SELECT COUNT(*) FROM syncedInvoice ";
+            Cursor cursor = db.rawQuery(sql, null);
+            if (!cursor.moveToFirst()) {
+                cursor.close();
+                countt = 0;
+            } else {
+                countt = cursor.getInt(0);
+            }
+            cursor.close();
+            tmp3 = countt.toString();
+            Log.d(LOG_TAG, "<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>" + countt);
+        }
+
+        String tmp4 = "No payments table";
+        if (tableExists(db, "payments")){
+            Integer countt;
+            String sql = "SELECT COUNT(*) FROM payments ";
+            Cursor cursor = db.rawQuery(sql, null);
+            if (!cursor.moveToFirst()) {
+                cursor.close();
+                countt = 0;
+            } else {
+                countt = cursor.getInt(0);
+            }
+            cursor.close();
+            tmp4 = countt.toString();
+            Log.d(LOG_TAG, "<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>" + countt);
+        }
+
+        String tmp5 = "No syncedPayments table";
+        if (tableExists(db, "syncedPayments")){
+            Integer countt;
+            String sql = "SELECT COUNT(*) FROM syncedPayments ";
+            Cursor cursor = db.rawQuery(sql, null);
+            if (!cursor.moveToFirst()) {
+                cursor.close();
+                countt = 0;
+            } else {
+                countt = cursor.getInt(0);
+            }
+            cursor.close();
+            tmp5 = countt.toString();
+            Log.d(LOG_TAG, "<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>" + countt);
+        }
+
+        String sql = "SELECT invoiceNumber FROM syncedInvoice ";
+        Cursor c = db.rawQuery(sql, null);
+        String tmpIN = "";
+        if (c.moveToFirst()) {
+            int iNumber = c.getColumnIndex("invoiceNumber");
+            do {
+                tmpIN = tmpIN + "---" + c.getString(iNumber) ;
+            } while (c.moveToNext());
+        } else {
+            tmpIN = "No";
+        }
+        c.close();
+
+        Toast.makeText(getApplicationContext(), tmp + "-----" + tmp2 + "-----" + tmp3 + "-----"
+                + tmp4 + "-----" + tmp5 + "-----" + tmpIN, Toast.LENGTH_SHORT).show();
     }
 
     private void updateLocalDB(){
@@ -227,7 +332,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                 db.execSQL("DROP TABLE IF EXISTS itemsWithDiscount");
                 db.execSQL("DROP TABLE IF EXISTS discount");
                 db.execSQL("DROP TABLE IF EXISTS invoice");
-                db.execSQL("DROP TABLE IF EXISTS payments");
+                db.execSQL("DROP TABLE IF EXISTS paymentsServer");
                 dropped = true;
             } else {
                 Toast.makeText(getApplicationContext(), "<<< Локальная База >>>" + connStatus, Toast.LENGTH_SHORT).show();
@@ -369,7 +474,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                             author[i] = obj.getString("Автор");
                             serverDB_ID[i] = obj.getInt("ID");
 
-                            if (!resultExists(db, "salesPartners","Автор", "Автор", "admin")){
+//                            if (!resultExists(db, "salesPartners","Автор", "Автор", "admin")){
                                 ContentValues cv = new ContentValues();
                                 Log.d(LOG_TAG, "--- Insert in salesPartners: ---");
                                 cv.put("serverDB_ID", serverDB_ID[i]);
@@ -380,9 +485,9 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                                 cv.put("Автор", author[i]);
                                 long rowID = db.insert("salesPartners", null, cv);
                                 Log.d(LOG_TAG, "row inserted, ID = " + rowID);
-                            } else {
-                                Toast.makeText(getApplicationContext(), "Ошибка: MainMenu контрагенты loadDB", Toast.LENGTH_SHORT).show();
-                            }
+//                            } else {
+//                                Toast.makeText(getApplicationContext(), "Ошибка: MainMenu контрагенты loadDB", Toast.LENGTH_SHORT).show();
+//                            }
                         }
 //                        Toast.makeText(getApplicationContext(), "Контрагенты загружены", Toast.LENGTH_SHORT).show();
                         two = true;
@@ -432,7 +537,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                             itemName[i] = obj.getString("Наименование");
                             itemPrice[i] = obj.getInt("Цена");
 
-                            if (!resultExists(db, "items","Артикул", "Артикул", "1")){
+//                            if (!resultExists(db, "items","Артикул", "Артикул", "1")){
                                 ContentValues cv = new ContentValues();
                                 Log.d(LOG_TAG, "--- Insert in items: ---");
                                 cv.put("Артикул", itemNumber[i]);
@@ -440,9 +545,9 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                                 cv.put("Цена", itemPrice[i]);
                                 long rowID = db.insert("items", null, cv);
                                 Log.d(LOG_TAG, "row inserted, ID = " + rowID);
-                            } else {
-                                Toast.makeText(getApplicationContext(), "Ошибка: MainMenu items loadDB", Toast.LENGTH_SHORT).show();
-                            }
+//                            } else {
+//                                Toast.makeText(getApplicationContext(), "Ошибка: MainMenu items loadDB", Toast.LENGTH_SHORT).show();
+//                            }
                         }
 //                        Toast.makeText(getApplicationContext(), "Номенклатура загружена", Toast.LENGTH_SHORT).show();
                         three = true;
@@ -497,7 +602,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                             spID[i] = obj.getInt("ID_контрагента");
                             author[i] = obj.getString("Автор");
 
-                            if (!resultExists(db, "itemsWithDiscount","Автор", "Автор", "admin")){
+//                            if (!resultExists(db, "itemsWithDiscount","Автор", "Автор", "admin")){
                                 ContentValues cv = new ContentValues();
                                 Log.d(LOG_TAG, "--- Insert in itemsWithDiscount: ---");
                                 cv.put("serverDB_ID", serverDB_ID[i]);
@@ -507,9 +612,9 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                                 cv.put("Автор", author[i]);
                                 long rowID = db.insert("itemsWithDiscount", null, cv);
                                 Log.d(LOG_TAG, "row inserted, ID = " + rowID);
-                            } else {
-                                Toast.makeText(getApplicationContext(), "Ошибка: MainMenu itemsWithDiscount loadDB", Toast.LENGTH_SHORT).show();
-                            }
+//                            } else {
+//                                Toast.makeText(getApplicationContext(), "Ошибка: MainMenu itemsWithDiscount loadDB", Toast.LENGTH_SHORT).show();
+//                            }
                         }
 //                        Toast.makeText(getApplicationContext(), "НоменклатураСоСкидкой загружена", Toast.LENGTH_SHORT).show();
                         four = true;
@@ -562,7 +667,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                             discount[i] = obj.getInt("Скидка");
                             author[i] = obj.getString("Автор");
 
-                            if (!resultExists(db, "discount","Автор", "Автор", "admin")){
+//                            if (!resultExists(db, "discount","Автор", "Автор", "admin")){
                                 ContentValues cv = new ContentValues();
                                 Log.d(LOG_TAG, "--- Insert in discount: ---");
                                 cv.put("serverDB_ID", serverDB_ID[i]);
@@ -571,9 +676,9 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                                 cv.put("Автор", author[i]);
                                 long rowID = db.insert("discount", null, cv);
                                 Log.d(LOG_TAG, "row inserted, ID = " + rowID);
-                            } else {
-                                Toast.makeText(getApplicationContext(), "Ошибка: MainMenu discount loadDB", Toast.LENGTH_SHORT).show();
-                            }
+//                            } else {
+//                                Toast.makeText(getApplicationContext(), "Ошибка: MainMenu discount loadDB", Toast.LENGTH_SHORT).show();
+//                            }
                         }
 //                        Toast.makeText(getApplicationContext(), "Скидки загружены", Toast.LENGTH_SHORT).show();
                         five = true;
@@ -646,7 +751,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                             invoiceSum[i] = obj.getDouble("InvoiceSum");
                             comment[i] = obj.getString("Comment");
 
-                            if (!resultExists(db, "invoice","ReturnQuantity", "ReturnQuantity", "0")){
+//                            if (!resultExists(db, "invoice","ReturnQuantity", "ReturnQuantity", "0")){
                                 ContentValues cv = new ContentValues();
                                 Log.d(LOG_TAG, "--- Insert in invoice: ---");
                                 cv.put("serverDB_ID", serverDB_ID[i]);
@@ -665,9 +770,9 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                                 cv.put("Comment", comment[i]);
                                 long rowID = db.insert("invoice", null, cv);
                                 Log.d(LOG_TAG, "row inserted, ID = " + rowID);
-                            } else {
-                                Toast.makeText(getApplicationContext(), "Ошибка: MainMenu invoice loadDB", Toast.LENGTH_SHORT).show();
-                            }
+//                            } else {
+//                                Toast.makeText(getApplicationContext(), "Ошибка: MainMenu invoice loadDB", Toast.LENGTH_SHORT).show();
+//                            }
                         }
 //                        Toast.makeText(getApplicationContext(), "Накладные загружены", Toast.LENGTH_SHORT).show();
                         six = true;
@@ -723,19 +828,19 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                             paymentAmount[i] = obj.getDouble("сумма_внесения");
                             author[i] = obj.getString("автор");
 
-                            if (!resultExists(db, "payments","Автор", "Автор", "Рождественская Яна Андреевна")){
+//                            if (!resultExists(db, "paymentsServer","Автор", "Автор", "Рождественская Яна Андреевна")){
                                 ContentValues cv = new ContentValues();
-                                Log.d(LOG_TAG, "--- Insert in payments: ---");
+                                Log.d(LOG_TAG, "--- Insert in paymentsServer: ---");
 //                                cv.put("serverDB_ID", serverDB_ID[i]);
                                 cv.put("DateTimeDoc", dateTimeDoc[i]);
                                 cv.put("InvoiceNumber", invoiceNumber[i]);
                                 cv.put("сумма_внесения", paymentAmount[i]);
                                 cv.put("Автор", author[i]);
-                                long rowID = db.insert("payments", null, cv);
+                                long rowID = db.insert("paymentsServer", null, cv);
                                 Log.d(LOG_TAG, "row inserted, ID = " + rowID);
-                            } else {
-                                Toast.makeText(getApplicationContext(), "Ошибка: MainMenu платежи loadDB", Toast.LENGTH_SHORT).show();
-                            }
+//                            } else {
+//                                Toast.makeText(getApplicationContext(), "Ошибка: MainMenu платежи loadDB", Toast.LENGTH_SHORT).show();
+//                            }
                         }
 //                        Toast.makeText(getApplicationContext(), "Платежи загружены", Toast.LENGTH_SHORT).show();
                         seven = true;
@@ -845,6 +950,13 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                     + "InvoiceSum real,"
                     + "Comment text" + ");");
 
+            db.execSQL("create table paymentsServer ("
+                    + "id integer primary key autoincrement,"
+                    + "DateTimeDoc text,"
+                    + "InvoiceNumber integer,"
+                    + "сумма_внесения real,"
+                    + "Автор text" + ");");
+
             if (!tableExists(db, "payments")) {
                 db.execSQL("create table payments ("
                         + "id integer primary key autoincrement,"
@@ -891,8 +1003,19 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                 db.execSQL("create table syncedInvoice ("
                         + "id integer primary key autoincrement,"
                         + "invoiceNumber integer,"
+                        + "dateTimeDoc text,"
                         + "agentID integer" + ");");
             }
+
+            if (!tableExists(db, "syncedPayments")) {
+                db.execSQL("create table syncedPayments ("
+                        + "id integer primary key autoincrement,"
+                        + "paymentID integer UNIQUE,"
+                        + "invoiceNumber integer,"
+                        + "dateTimeDoc text,"
+                        + "agentID integer" + ");");
+            }
+
         }
 
         @Override

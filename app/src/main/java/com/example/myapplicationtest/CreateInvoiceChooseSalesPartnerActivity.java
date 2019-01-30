@@ -313,7 +313,7 @@ public class CreateInvoiceChooseSalesPartnerActivity extends AppCompatActivity i
     private void onLoadActivity(){
         String spTmp = "";
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        if (tableExists(db, "itemsToInvoiceTmp")){
+        if (resultExists(db, "itemsToInvoiceTmp", "salesPartner")){
             Log.d(LOG_TAG, "--- Rows in itemsToInvoiceTmp: ---");
             Cursor c = db.query("itemsToInvoiceTmp", null, null, null, null, null, null);
             if (c.moveToFirst()) {
@@ -363,13 +363,13 @@ public class CreateInvoiceChooseSalesPartnerActivity extends AppCompatActivity i
         return count > 0;
     }
 
-    boolean resultExists(SQLiteDatabase db, String tableName, String fieldName, String fieldValue){
+    boolean resultExists(SQLiteDatabase db, String tableName, String selectField){
         if (tableName == null || db == null || !db.isOpen())
         {
             return false;
         }
-        String sql = "SELECT COUNT(*) FROM " + tableName + " WHERE " + fieldName + " LIKE ?";
-        Cursor cursor = db.rawQuery(sql, new String[]{fieldValue});
+        String sql = "SELECT COUNT(?) FROM " + tableName;
+        Cursor cursor = db.rawQuery(sql, new String[]{selectField});
         if (!cursor.moveToFirst())
         {
             cursor.close();

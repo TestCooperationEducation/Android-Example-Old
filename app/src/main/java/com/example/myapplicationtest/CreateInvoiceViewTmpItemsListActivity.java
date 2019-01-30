@@ -49,7 +49,8 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
     String requestUrlFinalPrice = "https://caiman.ru.com/php/price.php", dbName, dbUser, dbPassword,
             requestUrlSaveRecord = "https://caiman.ru.com/php/saveNewInvoice_new.php",
             requestUrlMakePayment = "https://caiman.ru.com/php/makePayment.php",
-            salesPartner, accountingType, agent, areaDefault, area, accountingTypeDefault, statusSave;
+            salesPartner, accountingType, agent, areaDefault, area, accountingTypeDefault, statusSave,
+            tmpStatus = "";
     TextView textViewSalesPartner, textViewInvoiceTotal, textViewAgent, textViewAccountingType;
     final String SAVED_DBName = "dbName";
     final String SAVED_DBUser = "dbUser";
@@ -70,7 +71,7 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
     List<DataInvoice> dataArray;
     List<DataPay> dataPay;
     ArrayList<Integer> invoiceNumbersList;
-    String[] dateTimeDocServerFromRequest, invoiceNumberFromRequest;
+    String[] dateTimeDocServerFromRequest, invoiceNumberFromRequest, paymentIDFromRequest;
     public static final String EXTRA_INVOICESUM = "com.example.myapplicationtest.INVOICESUM";
 
     @Override
@@ -275,9 +276,12 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
                         }
                         cv.put("invoiceNumber", Integer.parseInt(invoiceNumberFromRequest[0]));
                         cv.put("agentID", areaDefault);
+                        cv.put("dateTimeDoc", dateTimeDocServerFromRequest[0]);
                         long rowID = db.insert("syncedInvoice", null, cv);
                         Log.d(LOG_TAG, "row inserted, ID = " + rowID);
-                        paymentPrompt();
+
+                        tmpStatus = "Yes";
+                        Toast.makeText(getApplicationContext(), "<<< Накладная Синхронизирована >>>", Toast.LENGTH_SHORT).show();
                     }else{
                         Toast.makeText(getApplicationContext(), "Ошибка загрузки. Проверьте Интернет или Учётку", Toast.LENGTH_SHORT).show();
                     }
@@ -299,7 +303,8 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
         }, new Response.ErrorListener(){
             @Override
             public void onErrorResponse(VolleyError error) {
-                Toast.makeText(getApplicationContext(), "Сообщите об этой ошибке. Код 001", Toast.LENGTH_SHORT).show();
+                onConnectionFailed();
+                Toast.makeText(getApplicationContext(), "Нет ответа от Сервера", Toast.LENGTH_SHORT).show();
                 Log.e("TAG", "Error " + error.getMessage());
             }
         }){
@@ -314,6 +319,9 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
             }
         };
         VolleySingleton.getInstance(this).getRequestQueue().add(request);
+        if (tmpStatus.equals("Yes")){
+            paymentPrompt();
+        }
     }
 
     private void checkSave(){
@@ -408,7 +416,7 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
         ZonedDateTime zdt = ZonedDateTime.ofInstant( instant , zoneId );
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern( "yyyy/MM/dd HH:mm:ss" );
 //        String output = instant.toString();
-        String output = zdt.format( formatter );
+        final String output = zdt.format( formatter );
 
         ContentValues cv = new ContentValues();
         Log.d(LOG_TAG, "--- Insert in payments: ---");
@@ -419,7 +427,7 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
         long rowID = db.insert("payments", null, cv);
         Log.d(LOG_TAG, "row inserted, ID = " + rowID);
 
-        DataPay dt = new DataPay(invoiceSum);
+        DataPay dt = new DataPay(invoiceNumber, invoiceSum, (int)rowID);
         dataPay.add(dt);
 
         Gson gson = new Gson();
@@ -433,20 +441,55 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
             public void onResponse(String response) {
                 Log.d("response", "result: " + response);
                 dataPay.clear();
-                if (response.equals("Бабло внесено")) {
-                    Toast.makeText(getApplicationContext(), response, Toast.LENGTH_SHORT).show();
-                    builder.setTitle("Успешно")
-                            .setMessage("Деньги внесены")
-                            .setCancelable(false)
-                            .setPositiveButton("Назад",
-                                    new DialogInterface.OnClickListener() {
-                                        public void onClick(DialogInterface dialog, int id) {
-                                            finish();
-                                            dialog.cancel();
-                                        }
-                                    });
-                    AlertDialog alert = builder.create();
-                    alert.show();
+                try{
+                    JSONArray jsonArray = new JSONArray(response);
+                    invoiceNumberFromRequest = new String[jsonArray.length()];
+                    paymentIDFromRequest = new String[jsonArray.length()];
+                    String[] status = new String[jsonArray.length()];
+                    String tmpStatus = "";
+
+                    ContentValues cv = new ContentValues();
+                    Log.d(LOG_TAG, "--- Insert in syncedPayments: ---");
+
+                    if (jsonArray.length() > 0){
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            JSONObject obj = jsonArray.getJSONObject(i);
+                            invoiceNumberFromRequest[i] = obj.getString("invoiceNumber");
+                            paymentIDFromRequest[i] = obj.getString("paymentID");
+                            status[i] = obj.getString("status");
+                            if (status[i].equals("Бабло внесено")) {
+                                tmpStatus = "Yes";
+                            }
+
+                            cv.put("invoiceNumber", Integer.parseInt(invoiceNumberFromRequest[i]));
+                            cv.put("paymentID", paymentIDFromRequest[i]);
+                            cv.put("agentID", areaDefault);
+                            cv.put("dateTimeDoc", output);
+                            long rowID = db.insert("syncedPayments", null, cv);
+                            Log.d(LOG_TAG, "row inserted, ID = " + rowID);
+                        }
+                        if (tmpStatus.equals("Yes")){
+                            Toast.makeText(getApplicationContext(), response, Toast.LENGTH_SHORT).show();
+                            builder.setTitle("Успешно")
+                                    .setMessage("Деньги внесены")
+                                    .setCancelable(false)
+                                    .setPositiveButton("Назад",
+                                            new DialogInterface.OnClickListener() {
+                                                public void onClick(DialogInterface dialog, int id) {
+                                                    finish();
+                                                    dialog.cancel();
+                                                }
+                                            });
+                            AlertDialog alert = builder.create();
+                            alert.show();
+                        }
+                        Toast.makeText(getApplicationContext(), "<<< Платеж Синхронизирован >>>", Toast.LENGTH_SHORT).show();
+                    }else{
+                        Toast.makeText(getApplicationContext(), "Ошибка загрузки. Проверьте Интернет или Учётку", Toast.LENGTH_SHORT).show();
+                    }
+                }
+                catch (JSONException e1) {
+                    e1.printStackTrace();
                 }
             }
         }, new Response.ErrorListener(){
@@ -462,10 +505,9 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
                 parameters.put("dbName", dbName);
                 parameters.put("dbUser", dbUser);
                 parameters.put("dbPassword", dbPassword);
-                parameters.put("invoiceNumber", invoiceNumber.toString());
                 parameters.put("agent", agent);
                 parameters.put("agentID", areaDefault);
-                parameters.put("paymentAmount", newDataArray);
+                parameters.put("array", newDataArray);
                 return parameters;
             }
         };
@@ -566,5 +608,25 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
         } else {
 
         }
+    }
+
+    private void onConnectionFailed(){
+//        e = sPrefConnectionStatus.edit();
+//        e.putString(SAVED_CONNSTATUS, "failed");
+//        e.apply();
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Нет ответа от Сервера")
+                .setMessage("Синхронизируйте вручную, когда появится связь")
+                .setCancelable(false)
+                .setNegativeButton("Ok",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                paymentPrompt();
+                                dialog.cancel();
+                            }
+                        });
+        AlertDialog alert = builder.create();
+        alert.show();
     }
 }

@@ -24,6 +24,10 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.google.gson.Gson;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -151,7 +155,7 @@ public class MakePaymentPartialActivity extends AppCompatActivity implements Vie
         ZonedDateTime zdt = ZonedDateTime.ofInstant( instant , zoneId );
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern( "yyyy/MM/dd HH:mm:ss" );
 //        String output = instant.toString();
-        String output = zdt.format( formatter );
+        final String output = zdt.format( formatter );
 
         ContentValues cv = new ContentValues();
         Log.d(LOG_TAG, "--- Insert in payments: ---");
@@ -162,7 +166,7 @@ public class MakePaymentPartialActivity extends AppCompatActivity implements Vie
         long rowID = db.insert("payments", null, cv);
         Log.d(LOG_TAG, "row inserted, ID = " + rowID);
 
-        DataPay dt = new DataPay(Double.parseDouble(editTextPaymentSum.getText().toString()));
+        DataPay dt = new DataPay(Integer.parseInt(invoiceNumber), Double.parseDouble(editTextPaymentSum.getText().toString()), (int)rowID);
         dataPay.add(dt);
 
         Gson gson = new Gson();
@@ -176,26 +180,62 @@ public class MakePaymentPartialActivity extends AppCompatActivity implements Vie
             public void onResponse(String response) {
                 Log.d("response", "result: " + response);
                 dataPay.clear();
-                if (response.equals("Бабло внесено")) {
-                    Toast.makeText(getApplicationContext(), response, Toast.LENGTH_SHORT).show();
-                    builder.setTitle("Успешно")
-                            .setMessage("Деньги внесены")
-                            .setCancelable(false)
-                            .setPositiveButton("Назад",
-                                    new DialogInterface.OnClickListener() {
-                                        public void onClick(DialogInterface dialog, int id) {
-                                            finish();
-                                            dialog.cancel();
-                                        }
-                                    });
-                    AlertDialog alert = builder.create();
-                    alert.show();
+                try{
+                    JSONArray jsonArray = new JSONArray(response);
+                    String[] invoiceNumberFromRequest = new String[jsonArray.length()];
+                    String[] paymentIDFromRequest = new String[jsonArray.length()];
+                    String[] status = new String[jsonArray.length()];
+                    String tmpStatus = "";
+
+                    ContentValues cv = new ContentValues();
+                    Log.d(LOG_TAG, "--- Insert in syncedPayments: ---");
+
+                    if (jsonArray.length() > 0){
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            JSONObject obj = jsonArray.getJSONObject(i);
+                            invoiceNumberFromRequest[i] = obj.getString("invoiceNumber");
+                            paymentIDFromRequest[i] = obj.getString("paymentID");
+                            status[i] = obj.getString("status");
+                            if (status[i].equals("Бабло внесено")) {
+                                tmpStatus = "Yes";
+                            }
+
+                            cv.put("invoiceNumber", Integer.parseInt(invoiceNumberFromRequest[i]));
+                            cv.put("paymentID", paymentIDFromRequest[i]);
+                            cv.put("agentID", areaDefault);
+                            cv.put("dateTimeDoc", output);
+                            long rowID = db.insert("syncedPayments", null, cv);
+                            Log.d(LOG_TAG, "row inserted, ID = " + rowID);
+                        }
+                        if (tmpStatus.equals("Yes")){
+                            Toast.makeText(getApplicationContext(), response, Toast.LENGTH_SHORT).show();
+                            builder.setTitle("Успешно")
+                                    .setMessage("Деньги внесены")
+                                    .setCancelable(false)
+                                    .setPositiveButton("Назад",
+                                            new DialogInterface.OnClickListener() {
+                                                public void onClick(DialogInterface dialog, int id) {
+                                                    finish();
+                                                    dialog.cancel();
+                                                }
+                                            });
+                            AlertDialog alert = builder.create();
+                            alert.show();
+                        }
+                        Toast.makeText(getApplicationContext(), "<<< Платеж Синхронизирован >>>", Toast.LENGTH_SHORT).show();
+                    }else{
+                        Toast.makeText(getApplicationContext(), "Ошибка загрузки. Проверьте Интернет или Учётку", Toast.LENGTH_SHORT).show();
+                    }
+                }
+                catch (JSONException e1) {
+                    e1.printStackTrace();
                 }
             }
         }, new Response.ErrorListener(){
             @Override
             public void onErrorResponse(VolleyError error){
-                Toast.makeText(getApplicationContext(), "Сообщите об этой ошибке. Код 002", Toast.LENGTH_SHORT).show();
+                onConnectionFailed();
+                Toast.makeText(getApplicationContext(), "Нет ответа от Сервера", Toast.LENGTH_SHORT).show();
                 Log.e("TAG", "Error " + error.getMessage());
             }
         }){
@@ -205,10 +245,9 @@ public class MakePaymentPartialActivity extends AppCompatActivity implements Vie
                 parameters.put("dbName", dbName);
                 parameters.put("dbUser", dbUser);
                 parameters.put("dbPassword", dbPassword);
-                parameters.put("invoiceNumber", invoiceNumber);
                 parameters.put("agent", agent);
                 parameters.put("agentID", areaDefault);
-                parameters.put("paymentAmount", newDataArray);
+                parameters.put("array", newDataArray);
                 return parameters;
             }
         };
@@ -264,5 +303,25 @@ public class MakePaymentPartialActivity extends AppCompatActivity implements Vie
         int count = cursor.getInt(0);
         cursor.close();
         return count > 0;
+    }
+
+    private void onConnectionFailed(){
+//        e = sPrefConnectionStatus.edit();
+//        e.putString(SAVED_CONNSTATUS, "failed");
+//        e.apply();
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Нет ответа от Сервера")
+                .setMessage("Синхронизируйте вручную, когда появится связь")
+                .setCancelable(false)
+                .setNegativeButton("Ok",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                finish();
+                                dialog.cancel();
+                            }
+                        });
+        AlertDialog alert = builder.create();
+        alert.show();
     }
 }

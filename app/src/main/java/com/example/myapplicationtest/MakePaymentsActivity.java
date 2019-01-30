@@ -403,48 +403,48 @@ public class MakePaymentsActivity extends AppCompatActivity implements View.OnCl
     }
 
     private void makePayment(){
-        DataPay dt = new DataPay(paymentAmount);
-        dataPay.add(dt);
-
-        Gson gson = new Gson();
-        final String newDataArray = gson.toJson(dataPay);
-
-        StringRequest request = new StringRequest(Request.Method.POST,
-                requestUrlMakePayment, new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                Log.d("response", "result: " + response);
-                dataPay.clear();
-                if (response.equals("Бабло внесено")) {
-                    Toast.makeText(getApplicationContext(), response, Toast.LENGTH_SHORT).show();
-                    if (paymentAmount == Double.parseDouble(textViewInvoiceDebt.getText().toString())){
-                        textViewStatusPay.setText("Оплачено полностью");
-                    } else {
-                        textViewStatusPay.setText("Оплачено частично");
-                    }
-                    clearAll();
-                }
-            }
-        }, new Response.ErrorListener(){
-            @Override
-            public void onErrorResponse(VolleyError error){
-                Toast.makeText(getApplicationContext(), "Сообщите об этой ошибке. Код 003", Toast.LENGTH_SHORT).show();
-                Log.e("TAG", "Error " + error.getMessage());
-            }
-        }){
-            @Override
-            protected Map<String, String> getParams(){
-                Map<String, String> parameters = new HashMap<>();
-                parameters.put("dbName", dbName);
-                parameters.put("dbUser", dbUser);
-                parameters.put("dbPassword", dbPassword);
-                parameters.put("invoiceNumber", debt);
-                parameters.put("author", author);
-                parameters.put("paymentAmount", newDataArray);
-                return parameters;
-            }
-        };
-        VolleySingleton.getInstance(this).getRequestQueue().add(request);
+//        DataPay dt = new DataPay(paymentAmount);
+//        dataPay.add(dt);
+//
+//        Gson gson = new Gson();
+//        final String newDataArray = gson.toJson(dataPay);
+//
+//        StringRequest request = new StringRequest(Request.Method.POST,
+//                requestUrlMakePayment, new Response.Listener<String>() {
+//            @Override
+//            public void onResponse(String response) {
+//                Log.d("response", "result: " + response);
+//                dataPay.clear();
+//                if (response.equals("Бабло внесено")) {
+//                    Toast.makeText(getApplicationContext(), response, Toast.LENGTH_SHORT).show();
+//                    if (paymentAmount == Double.parseDouble(textViewInvoiceDebt.getText().toString())){
+//                        textViewStatusPay.setText("Оплачено полностью");
+//                    } else {
+//                        textViewStatusPay.setText("Оплачено частично");
+//                    }
+//                    clearAll();
+//                }
+//            }
+//        }, new Response.ErrorListener(){
+//            @Override
+//            public void onErrorResponse(VolleyError error){
+//                Toast.makeText(getApplicationContext(), "Сообщите об этой ошибке. Код 003", Toast.LENGTH_SHORT).show();
+//                Log.e("TAG", "Error " + error.getMessage());
+//            }
+//        }){
+//            @Override
+//            protected Map<String, String> getParams(){
+//                Map<String, String> parameters = new HashMap<>();
+//                parameters.put("dbName", dbName);
+//                parameters.put("dbUser", dbUser);
+//                parameters.put("dbPassword", dbPassword);
+//                parameters.put("invoiceNumber", debt);
+//                parameters.put("author", author);
+//                parameters.put("paymentAmount", newDataArray);
+//                return parameters;
+//            }
+//        };
+//        VolleySingleton.getInstance(this).getRequestQueue().add(request);
     }
 
     private void viewInvoice(){
