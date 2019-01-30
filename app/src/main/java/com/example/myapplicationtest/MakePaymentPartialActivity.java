@@ -210,7 +210,7 @@ public class MakePaymentPartialActivity extends AppCompatActivity implements Vie
                         if (tmpStatus.equals("Yes")){
                             Toast.makeText(getApplicationContext(), response, Toast.LENGTH_SHORT).show();
                             builder.setTitle("Успешно")
-                                    .setMessage("Деньги внесены")
+                                    .setMessage("Деньги внесены и синхронизированы")
                                     .setCancelable(false)
                                     .setPositiveButton("Назад",
                                             new DialogInterface.OnClickListener() {
@@ -234,7 +234,7 @@ public class MakePaymentPartialActivity extends AppCompatActivity implements Vie
         }, new Response.ErrorListener(){
             @Override
             public void onErrorResponse(VolleyError error){
-                onConnectionFailed();
+                onConnectionFailedPayment();
                 Toast.makeText(getApplicationContext(), "Нет ответа от Сервера", Toast.LENGTH_SHORT).show();
                 Log.e("TAG", "Error " + error.getMessage());
             }
@@ -305,13 +305,9 @@ public class MakePaymentPartialActivity extends AppCompatActivity implements Vie
         return count > 0;
     }
 
-    private void onConnectionFailed(){
-//        e = sPrefConnectionStatus.edit();
-//        e.putString(SAVED_CONNSTATUS, "failed");
-//        e.apply();
-
+    private void onConnectionFailedPayment(){
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Нет ответа от Сервера")
+        builder.setTitle("Деньги внесены")
                 .setMessage("Синхронизируйте вручную, когда появится связь")
                 .setCancelable(false)
                 .setNegativeButton("Ok",

@@ -49,8 +49,7 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
     String requestUrlFinalPrice = "https://caiman.ru.com/php/price.php", dbName, dbUser, dbPassword,
             requestUrlSaveRecord = "https://caiman.ru.com/php/saveNewInvoice_new.php",
             requestUrlMakePayment = "https://caiman.ru.com/php/makePayment.php",
-            salesPartner, accountingType, agent, areaDefault, area, accountingTypeDefault, statusSave,
-            tmpStatus = "";
+            salesPartner, accountingType, agent, areaDefault, area, accountingTypeDefault, statusSave;
     TextView textViewSalesPartner, textViewInvoiceTotal, textViewAgent, textViewAccountingType;
     final String SAVED_DBName = "dbName";
     final String SAVED_DBUser = "dbUser";
@@ -264,6 +263,7 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
                     JSONArray jsonArray = new JSONArray(response);
                     invoiceNumberFromRequest = new String[jsonArray.length()];
                     dateTimeDocServerFromRequest = new String[jsonArray.length()];
+                    String tmpStatus = "";
 
                     ContentValues cv = new ContentValues();
                     Log.d(LOG_TAG, "--- Insert in syncedInvoice: ---");
@@ -273,6 +273,7 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
                             JSONObject obj = jsonArray.getJSONObject(i);
                             invoiceNumberFromRequest[i] = obj.getString("invoiceNumber");
                             dateTimeDocServerFromRequest[i] = obj.getString("dateTimeDoc");
+                            tmpStatus = "Yes";
                         }
                         cv.put("invoiceNumber", Integer.parseInt(invoiceNumberFromRequest[0]));
                         cv.put("agentID", areaDefault);
@@ -280,8 +281,10 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
                         long rowID = db.insert("syncedInvoice", null, cv);
                         Log.d(LOG_TAG, "row inserted, ID = " + rowID);
 
-                        tmpStatus = "Yes";
-                        Toast.makeText(getApplicationContext(), "<<< Накладная Синхронизирована >>>", Toast.LENGTH_SHORT).show();
+                        if (tmpStatus.equals("Yes")){
+                            paymentPrompt();
+                            Toast.makeText(getApplicationContext(), "<<< Накладная Синхронизирована >>>", Toast.LENGTH_SHORT).show();
+                        }
                     }else{
                         Toast.makeText(getApplicationContext(), "Ошибка загрузки. Проверьте Интернет или Учётку", Toast.LENGTH_SHORT).show();
                     }
@@ -303,7 +306,7 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
         }, new Response.ErrorListener(){
             @Override
             public void onErrorResponse(VolleyError error) {
-                onConnectionFailed();
+                onConnectionFailedInvoice();
                 Toast.makeText(getApplicationContext(), "Нет ответа от Сервера", Toast.LENGTH_SHORT).show();
                 Log.e("TAG", "Error " + error.getMessage());
             }
@@ -319,9 +322,6 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
             }
         };
         VolleySingleton.getInstance(this).getRequestQueue().add(request);
-        if (tmpStatus.equals("Yes")){
-            paymentPrompt();
-        }
     }
 
     private void checkSave(){
@@ -379,6 +379,7 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
                 .setPositiveButton("Нет",
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
+                                sPrefAccountingType.edit().clear().apply();
                                 finish();
                                 dialog.cancel();
                             }
@@ -392,14 +393,14 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
         builder.setTitle("Проверьте сумму")
                 .setMessage("Внести всю сумму?")
                 .setCancelable(false)
-                .setNegativeButton("Да",
+                .setNegativeButton("Полностью",
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
                                 makePayment();
                                 dialog.cancel();
                             }
                         })
-                .setPositiveButton("Нет",
+                .setPositiveButton("Частично",
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
                                 makePaymentPartial();
@@ -470,12 +471,13 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
                         }
                         if (tmpStatus.equals("Yes")){
                             Toast.makeText(getApplicationContext(), response, Toast.LENGTH_SHORT).show();
-                            builder.setTitle("Успешно")
-                                    .setMessage("Деньги внесены")
+                            builder.setTitle("Успешно синхронизировано")
+                                    .setMessage("Деньги внесены и синхронизированы с сервером")
                                     .setCancelable(false)
                                     .setPositiveButton("Назад",
                                             new DialogInterface.OnClickListener() {
                                                 public void onClick(DialogInterface dialog, int id) {
+                                                    sPrefAccountingType.edit().clear().apply();
                                                     finish();
                                                     dialog.cancel();
                                                 }
@@ -495,6 +497,7 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
         }, new Response.ErrorListener(){
             @Override
             public void onErrorResponse(VolleyError error){
+                onConnectionFailedPayment();
                 Toast.makeText(getApplicationContext(), "Сообщите об этой ошибке. Код 002", Toast.LENGTH_SHORT).show();
                 Log.e("TAG", "Error " + error.getMessage());
             }
@@ -604,25 +607,43 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
         super.onResume();
         String itemsListSaveStatus = sPrefItemsListSaveStatus.getString(SAVED_ItemsListSaveStatus, "");
         if (itemsListSaveStatus.equals("saved")){
+            sPrefAccountingType.edit().clear().apply();
             finish();
         } else {
 
         }
     }
 
-    private void onConnectionFailed(){
+    private void onConnectionFailedInvoice(){
 //        e = sPrefConnectionStatus.edit();
 //        e.putString(SAVED_CONNSTATUS, "failed");
 //        e.apply();
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Нет ответа от Сервера")
+        builder.setTitle("Накладная сохранена")
                 .setMessage("Синхронизируйте вручную, когда появится связь")
                 .setCancelable(false)
                 .setNegativeButton("Ok",
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
                                 paymentPrompt();
+                                dialog.cancel();
+                            }
+                        });
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+    private void onConnectionFailedPayment(){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Деньги внесены")
+                .setMessage("Синхронизируйте вручную, когда появится связь")
+                .setCancelable(false)
+                .setNegativeButton("Ok",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                sPrefAccountingType.edit().clear().apply();
+                                finish();
                                 dialog.cancel();
                             }
                         });

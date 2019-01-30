@@ -104,7 +104,7 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.buttonSyncInvoicesWithServer:
-                if (statusSave.equals("Сохранено")){
+                if (statusSave.equals("Saved")){
                     AlertDialog.Builder builder = new AlertDialog.Builder(this);
                     builder.setTitle("Внимание")
                             .setMessage("У вас нет несинхронизированных накладных")
@@ -139,7 +139,7 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
 //        }
 //        cursor.close();
 //        tmpCount = count;
-        if (statusSave.equals("Сохранено")){
+        if (statusSave.equals("Saved")){
 
         } else {
             invoiceNumberServerTmp.add(String.valueOf(0));
@@ -147,8 +147,9 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
         }
 
         if (resultExists(db, "syncedInvoice","invoiceNumber")){
-            String sql = "SELECT DISTINCT invoiceLocalDB.invoiceNumber FROM invoiceLocalDB INNER JOIN syncedInvoice " +
-                    "ON invoiceLocalDB.invoiceNumber NOT LIKE syncedInvoice.invoiceNumber ";
+            String sql = "SELECT DISTINCT invoiceLocalDB.invoiceNumber FROM invoiceLocalDB " +
+                    "WHERE NOT EXISTS (SELECT syncedInvoice.invoiceNumber FROM syncedInvoice " +
+                    "WHERE invoiceLocalDB.invoiceNumber LIKE  syncedInvoice.invoiceNumber) ";
             Cursor c = db.rawQuery(sql, null);
             if (c.moveToFirst()) {
                 int iNumber = c.getColumnIndex("invoiceNumber");
@@ -175,7 +176,6 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
             for (int i = 0; i < invoiceNumbersList.size(); i++){
                 Toast.makeText(getApplicationContext(), "Ничего не синхронизировано: " + invoiceNumbers, Toast.LENGTH_SHORT).show();
             }
-//            Toast.makeText(getApplicationContext(), "Ничего не синхронизировано: " + invoiceNumbers, Toast.LENGTH_SHORT).show();
         }
 
         for (int i = 0; i < invoiceNumbersList.size(); i++){
@@ -209,7 +209,7 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
         builder.setTitle("Поздравляю")
                 .setMessage("У вас нет несинхронизированных документов")
                 .setCancelable(false)
-                .setPositiveButton("Я рад/а",
+                .setPositiveButton("Я  Рад(а)",
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
                                 finish();
@@ -296,9 +296,9 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
                             cv.put("dateTimeDoc", dateTimeDocServerFromRequest[i]);
                             long rowID = db.insert("syncedInvoice", null, cv);
                             Log.d(LOG_TAG, "row inserted, ID = " + rowID);
+                            statusSave = "saved";
                         }
 //                        paymentPrompt();
-                        statusSave = "saved";
                         invoiceNumbersList.clear();
                         if (statusSave.equals("saved")){
                             builder.setTitle("Поздравляю")
@@ -323,14 +323,6 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
                 }
 
                 Log.d("response", "result: " + response);
-//                    invoiceNumberServerTmp.add(response);
-//                Toast.makeText(getApplicationContext(), "Номер накладной: " + invoiceNumberServerTmp.get(0), Toast.LENGTH_SHORT).show();
-//                dataArray.clear();
-//                if (invoiceNumberServerTmp.get(0).matches("-?\\d+")) {
-//                    Toast.makeText(getApplicationContext(), "Документ сохранён", Toast.LENGTH_SHORT).show();
-//                    statusSave = "Сохранено";
-////                        textViewStatusSave.setText(statusSave);
-//                }
             }
         }, new Response.ErrorListener(){
             @Override
@@ -405,10 +397,6 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
     }
 
     private void onConnectionFailed(){
-//        e = sPrefConnectionStatus.edit();
-//        e.putString(SAVED_CONNSTATUS, "failed");
-//        e.apply();
-
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Нет ответа от Сервера")
                 .setMessage("Попробуйте позже")
