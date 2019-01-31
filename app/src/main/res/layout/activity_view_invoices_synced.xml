@@ -6,4 +6,143 @@
     android:layout_height="match_parent"
     tools:context=".ViewInvoicesSyncedActivity">
 
+    <ListView
+        android:id="@+id/listViewSalesPartners"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:clickable="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/editTextSearch" />
+
+    <EditText
+        android:id="@+id/editTextSearch"
+        android:layout_width="0dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="5dp"
+        android:clickable="true"
+        android:hint="@string/editTextSearch"
+        android:importantForAutofill="no"
+        android:inputType="text"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewInvoicesTotalSumTypeOneLabel" />
+
+    <TextView
+        android:id="@+id/textViewInvoicesTotalLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="5dp"
+        android:layout_marginTop="5dp"
+        android:text="@string/textViewInvoicesTotal"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textViewInvoicesTotal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="2dp"
+        android:layout_marginTop="5dp"
+        app:layout_constraintStart_toEndOf="@+id/textViewInvoicesTotalLabel"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textViewInvoicesTotalSumLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:layout_marginEnd="2dp"
+        android:text="@string/textViewInvoicesTotalSum"
+        app:layout_constraintEnd_toStartOf="@+id/textViewInvoicesTotalSum"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textViewInvoicesTotalSumTypeOneLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="5dp"
+        android:layout_marginTop="5dp"
+        android:text="@string/textViewInvoicesTotalSum"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewInvoicesTotalTypeOneLabel" />
+
+    <TextView
+        android:id="@+id/textViewInvoicesTotalSumTypeTwoLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:layout_marginEnd="2dp"
+        android:text="@string/textViewInvoicesTotalSum"
+        app:layout_constraintEnd_toStartOf="@+id/textViewInvoicesTotalSumTypeTwo"
+        app:layout_constraintTop_toBottomOf="@+id/textViewInvoicesTotalTypeTwoLabel" />
+
+    <TextView
+        android:id="@+id/textViewInvoicesTotalSum"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:layout_marginEnd="5dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textViewInvoicesTotalSumTypeTwo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:layout_marginEnd="5dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewInvoicesTotalTypeTwoLabel" />
+
+    <TextView
+        android:id="@+id/textViewInvoicesTotalSumTypeOne"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="2dp"
+        android:layout_marginTop="5dp"
+        app:layout_constraintStart_toEndOf="@+id/textViewInvoicesTotalSumTypeOneLabel"
+        app:layout_constraintTop_toBottomOf="@+id/textViewInvoicesTotalTypeOneLabel" />
+
+    <TextView
+        android:id="@+id/textViewInvoicesTotalTypeOneLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="5dp"
+        android:layout_marginTop="5dp"
+        android:text="@string/textViewInvoicesTotalTypeOne"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewInvoicesTotalLabel" />
+
+    <TextView
+        android:id="@+id/textViewInvoicesTotalTypeOne"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="2dp"
+        android:layout_marginTop="5dp"
+        app:layout_constraintStart_toEndOf="@+id/textViewInvoicesTotalTypeOneLabel"
+        app:layout_constraintTop_toBottomOf="@+id/textViewInvoicesTotalLabel" />
+
+    <TextView
+        android:id="@+id/textViewInvoicesTotalTypeTwoLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:layout_marginEnd="2dp"
+        android:text="@string/textViewInvoicesTotalTypeTwo"
+        app:layout_constraintEnd_toStartOf="@+id/textViewInvoicesTotalTypeTwo"
+        app:layout_constraintTop_toBottomOf="@+id/textViewInvoicesTotalSumLabel" />
+
+    <TextView
+        android:id="@+id/textViewInvoicesTotalTypeTwo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:layout_marginEnd="5dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewInvoicesTotalSumLabel" />
+
 </android.support.constraint.ConstraintLayout>

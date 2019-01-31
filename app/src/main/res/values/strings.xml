@@ -69,5 +69,9 @@
     <string name="btnInvoicesNotSynced">за сегодня. несинхронизированные</string>
     <string name="btnSyncInvoicesWithServer">Синхронизировать</string>
     <string name="textViewInvoiceSum">Сумма по накладной:</string>
+    <string name="textViewInvoicesTotal">Всего накладных:</string>
+    <string name="textViewInvoicesTotalSum">На сумму:</string>
+    <string name="textViewInvoicesTotalTypeOne">Проводных:</string>
+    <string name="textViewInvoicesTotalTypeTwo">Непроводных:</string>
 
 </resources>
