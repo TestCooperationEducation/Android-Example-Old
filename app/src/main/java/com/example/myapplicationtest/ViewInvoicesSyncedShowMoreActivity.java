@@ -48,7 +48,7 @@ public class ViewInvoicesSyncedShowMoreActivity extends AppCompatActivity {
     }
 
     private void showMore(){
-        String sql = "SELECT * FROM invoiceLocalDB WHERE salesPartnerName LIKE ?";
+        String sql = "SELECT * FROM invoiceLocalDB WHERE invoiceNumber LIKE ?";
         Cursor c = db.rawQuery(sql, new String[]{salesPartner});
         if (c.moveToFirst()) {
             int exchange = c.getColumnIndex("exchangeQuantity");

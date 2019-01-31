@@ -120,6 +120,8 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
 //        db.execSQL("DROP TABLE IF EXISTS invoiceLocalDB");
 //        db.execSQL("DROP TABLE IF EXISTS syncedInvoice");
 //        db.execSQL("DROP TABLE IF EXISTS syncedPayments");
+//        db.execSQL("DROP TABLE IF EXISTS payments");
+//        db.execSQL("DROP TABLE IF EXISTS itemsToInvoiceTmp");
     }
 
     @Override
@@ -177,6 +179,9 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                                         }
                                         if (tableExists(db, "syncedPayments")){
                                             clearTable("syncedPayments");
+                                        }
+                                        if (tableExists(db, "itemsToInvoiceTmp")){
+                                            clearTable("itemsToInvoiceTmp");
                                         }
                                         dialog.cancel();
                                     }

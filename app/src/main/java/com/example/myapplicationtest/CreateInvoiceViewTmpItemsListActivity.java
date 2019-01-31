@@ -648,14 +648,12 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
         String itemsListSaveStatus = sPrefItemsListSaveStatus.getString(SAVED_ItemsListSaveStatus, "");
         comment = sPrefComment.getString(SAVED_Comment, "");
         if (itemsListSaveStatus.equals("saved")){
-            if (!comment.equals("")){
-                saveInvoiceToLocalDB();
-            } else {
                 sPrefAccountingType.edit().clear().apply();
                 finish();
-            }
         } else {
-
+            if (!comment.equals("")){
+                saveInvoiceToLocalDB();
+            }
         }
     }
 

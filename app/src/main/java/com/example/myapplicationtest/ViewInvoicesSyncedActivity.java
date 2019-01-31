@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.SparseBooleanArray;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -34,7 +35,7 @@ public class ViewInvoicesSyncedActivity extends AppCompatActivity {
     SQLiteDatabase db;
     ListView listViewSalesPartners;
     ArrayAdapter<String> arrayAdapter;
-    String salesPartner, invoiceNumbers = "";
+    String salesPartner, invoiceNumbers = "", invoiceNumberTmp;
     ArrayList<Integer> invoiceNumbersList;
     ArrayList<String> salesPartners;
     TextView textViewInvoicesTotal, textViewInvoicesTotalSum, textViewInvoicesTotalTypeOne,
@@ -74,6 +75,16 @@ public class ViewInvoicesSyncedActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view,
                                     int position, long id) {
                 salesPartner = ((TextView) view).getText().toString();
+                SparseBooleanArray chosen = listViewSalesPartners.getCheckedItemPositions();
+                for (int i = 0; i < listViewSalesPartners.getCount(); i++) {
+                    if (salesPartners.get(i).equals(salesPartner) && chosen.get(i) == true) {
+                        invoiceNumberTmp = String.valueOf(invoiceNumbersList.get(i));
+                    }
+//                    if (itemsList.get(i).equals(item) && chosen.get(i) == false) {
+//                        iTmp = i;
+//                        onSelectedItem();
+//                    }
+                }
                 showMore();
                 Toast.makeText(getApplicationContext(), "Контрагент: " + salesPartner, Toast.LENGTH_SHORT).show();
 
@@ -179,11 +190,19 @@ public class ViewInvoicesSyncedActivity extends AppCompatActivity {
 
     private void showMore(){
         e = sPrefSalesPartnerSyncedTmp.edit();
-        e.putString(SAVED_SalesPartnerSyncedTmp, salesPartner);
+        e.putString(SAVED_SalesPartnerSyncedTmp, invoiceNumberTmp);
         e.apply();
 
         Intent intent = new Intent(this, ViewInvoicesSyncedShowMoreActivity.class);
         startActivity(intent);
+    }
+
+    @Override
+    public void onResume(){
+        super.onResume();
+        for (int i = 0; i < invoiceNumbersList.size(); i++) {
+            listViewSalesPartners.setItemChecked(i, false);
+        }
     }
 
     boolean resultExists(SQLiteDatabase db, String tableName, String selectField){

@@ -261,7 +261,7 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
                     Log.d(LOG_TAG, "invoiceNumber: " + invoiceNumberLocal.toString());
 
                     DataInvoice dt = new DataInvoice(salesPartnerName, accountingTypeDoc, accountingTypeSP,
-                            itemName, comment, dateTimeDocLocal, invoiceNumberLocal, agentID, areaSP, price,
+                            itemName, dateTimeDocLocal, comment,  invoiceNumberLocal, agentID, areaSP, price,
                             quantity, totalCost, exchangeQuantity, returnQuantity, invoiceSum);
                     dataArray.add(dt);
 
