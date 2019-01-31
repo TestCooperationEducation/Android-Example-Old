@@ -1,29 +1,9 @@
 package com.example.myapplicationtest;
 
 public class DataInvoice {
-    private String salesPartnerName, accountingTypeDoc, accountingTypeSP, itemName, dateTimeDocLocal;
+    private String salesPartnerName, accountingTypeDoc, accountingTypeSP, itemName, dateTimeDocLocal, comment;
     private Integer invoiceNumber, agentID, areaSP;
     private Double price, quantity, totalCost, exchange, returns, invoiceSum;
-
-    public DataInvoice(String salesPartnerName, String accountingTypeDoc, String accountingTypeSP,
-                       String itemName, String dateTimeDocLocal, Integer invoiceNumber, Integer agentID,
-                       Integer areaSP, Double price, Double quantity, Double totalCost, Double exchange,
-                       Double returns, Double invoiceSum) {
-        this.salesPartnerName = salesPartnerName;
-        this.accountingTypeDoc = accountingTypeDoc;
-        this.accountingTypeSP = accountingTypeSP;
-        this.itemName = itemName;
-        this.dateTimeDocLocal = dateTimeDocLocal;
-        this.invoiceNumber = invoiceNumber;
-        this.agentID = agentID;
-        this.areaSP = areaSP;
-        this.price = price;
-        this.quantity = quantity;
-        this.totalCost = totalCost;
-        this.exchange = exchange;
-        this.returns = returns;
-        this.invoiceSum = invoiceSum;
-    }
 
     public String getSalesPartnerName() {
         return salesPartnerName;
@@ -63,6 +43,14 @@ public class DataInvoice {
 
     public void setDateTimeDocLocal(String dateTimeDocLocal) {
         this.dateTimeDocLocal = dateTimeDocLocal;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
     }
 
     public Integer getInvoiceNumber() {
@@ -135,5 +123,27 @@ public class DataInvoice {
 
     public void setInvoiceSum(Double invoiceSum) {
         this.invoiceSum = invoiceSum;
+    }
+
+    public DataInvoice(String salesPartnerName, String accountingTypeDoc, String accountingTypeSP,
+                       String itemName, String dateTimeDocLocal, String comment, Integer invoiceNumber,
+                       Integer agentID, Integer areaSP, Double price, Double quantity, Double totalCost,
+                       Double exchange, Double returns, Double invoiceSum) {
+        this.salesPartnerName = salesPartnerName;
+        this.accountingTypeDoc = accountingTypeDoc;
+        this.accountingTypeSP = accountingTypeSP;
+        this.itemName = itemName;
+        this.dateTimeDocLocal = dateTimeDocLocal;
+        this.comment = comment;
+        this.invoiceNumber = invoiceNumber;
+        this.agentID = agentID;
+        this.areaSP = areaSP;
+        this.price = price;
+        this.quantity = quantity;
+        this.totalCost = totalCost;
+        this.exchange = exchange;
+        this.returns = returns;
+        this.invoiceSum = invoiceSum;
+
     }
 }

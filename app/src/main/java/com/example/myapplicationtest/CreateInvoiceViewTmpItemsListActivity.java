@@ -22,6 +22,13 @@ import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
+import com.example.myapplicationtest.DataAdapterViewTmpItemsListToInvoice;
+import com.example.myapplicationtest.DataInvoice;
+import com.example.myapplicationtest.DataItemsListTmp;
+import com.example.myapplicationtest.DataPay;
+import com.example.myapplicationtest.MakePaymentPartialActivity;
+import com.example.myapplicationtest.R;
+import com.example.myapplicationtest.VolleySingleton;
 import com.google.gson.Gson;
 
 import org.json.JSONArray;
@@ -41,14 +48,15 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
 
     List<DataItemsListTmp> listTmp = new ArrayList<>();
     SharedPreferences sPrefDBName, sPrefDBPassword, sPrefDBUser, sPrefSalesPartner, sPrefInvoiceNumberTmp,
-            sPrefAccountingType, sPrefAgent, sPrefAreaDefault, sPrefArea, sPrefAccountingTypeDefault, sPrefItemsListSaveStatus;
+            sPrefAccountingType, sPrefAgent, sPrefAreaDefault, sPrefArea, sPrefAccountingTypeDefault,
+            sPrefItemsListSaveStatus, sPrefComment;
     final String LOG_TAG = "myLogs";
     DBHelper dbHelper;
     SQLiteDatabase db;
     SharedPreferences.Editor e;
     String requestUrlFinalPrice = "https://caiman.ru.com/php/price.php", dbName, dbUser, dbPassword,
             requestUrlSaveRecord = "https://caiman.ru.com/php/saveNewInvoice_new.php",
-            requestUrlMakePayment = "https://caiman.ru.com/php/makePayment.php",
+            requestUrlMakePayment = "https://caiman.ru.com/php/makePayment.php", comment = "",
             salesPartner, accountingType, agent, areaDefault, area, accountingTypeDefault, statusSave;
     TextView textViewSalesPartner, textViewInvoiceTotal, textViewAgent, textViewAccountingType;
     final String SAVED_DBName = "dbName";
@@ -62,6 +70,7 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
     final String SAVED_ACCOUNTINGTYPEDEFAULT = "AccountingTypeDefault";
     final String SAVED_INVOICENUMBERTMP = "invoiceNumberTmp";
     final String SAVED_ItemsListSaveStatus = "itemsListSaveStatus";
+    final String SAVED_Comment = "comment";
     Double invoiceSum = 0d;
     Button btnSaveInvoiceToLocalDB;
     Integer invoiceNumber, tmpCount;
@@ -109,6 +118,7 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
         sPrefAccountingTypeDefault = getSharedPreferences(SAVED_ACCOUNTINGTYPEDEFAULT, Context.MODE_PRIVATE);
         sPrefInvoiceNumberTmp = getSharedPreferences(SAVED_INVOICENUMBERTMP, Context.MODE_PRIVATE);
         sPrefItemsListSaveStatus = getSharedPreferences(SAVED_ItemsListSaveStatus, Context.MODE_PRIVATE);
+        sPrefComment = getSharedPreferences(SAVED_Comment, Context.MODE_PRIVATE);
 
         sPrefInvoiceNumberTmp.edit().clear().apply();
 
@@ -127,8 +137,6 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
         textViewAgent.setText(agent);
 
         setInitialData();
-
-//        Toast.makeText(getApplicationContext(), output, Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -230,10 +238,12 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
                 cv.put("returnQuantity", arrReturn.get(i));
                 cv.put("dateTimeDocLocal", output);
                 cv.put("invoiceSum", invoiceSum);
+                cv.put("comment", comment);
+
                 long rowID = db.insert("invoiceLocalDB", null, cv);
                 Log.d(LOG_TAG, "row inserted, ID = " + rowID);
                 DataInvoice dt = new DataInvoice(salesPartner, accountingType, accountingTypeDefault,
-                        arrItems.get(i), output, invoiceNumber, Integer.parseInt(areaDefault), Integer.parseInt(area), arrPriceChanged.get(i),
+                        arrItems.get(i), output, comment, invoiceNumber, Integer.parseInt(areaDefault), Integer.parseInt(area), arrPriceChanged.get(i),
                         arrQuantity.get(i), arrSum.get(i), arrExchange.get(i), arrReturn.get(i), invoiceSum);
                 dataArray.add(dt);
             }
@@ -245,7 +255,7 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
             if (tableExists(db, "itemsToInvoiceTmp")){
                 clearTable("itemsToInvoiceTmp");
             }
-
+            sPrefComment.edit().clear().apply();
             sendToServer();
         } else {
             Toast.makeText(getApplicationContext(), "<<< Уже сохранено >>>", Toast.LENGTH_SHORT).show();
@@ -349,7 +359,13 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
                 .setNegativeButton("Да",
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
-                                saveInvoiceToLocalDB();
+                                if (salesPartner.equals("Для Себя Район 1") || salesPartner.equals("Для Себя Район 2")
+                                        || salesPartner.equals("Для Себя Район 3") || salesPartner.equals("Для Себя Район 4")
+                                        || salesPartner.equals("Для Себя Район 5")) {
+                                    makeComment();
+                                } else {
+                                    saveInvoiceToLocalDB();
+                                }
                                 dialog.cancel();
                             }
                         })
@@ -357,6 +373,30 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
                                 finish();
+                                dialog.cancel();
+                            }
+                        });
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+    private void makeComment(){
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Вы выбрали <Для Себя>")
+                .setMessage("Хотите создать нового Контрагента?")
+                .setCancelable(false)
+                .setNegativeButton("Да",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                Intent intent = new Intent(getApplicationContext(), CreateInvoiceMakeCommentActivity.class);
+                                startActivity(intent);
+                                dialog.cancel();
+                            }
+                        })
+                .setPositiveButton("Нет",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                saveInvoiceToLocalDB();
                                 dialog.cancel();
                             }
                         });
@@ -606,9 +646,14 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
     public void onResume(){
         super.onResume();
         String itemsListSaveStatus = sPrefItemsListSaveStatus.getString(SAVED_ItemsListSaveStatus, "");
+        comment = sPrefComment.getString(SAVED_Comment, "");
         if (itemsListSaveStatus.equals("saved")){
-            sPrefAccountingType.edit().clear().apply();
-            finish();
+            if (!comment.equals("")){
+                saveInvoiceToLocalDB();
+            } else {
+                sPrefAccountingType.edit().clear().apply();
+                finish();
+            }
         } else {
 
         }

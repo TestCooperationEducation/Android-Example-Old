@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ViewPaymentsMenuActivity">
+
+    <ScrollView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" >
+
+            <Button
+                android:id="@+id/buttonMakePayment"
+                android:layout_width="match_parent"
+                android:layout_height="150dp"
+                android:text="@string/btnMakePaymentToday"
+                android:textSize="18sp"
+                tools:layout_editor_absoluteX="117dp"
+                tools:layout_editor_absoluteY="84dp" />
+
+            <Button
+                android:id="@+id/buttonPaymentsNotSynced"
+                android:layout_width="match_parent"
+                android:layout_height="150dp"
+                android:text="@string/btnInvoicesNotSynced"
+                android:textSize="18sp"
+                tools:layout_editor_absoluteX="117dp"
+                tools:layout_editor_absoluteY="84dp" />
+
+            <Button
+                android:id="@+id/buttonPaymentsSynced"
+                android:layout_width="match_parent"
+                android:layout_height="150dp"
+                android:text="@string/btnInvoicesSynced"
+                android:textSize="18sp"
+                tools:layout_editor_absoluteX="117dp"
+                tools:layout_editor_absoluteY="84dp" />
+
+            <Button
+                android:id="@+id/buttonPaymentsShowAll"
+                android:layout_width="match_parent"
+                android:layout_height="150dp"
+                android:text="@string/btnPaymentsShowAll"
+                android:textSize="18sp"
+                tools:layout_editor_absoluteX="117dp"
+                tools:layout_editor_absoluteY="84dp" />
+
+            <Button
+                android:id="@+id/buttonPaymentsFilterSP"
+                android:layout_width="match_parent"
+                android:layout_height="150dp"
+                android:text="@string/btnInvoicesFilterSPName"
+                android:textSize="18sp"
+                tools:layout_editor_absoluteX="117dp"
+                tools:layout_editor_absoluteY="84dp" />
+
+            <Button
+                android:id="@+id/buttonPaymentFilterComplete"
+                android:layout_width="match_parent"
+                android:layout_height="150dp"
+                android:text="@string/btnInvoicesFilterComplete"
+                android:textSize="18sp"
+                tools:layout_editor_absoluteX="117dp"
+                tools:layout_editor_absoluteY="84dp" />
+        </LinearLayout>
+    </ScrollView>
+
+</android.support.constraint.ConstraintLayout>

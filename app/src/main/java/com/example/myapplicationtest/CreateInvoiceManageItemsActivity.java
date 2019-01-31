@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 
+import com.example.myapplicationtest.R;
+
 public class CreateInvoiceManageItemsActivity extends AppCompatActivity {
 
     @Override

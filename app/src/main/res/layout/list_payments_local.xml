@@ -28,14 +28,24 @@
         app:layout_constraintTop_toBottomOf="@+id/salesPartnerLabel" />
 
     <TextView
-        android:id="@+id/invoiceNumberServerLabel"
+        android:id="@+id/invoiceNumberLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
-        android:text="@string/textViewInvoiceNumberServerLabel"
-        app:layout_constraintEnd_toStartOf="@+id/invoiceNumberFromServer"
+        android:text="@string/invoiceNumberLabel"
+        app:layout_constraintEnd_toStartOf="@+id/invoiceNumber"
         app:layout_constraintTop_toBottomOf="@+id/accountingTypeLabel" />
+
+    <TextView
+        android:id="@+id/paymentIDLocalLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:text="@string/paymentIDLocalLabel"
+        app:layout_constraintEnd_toStartOf="@+id/paymentIDLocal"
+        app:layout_constraintTop_toBottomOf="@+id/invoiceNumberLabel" />
 
     <TextView
         android:id="@+id/invoiceSumLabel"
@@ -43,9 +53,9 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
-        android:text="@string/textViewLabelTotalSum"
+        android:text="@string/textViewInvoiceSum"
         app:layout_constraintEnd_toStartOf="@+id/invoiceSum"
-        app:layout_constraintTop_toBottomOf="@+id/dateTimeDocLocalLabel" />
+        app:layout_constraintTop_toBottomOf="@+id/paymentIDLocalLabel" />
 
     <TextView
         android:id="@+id/dateTimeDocLocalLabel"
@@ -55,7 +65,7 @@
         android:layout_marginEnd="8dp"
         android:text="@string/textViewDateTimeDocLocalLabel"
         app:layout_constraintEnd_toStartOf="@+id/dateTimeDocLocal"
-        app:layout_constraintTop_toBottomOf="@+id/dateTimeDocServerLabel" />
+        app:layout_constraintTop_toBottomOf="@+id/paymentSumLabel" />
 
     <TextView
         android:id="@+id/dateTimeDocServerLabel"
@@ -65,16 +75,16 @@
         android:layout_marginEnd="8dp"
         android:text="@string/textViewDateTimeDocServerLabel"
         app:layout_constraintEnd_toStartOf="@+id/dateTimeDocServer"
-        app:layout_constraintTop_toBottomOf="@+id/invoiceNumberServerLabel" />
+        app:layout_constraintTop_toBottomOf="@+id/dateTimeDocLocalLabel" />
 
     <TextView
-        android:id="@+id/paymentStatusLabel"
+        android:id="@+id/paymentSumLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
-        android:text="@string/textViewPaymentStatusLabel"
-        app:layout_constraintEnd_toStartOf="@+id/paymentStatus"
+        android:text="@string/editTextPaymentSum"
+        app:layout_constraintEnd_toStartOf="@+id/paymentSum"
         app:layout_constraintTop_toBottomOf="@+id/invoiceSumLabel" />
 
     <TextView
@@ -93,7 +103,7 @@
         app:layout_constraintTop_toBottomOf="@+id/salesPartner" />
 
     <TextView
-        android:id="@+id/invoiceNumberFromServer"
+        android:id="@+id/invoiceNumber"
         android:layout_width="210dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
@@ -101,13 +111,22 @@
         app:layout_constraintTop_toBottomOf="@+id/accountingType" />
 
     <TextView
+        android:id="@+id/paymentIDLocal"
+        android:layout_width="210dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/invoiceNumber" />
+
+    <TextView
         android:id="@+id/dateTimeDocServer"
         android:layout_width="210dp"
         android:layout_height="wrap_content"
         android:layout_gravity="end"
         android:layout_marginTop="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/invoiceNumberFromServer" />
+        app:layout_constraintTop_toBottomOf="@+id/dateTimeDocLocal" />
 
     <TextView
         android:id="@+id/dateTimeDocLocal"
@@ -115,7 +134,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/dateTimeDocServer" />
+        app:layout_constraintTop_toBottomOf="@+id/paymentSum" />
 
     <TextView
         android:id="@+id/invoiceSum"
@@ -123,10 +142,10 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/dateTimeDocLocal" />
+        app:layout_constraintTop_toBottomOf="@+id/paymentIDLocal" />
 
     <TextView
-        android:id="@+id/paymentStatus"
+        android:id="@+id/paymentSum"
         android:layout_width="210dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"

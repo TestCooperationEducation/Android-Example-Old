@@ -27,6 +27,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -35,19 +37,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements View.OnClickListener {
+public class ViewPaymentsNotSyncedActivity extends AppCompatActivity implements View.OnClickListener  {
 
-    List<DataInvoiceLocal> listTmp = new ArrayList<>();
+    List<DataPaymentLocal> listTmp = new ArrayList<>();
     final String LOG_TAG = "myLogs";
     DBHelper dbHelper;
     SQLiteDatabase db;
-    Button btnSaveInvoiceToLocalDB;
+    Button btnSyncPaymentsWithServer;
     Integer invoiceNumberServer, invoiceNumberLocalTmp;
     SharedPreferences sPrefDBName, sPrefDBPassword, sPrefDBUser, sPrefLogin, sPrefAccountingTypeDefault,
-            sPrefArea, sPrefAreaDefault;
-    String paymentStatus, invoiceNumbers = "", dbName, dbUser, dbPassword,
-            requestUrlSaveRecord = "https://caiman.ru.com/php/saveNewInvoice_new.php",
-            loginSecurity, statusSave = "", areaDefault;
+            sPrefArea, sPrefAreaDefault, sPrefAgent;
+    String paymentSum, paymentsID = "", dbName, dbUser, dbPassword, agent,
+            requestUrlMakePayment = "https://caiman.ru.com/php/makePayment.php",
+            loginSecurity, statusSave = "", areaDefault, dateTimeDocServer;
     final String SAVED_DBName = "dbName";
     final String SAVED_DBUser = "dbUser";
     final String SAVED_DBPassword = "dbPassword";
@@ -55,33 +57,30 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
     final String SAVED_ACCOUNTINGTYPEDEFAULT = "AccountingTypeDefault";
     final String SAVED_AREA = "Area";
     final String SAVED_AREADEFAULT = "areaDefault";
-    ArrayList<String> arrItems, invoiceNumberServerTmp, dateTimeDocServer;
+    final String SAVED_AGENT = "agent";
+    ArrayList<String> arrItems, invoiceNumberServerTmp;
     ArrayList<Double> arrQuantity, arrExchange, arrReturn, arrSum;
-    ArrayList<Integer> arrPriceChanged, invoiceNumbersList;
+    ArrayList<Integer> arrPriceChanged, paymentsIDsList;
     List<DataInvoice> dataArray;
-    String[] invoiceNumberFromRequest, dateTimeDocServerFromRequest;
+    String[] dateTimeDocServerFromRequest, invoiceNumberFromRequest, paymentIDFromRequest;
+    List<DataPay> dataPay;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_view_invoices_not_synced);
+        setContentView(R.layout.activity_view_payments_not_synced);
 
         dbHelper = new DBHelper(this);
         db = dbHelper.getWritableDatabase();
 
         dataArray = new ArrayList<>();
-        arrItems = new ArrayList<>();
-        arrSum = new ArrayList<>();
-        arrQuantity = new ArrayList<>();
-        arrExchange = new ArrayList<>();
-        arrReturn = new ArrayList<>();
-        arrPriceChanged = new ArrayList<>();
-        invoiceNumbersList = new ArrayList<>();
+        dataPay = new ArrayList<>();
+        paymentsIDsList = new ArrayList<>();
         invoiceNumberServerTmp = new ArrayList<>();
-        dateTimeDocServer = new ArrayList<>();
+//        dateTimeDocServer = new ArrayList<>();
 
-        btnSaveInvoiceToLocalDB = findViewById(R.id.buttonSyncInvoicesWithServer);
-        btnSaveInvoiceToLocalDB.setOnClickListener(this);
+        btnSyncPaymentsWithServer = findViewById(R.id.buttonSyncPaymentsWithServer);
+        btnSyncPaymentsWithServer.setOnClickListener(this);
 
         sPrefDBName = getSharedPreferences(SAVED_DBName, Context.MODE_PRIVATE);
         sPrefDBUser = getSharedPreferences(SAVED_DBUser, Context.MODE_PRIVATE);
@@ -90,12 +89,14 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
         sPrefAccountingTypeDefault = getSharedPreferences(SAVED_ACCOUNTINGTYPEDEFAULT, Context.MODE_PRIVATE);
         sPrefArea= getSharedPreferences(SAVED_AREA, Context.MODE_PRIVATE);
         sPrefAreaDefault  = getSharedPreferences(SAVED_AREADEFAULT, Context.MODE_PRIVATE);
+        sPrefAgent = getSharedPreferences(SAVED_AGENT, Context.MODE_PRIVATE);
 
         areaDefault = sPrefAreaDefault.getString(SAVED_AREADEFAULT, "");
         dbName = sPrefDBName.getString(SAVED_DBName, "");
         dbUser = sPrefDBUser.getString(SAVED_DBUser, "");
         dbPassword = sPrefDBPassword.getString(SAVED_DBPassword, "");
         loginSecurity = sPrefLogin.getString(SAVED_LOGIN, "");
+        agent = sPrefAgent.getString(SAVED_AGENT, "");
 
         setInitialData();
     }
@@ -103,11 +104,11 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.buttonSyncInvoicesWithServer:
+            case R.id.buttonSyncPaymentsWithServer:
                 if (statusSave.equals("Saved")){
                     AlertDialog.Builder builder = new AlertDialog.Builder(this);
                     builder.setTitle("Внимание")
-                            .setMessage("У вас нет несинхронизированных накладных")
+                            .setMessage("У вас нет несинхронизированных платежей")
                             .setCancelable(false)
                             .setPositiveButton("Назад",
                                     new DialogInterface.OnClickListener() {
@@ -119,7 +120,7 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
                     AlertDialog alert = builder.create();
                     alert.show();
                 } else {
-                    saveInvoicesToServerDB();
+                    savePaymentsToServerDB();
                 }
                 break;
             default:
@@ -128,79 +129,76 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
     }
 
     private void setInitialData() {
-//        Integer count;
-//        String sql = "SELECT COUNT(*) FROM itemsToInvoiceTmp ";
-//        Cursor cursor = db.rawQuery(sql, null);
-//        if (!cursor.moveToFirst()) {
-//            cursor.close();
-//            count = 0;
-//        } else {
-//            count = cursor.getInt(0);
-//        }
-//        cursor.close();
-//        tmpCount = count;
-        if (statusSave.equals("Saved")){
+        LocalDateTime now = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern( "yyyy/MM/dd HH:mm:ss" );
+        final String output = now.with(LocalTime.MIN).format( formatter );
+        Toast.makeText(getApplicationContext(), output, Toast.LENGTH_SHORT).show();
 
-        } else {
-            invoiceNumberServerTmp.add(String.valueOf(0));
-            dateTimeDocServer.add("");
-        }
-
-        if (resultExists(db, "syncedInvoice","invoiceNumber")){
-            String sql = "SELECT DISTINCT invoiceLocalDB.invoiceNumber FROM invoiceLocalDB " +
-                    "WHERE NOT EXISTS (SELECT syncedInvoice.invoiceNumber FROM syncedInvoice " +
-                    "WHERE invoiceLocalDB.invoiceNumber LIKE  syncedInvoice.invoiceNumber) ";
-            Cursor c = db.rawQuery(sql, null);
+        if (resultExists(db, "payments","InvoiceNumber")){
+            String sql = "SELECT payments.id FROM payments " +
+                    "WHERE NOT EXISTS (SELECT syncedPayments.paymentID FROM syncedPayments " +
+                    "WHERE payments.id LIKE  syncedPayments.paymentID) " +
+                    "AND payments.DateTimeDoc > ? ";
+            Cursor c = db.rawQuery(sql, new String[]{output});
             if (c.moveToFirst()) {
-                int iNumber = c.getColumnIndex("invoiceNumber");
+                int iNumber = c.getColumnIndex("id");
                 do {
-                    invoiceNumbers = invoiceNumbers + "----" + c.getString(iNumber) ;
-                    invoiceNumbersList.add(Integer.parseInt(c.getString(iNumber)));
+                    paymentsID = paymentsID + "----" + c.getString(iNumber) ;
+                    paymentsIDsList.add(Integer.parseInt(c.getString(iNumber)));
                 } while (c.moveToNext());
             } else {
                 alreadySyncedPrompt();
             }
             c.close();
-            Toast.makeText(getApplicationContext(), "Несинхронизированные: " + invoiceNumbers, Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "Несинхронизированные: " + String.valueOf(paymentsIDsList.size()), Toast.LENGTH_SHORT).show();
         } else {
-            String sql = "SELECT DISTINCT invoiceNumber FROM invoiceLocalDB ";
-            Cursor c = db.rawQuery(sql, null);
+            String sql = "SELECT id FROM payments WHERE payments.DateTimeDoc > ? ";
+            Cursor c = db.rawQuery(sql, new String[]{output});
             if (c.moveToFirst()) {
-                int iNumber = c.getColumnIndex("invoiceNumber");
+                int iNumber = c.getColumnIndex("InvoiceNumber");
                 do {
-                    invoiceNumbers = invoiceNumbers + "----" + c.getString(iNumber);
-                    invoiceNumbersList.add(Integer.parseInt(c.getString(iNumber)));
+                    paymentsID = paymentsID + "----" + c.getString(iNumber);
+                    paymentsIDsList.add(Integer.parseInt(c.getString(iNumber)));
                 } while (c.moveToNext());
             }
             c.close();
-            for (int i = 0; i < invoiceNumbersList.size(); i++){
-                Toast.makeText(getApplicationContext(), "Ничего не синхронизировано: " + invoiceNumbers, Toast.LENGTH_SHORT).show();
-            }
+            Toast.makeText(getApplicationContext(), "Ничего не синхронизировано: " + paymentsID, Toast.LENGTH_SHORT).show();
         }
 
-        for (int i = 0; i < invoiceNumbersList.size(); i++){
-            String sql = "SELECT salesPartnerName, accountingTypeDoc, dateTimeDocLocal, invoiceSum" +
-                    " FROM invoiceLocalDB WHERE invoiceNumber LIKE ?";
-            Cursor c = db.rawQuery(sql, new String[]{invoiceNumbersList.get(i).toString()});
+        for (int i = 0; i < paymentsIDsList.size(); i++){
+            String sql = "SELECT DISTINCT payments.InvoiceNumber, payments.DateTimeDoc, payments.сумма_внесения, payments.id, " +
+                    "invoiceLocalDB.salesPartnerName, invoiceLocalDB.accountingTypeDoc, invoiceLocalDB.invoiceSum" +
+                    " FROM payments INNER JOIN invoiceLocalDB ON payments.InvoiceNumber LIKE invoiceLocalDB.invoiceNumber" +
+                    " WHERE payments.id LIKE ?";
+            Cursor c = db.rawQuery(sql, new String[]{paymentsIDsList.get(i).toString()});
             if (c.moveToFirst()) {
                 int salesPartnerNameTmp = c.getColumnIndex("salesPartnerName");
                 int accountingTypeDocTmp = c.getColumnIndex("accountingTypeDoc");
-                int dateTimeDocLocalTmp = c.getColumnIndex("dateTimeDocLocal");
+                int dateTimeDocLocalTmp = c.getColumnIndex("DateTimeDoc");
                 int invoiceSumTmp = c.getColumnIndex("invoiceSum");
-                String salesPartnerName = c.getString(salesPartnerNameTmp);
-                String accountingTypeDoc = c.getString(accountingTypeDocTmp);
-                String dateTimeDocLocal = c.getString(dateTimeDocLocalTmp);
-                Double invoiceSum = Double.parseDouble(c.getString(invoiceSumTmp));
-                paymentStatus = "";
-                listTmp.add(new DataInvoiceLocal(salesPartnerName, accountingTypeDoc,
-                        Integer.parseInt(invoiceNumberServerTmp.get(0)), dateTimeDocServer.get(0), dateTimeDocLocal,
-                        invoiceSum, paymentStatus));
-                c.moveToNext();
+                int invoiceNumberTmp = c.getColumnIndex("InvoiceNumber");
+                int paymentIDTmp = c.getColumnIndex("id");
+                int paymentSumTmp = c.getColumnIndex("сумма_внесения");
+                do {
+                    String salesPartnerName = c.getString(salesPartnerNameTmp);
+                    String accountingTypeDoc = c.getString(accountingTypeDocTmp);
+                    String dateTimeDocLocal = c.getString(dateTimeDocLocalTmp);
+                    Double invoiceSum = Double.parseDouble(c.getString(invoiceSumTmp));
+                    Double paymentSum = Double.parseDouble(c.getString(paymentSumTmp));
+                    Integer paymentIDLocal = Integer.parseInt(c.getString(paymentIDTmp));
+                    Integer invoiceNumber = Integer.parseInt(c.getString(invoiceNumberTmp));
+                    dateTimeDocServer = "";
+                    listTmp.add(new DataPaymentLocal(salesPartnerName, accountingTypeDoc,
+                            invoiceNumber, paymentIDLocal, invoiceSum, paymentSum, dateTimeDocLocal,
+                            dateTimeDocServer));
+                    DataPay dt = new DataPay(invoiceNumber, invoiceSum, paymentIDLocal);
+                    dataPay.add(dt);
+                } while (c.moveToNext());
             }
             c.close();
         }
-        RecyclerView recyclerView = findViewById(R.id.recyclerViewInvoicesLocal);
-        DataAdapterViewInvoicesFromLocalDB adapter = new DataAdapterViewInvoicesFromLocalDB(this, listTmp);
+        RecyclerView recyclerView = findViewById(R.id.recyclerViewPaymentsLocal);
+        DataAdapterViewPaymentsFromLocalDB adapter = new DataAdapterViewPaymentsFromLocalDB(this, listTmp);
         recyclerView.setAdapter(adapter);
     }
 
@@ -220,93 +218,61 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
         alert.show();
     }
 
-    private void saveInvoicesToServerDB(){
-        for (int i = 0; i < invoiceNumbersList.size(); i++){
-//            dataArray.clear();
-            String sql = "SELECT * FROM invoiceLocalDB WHERE invoiceNumber LIKE ?";
-            Cursor c = db.rawQuery(sql, new String[]{invoiceNumbersList.get(i).toString()});
-            if (c.moveToFirst()) {
-                int invoiceNumberLocalTmp = c.getColumnIndex("invoiceNumber");
-                int agentIDTmp = c.getColumnIndex("agentID");
-                int areaSPTmp = c.getColumnIndex("areaSP");
-                int salesPartnerNameTmp = c.getColumnIndex("salesPartnerName");
-                int accountingTypeDocTmp = c.getColumnIndex("accountingTypeDoc");
-                int accountingTypeSPTmp = c.getColumnIndex("accountingTypeSP");
-                int itemNameTmp = c.getColumnIndex("itemName");
-                int quantityTmp = c.getColumnIndex("quantity");
-                int priceTmp = c.getColumnIndex("price");
-                int totalCostTmp = c.getColumnIndex("totalCost");
-                int exchangeTmp = c.getColumnIndex("exchangeQuantity");
-                int returnTmp = c.getColumnIndex("returnQuantity");
-                int dateTimeDocLocalTmp = c.getColumnIndex("dateTimeDocLocal");
-                int invoiceSumTmp = c.getColumnIndex("invoiceSum");
-                int commentTmp = c.getColumnIndex("comment");
-                do {
-                    Integer invoiceNumberLocal = Integer.parseInt(c.getString(invoiceNumberLocalTmp));
-                    Integer agentID = Integer.parseInt(c.getString(agentIDTmp));
-                    Integer areaSP = c.getInt(areaSPTmp);
-                    String salesPartnerName = c.getString(salesPartnerNameTmp);
-                    String accountingTypeDoc = c.getString(accountingTypeDocTmp);
-                    String accountingTypeSP = c.getString(accountingTypeSPTmp);
-                    String itemName = c.getString(itemNameTmp);
-                    Double quantity = Double.parseDouble(c.getString(quantityTmp));
-                    Double price = Double.parseDouble(c.getString(priceTmp));
-                    Double totalCost = Double.parseDouble(c.getString(totalCostTmp));
-                    Double exchangeQuantity = Double.parseDouble(c.getString(exchangeTmp));
-                    Double returnQuantity = Double.parseDouble(c.getString(returnTmp));
-                    String dateTimeDocLocal = c.getString(dateTimeDocLocalTmp);
-                    Double invoiceSum = Double.parseDouble(c.getString(invoiceSumTmp));
-                    String comment = c.getString(commentTmp);
-
-                    Log.d(LOG_TAG, "invoiceNumber: " + invoiceNumberLocal.toString());
-
-                    DataInvoice dt = new DataInvoice(salesPartnerName, accountingTypeDoc, accountingTypeSP,
-                            itemName, comment, dateTimeDocLocal, invoiceNumberLocal, agentID, areaSP, price,
-                            quantity, totalCost, exchangeQuantity, returnQuantity, invoiceSum);
-                    dataArray.add(dt);
-
-                } while (c.moveToNext());
-            }
-            c.close();
-        }
+    private void savePaymentsToServerDB(){
         sendToServer();
     }
 
     private void sendToServer(){
+        Instant instant = Instant.now();
+        ZoneId zoneId = ZoneId.of( "Asia/Sakhalin" );
+        ZonedDateTime zdt = ZonedDateTime.ofInstant( instant , zoneId );
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern( "yyyy/MM/dd HH:mm:ss" );
+        final String output = zdt.format( formatter );
+
         Gson gson = new Gson();
-        final String newDataArray = gson.toJson(dataArray);
+        final String newDataArray = gson.toJson(dataPay);
+
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
         StringRequest request = new StringRequest(Request.Method.POST,
-                requestUrlSaveRecord, new Response.Listener<String>() {
+                requestUrlMakePayment, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
+                Log.d("response", "result: " + response);
+                dataPay.clear();
                 try{
                     JSONArray jsonArray = new JSONArray(response);
                     invoiceNumberFromRequest = new String[jsonArray.length()];
-                    dateTimeDocServerFromRequest = new String[jsonArray.length()];
+                    paymentIDFromRequest = new String[jsonArray.length()];
+                    String[] status = new String[jsonArray.length()];
+                    String tmpStatus = "";
 
                     ContentValues cv = new ContentValues();
-                    Log.d(LOG_TAG, "--- Insert in syncedInvoice: ---");
+                    Log.d(LOG_TAG, "--- Insert in syncedPayments: ---");
 
                     if (jsonArray.length() > 0){
                         for (int i = 0; i < jsonArray.length(); i++) {
                             JSONObject obj = jsonArray.getJSONObject(i);
                             invoiceNumberFromRequest[i] = obj.getString("invoiceNumber");
-                            dateTimeDocServerFromRequest[i] = obj.getString("dateTimeDoc");
+                            paymentIDFromRequest[i] = obj.getString("paymentID");
+                            status[i] = obj.getString("status");
+                            if (status[i].equals("Бабло внесено")) {
+                                tmpStatus = "Yes";
+                            }
+
                             cv.put("invoiceNumber", Integer.parseInt(invoiceNumberFromRequest[i]));
+                            cv.put("paymentID", paymentIDFromRequest[i]);
                             cv.put("agentID", areaDefault);
-                            cv.put("dateTimeDoc", dateTimeDocServerFromRequest[i]);
-                            long rowID = db.insert("syncedInvoice", null, cv);
+                            cv.put("dateTimeDoc", output);
+                            long rowID = db.insert("syncedPayments", null, cv);
                             Log.d(LOG_TAG, "row inserted, ID = " + rowID);
-                            statusSave = "saved";
                         }
-//                        paymentPrompt();
-                        invoiceNumbersList.clear();
-                        if (statusSave.equals("saved")){
-                            builder.setTitle("Поздравляю")
-                                    .setMessage("Синхронизировано успешно")
+                        if (tmpStatus.equals("Yes")){
+                            Toast.makeText(getApplicationContext(), response, Toast.LENGTH_SHORT).show();
+                            builder.setTitle("Успешно синхронизировано")
+                                    .setMessage("Деньги внесены и синхронизированы с сервером")
                                     .setCancelable(false)
-                                    .setNegativeButton("Круто",
+                                    .setPositiveButton("Назад",
                                             new DialogInterface.OnClickListener() {
                                                 public void onClick(DialogInterface dialog, int id) {
                                                     finish();
@@ -316,6 +282,7 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
                             AlertDialog alert = builder.create();
                             alert.show();
                         }
+                        Toast.makeText(getApplicationContext(), "<<< Платеж Синхронизирован >>>", Toast.LENGTH_SHORT).show();
                     }else{
                         Toast.makeText(getApplicationContext(), "Ошибка загрузки. Проверьте Интернет или Учётку", Toast.LENGTH_SHORT).show();
                     }
@@ -323,23 +290,23 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
                 catch (JSONException e1) {
                     e1.printStackTrace();
                 }
-
-                Log.d("response", "result: " + response);
             }
         }, new Response.ErrorListener(){
             @Override
-            public void onErrorResponse(VolleyError error) {
-                onConnectionFailed();
-                Toast.makeText(getApplicationContext(), "Сообщите об этой ошибке. Код 001", Toast.LENGTH_SHORT).show();
+            public void onErrorResponse(VolleyError error){
+                onConnectionFailedPayment();
+                Toast.makeText(getApplicationContext(), "Сообщите об этой ошибке. Код 002", Toast.LENGTH_SHORT).show();
                 Log.e("TAG", "Error " + error.getMessage());
             }
         }){
             @Override
-            protected Map<String, String> getParams() {
+            protected Map<String, String> getParams(){
                 Map<String, String> parameters = new HashMap<>();
                 parameters.put("dbName", dbName);
                 parameters.put("dbUser", dbUser);
                 parameters.put("dbPassword", dbPassword);
+                parameters.put("agent", agent);
+                parameters.put("agentID", areaDefault);
                 parameters.put("array", newDataArray);
                 return parameters;
             }
@@ -390,6 +357,23 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
                 .setNegativeButton("Ok",
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
+                                finish();
+                                dialog.cancel();
+                            }
+                        });
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+    private void onConnectionFailedPayment(){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Деньги внесены")
+                .setMessage("Синхронизируйте вручную, когда появится связь")
+                .setCancelable(false)
+                .setNegativeButton("Ok",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+//                                sPrefAccountingType.edit().clear().apply();
                                 finish();
                                 dialog.cancel();
                             }

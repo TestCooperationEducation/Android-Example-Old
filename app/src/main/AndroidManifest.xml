@@ -56,7 +56,15 @@
         <activity android:name=".ViewInvoicesFilterSPNameActivity" />
         <activity android:name=".ViewInvoicesFilterCompleteActivity" />
         <activity android:name=".MakePaymentPartialActivity" />
-        <activity android:name=".ViewInvoicesSyncedShowMoreActivity"></activity>
+        <activity android:name=".ViewInvoicesSyncedShowMoreActivity" />
+        <activity android:name=".ViewPaymentsMenuActivity" />
+        <activity android:name=".ViewPaymentsNotSyncedActivity" />
+        <activity android:name=".ViewPaymentsSyncedActivity" />
+        <activity android:name=".ViewPaymentsMakePayment" />
+        <activity android:name=".ViewPaymentsFilterSP" />
+        <activity android:name=".ViewPaymentsFilterComplete" />
+        <activity android:name=".ViewPaymentsShowAllActivity" />
+        <activity android:name=".CreateInvoiceMakeCommentActivity"></activity>
     </application>
 
 </manifest>

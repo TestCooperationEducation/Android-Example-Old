@@ -73,5 +73,10 @@
     <string name="textViewInvoicesTotalSum">На сумму:</string>
     <string name="textViewInvoicesTotalTypeOne">Проводных:</string>
     <string name="textViewInvoicesTotalTypeTwo">Непроводных:</string>
+    <string name="btnPaymentsShowAll">За сегодня. Показать все</string>
+    <string name="btnMakePaymentToday">За сегодня. Внести платёж</string>
+    <string name="paymentIDLocalLabel">Номер платежа:</string>
+    <string name="invoiceNumberLabel">Номер накладной:</string>
+    <string name="editTextComment">Введите название нового магазина</string>
 
 </resources>
