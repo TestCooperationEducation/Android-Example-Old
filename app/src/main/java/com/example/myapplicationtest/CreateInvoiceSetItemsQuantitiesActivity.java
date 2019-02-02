@@ -8,6 +8,7 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -15,7 +16,10 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -44,7 +48,7 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
             sPrefConnectionStatus, sPrefAccountingType, sPrefItemName;
     String requestUrlFinalPrice = "https://caiman.ru.com/php/price.php", dbName, dbUser, dbPassword,
             salesPartner, connStatus, item;
-    String[] itemPrice, discountType, discountValue;
+    String itemPrice, discountType, discountValue;
     final String SAVED_DBName = "dbName";
     final String SAVED_DBUser = "dbUser";
     final String SAVED_DBPassword = "dbPassword";
@@ -98,6 +102,13 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
         editTextReturn = findViewById(R.id.editTextReturn);
         textViewTotal = findViewById(R.id.textViewTotal);
 
+        editTextQuantity.requestFocus();
+//        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+//        imm.showSoftInput(editTextQuantity, InputMethodManager.SHOW_IMPLICIT);
+//        editTextQuantity.dispatchTouchEvent(MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis(), MotionEvent.ACTION_DOWN , 0, 0, 0));
+//        editTextQuantity.dispatchTouchEvent(MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis(), MotionEvent.ACTION_UP , 0, 0, 0));
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+
         salesPartner = sPrefSalesPartner.getString(SAVED_SALESPARTNER, "");
         textViewSalesPartner.setText(salesPartner);
         textViewItemName.setText(sPrefItemName.getString(SAVED_ITEMNAME, ""));
@@ -115,7 +126,7 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
         if (sPrefConnectionStatus.contains(SAVED_CONNSTATUS)) {
             connStatus = sPrefConnectionStatus.getString(SAVED_CONNSTATUS, "");
             if (connStatus.equals("success")) {
-                getPriceFromServerDB();
+                getPriceFromLocalDB();
             } else {
                 finalPrice = 0d;
                 priceChanged = finalPrice;
@@ -160,9 +171,6 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
         } else {
             tmpReturnOnStart = Double.parseDouble(editTextReturn.getText().toString());
         }
-
-
-
         onChangeListener();
     }
 
@@ -198,96 +206,120 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
     }
 
     private void getPriceFromServerDB() {
-        StringRequest request = new StringRequest(Request.Method.POST,
-                requestUrlFinalPrice, new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                try{
-                    JSONArray jsonArray = new JSONArray(response);
-                    Toast.makeText(getApplicationContext(), "Query successful", Toast.LENGTH_SHORT).show();
-                    itemPrice = new String[jsonArray.length()];
-                    discountType = new String[jsonArray.length()];
-                    discountValue = new String[jsonArray.length()];
-                    if (jsonArray.length() > 0){
-                        for (int i = 0; i < jsonArray.length(); i++) {
-                            JSONObject obj = jsonArray.getJSONObject(i);
-                            itemPrice[i] = obj.getString("Цена");
-                            if (obj.isNull("Скидка") && obj.isNull("Тип_скидки")) {
-                                discountValue[i] = String.valueOf(0);
-                                discountType[i] = String.valueOf(0);
-                                Toast.makeText(getApplicationContext(), "Без скидки", Toast.LENGTH_SHORT).show();
-                            }
-                            else {
-                                discountValue[i] = obj.getString("Скидка");
-                                discountType[i] = obj.getString("Тип_скидки");
-                                Toast.makeText(getApplicationContext(), "Со скидкой", Toast.LENGTH_SHORT).show();
-                            }
-                        }
-                        if (Double.parseDouble(discountType[0]) == 0){
-                            editTextPrice.setText(itemPrice[0]);
-                            finalPrice = Double.parseDouble(editTextPrice.getText().toString());
-                        }
-                        if (Double.parseDouble(discountType[0]) == 1){
-                            finalPrice = Double.parseDouble(itemPrice[0]) - Double.parseDouble(discountValue[0]);
-                            editTextPrice.setText(finalPrice.toString());
-                        }
-                        if (Double.parseDouble(discountType[0]) == 2){
-                            finalPrice = Double.parseDouble(itemPrice[0]) - (Double.parseDouble(itemPrice[0]) / 10);
-                            editTextPrice.setText(finalPrice.toString());
-                        }
-                        priceChanged = finalPrice;
-                    }else{
-                        Toast.makeText(getApplicationContext(), "Something went wrong with DB query", Toast.LENGTH_SHORT).show();
-                    }
-                }
-                catch (JSONException e1) {
-                    e1.printStackTrace();
-                }
-            }
-        }, new Response.ErrorListener(){
-            @Override
-            public void onErrorResponse(VolleyError error){
-                finalPrice = 0d;
-                priceChanged = finalPrice;
-                onConnectionFailed();
-                Toast.makeText(getApplicationContext(), "<<< Нет соединения >>>", Toast.LENGTH_SHORT).show();
-                Log.e("TAG", "Error " + error.getMessage());
-            }
-        }){
-            @Override
-            protected Map<String, String> getParams() {
-                Map<String, String> parameters = new HashMap<>();
-                parameters.put("dbName", dbName);
-                parameters.put("dbUser", dbUser);
-                parameters.put("dbPassword", dbPassword);
-                parameters.put("ItemName", item);
-                parameters.put("SalesPartner", salesPartner);
-                return parameters;
-            }
-        };
-        VolleySingleton.getInstance(this).getRequestQueue().add(request);
+//        StringRequest request = new StringRequest(Request.Method.POST,
+//                requestUrlFinalPrice, new Response.Listener<String>() {
+//            @Override
+//            public void onResponse(String response) {
+//                try{
+//                    JSONArray jsonArray = new JSONArray(response);
+//                    Toast.makeText(getApplicationContext(), "Query successful", Toast.LENGTH_SHORT).show();
+//                    itemPrice = new String[jsonArray.length()];
+//                    discountType = new String[jsonArray.length()];
+//                    discountValue = new String[jsonArray.length()];
+//                    if (jsonArray.length() > 0){
+//                        for (int i = 0; i < jsonArray.length(); i++) {
+//                            JSONObject obj = jsonArray.getJSONObject(i);
+//                            itemPrice[i] = obj.getString("Цена");
+//                            if (obj.isNull("Скидка") && obj.isNull("Тип_скидки")) {
+//                                discountValue[i] = String.valueOf(0);
+//                                discountType[i] = String.valueOf(0);
+//                                Toast.makeText(getApplicationContext(), "Без скидки", Toast.LENGTH_SHORT).show();
+//                            }
+//                            else {
+//                                discountValue[i] = obj.getString("Скидка");
+//                                discountType[i] = obj.getString("Тип_скидки");
+//                                Toast.makeText(getApplicationContext(), "Со скидкой", Toast.LENGTH_SHORT).show();
+//                            }
+//                        }
+//                        if (Double.parseDouble(discountType[0]) == 0){
+//                            editTextPrice.setText(itemPrice[0]);
+//                            finalPrice = Double.parseDouble(editTextPrice.getText().toString());
+//                        }
+//                        if (Double.parseDouble(discountType[0]) == 1){
+//                            finalPrice = Double.parseDouble(itemPrice[0]) - Double.parseDouble(discountValue[0]);
+//                            editTextPrice.setText(finalPrice.toString());
+//                        }
+//                        if (Double.parseDouble(discountType[0]) == 2){
+//                            finalPrice = Double.parseDouble(itemPrice[0]) - (Double.parseDouble(itemPrice[0]) / 10);
+//                            editTextPrice.setText(finalPrice.toString());
+//                        }
+//                        priceChanged = finalPrice;
+//                    }else{
+//                        Toast.makeText(getApplicationContext(), "Something went wrong with DB query", Toast.LENGTH_SHORT).show();
+//                    }
+//                }
+//                catch (JSONException e1) {
+//                    e1.printStackTrace();
+//                }
+//            }
+//        }, new Response.ErrorListener(){
+//            @Override
+//            public void onErrorResponse(VolleyError error){
+//                finalPrice = 0d;
+//                priceChanged = finalPrice;
+//                onConnectionFailed();
+//                Toast.makeText(getApplicationContext(), "<<< Нет соединения >>>", Toast.LENGTH_SHORT).show();
+//                Log.e("TAG", "Error " + error.getMessage());
+//            }
+//        }){
+//            @Override
+//            protected Map<String, String> getParams() {
+//                Map<String, String> parameters = new HashMap<>();
+//                parameters.put("dbName", dbName);
+//                parameters.put("dbUser", dbUser);
+//                parameters.put("dbPassword", dbPassword);
+//                parameters.put("ItemName", item);
+//                parameters.put("SalesPartner", salesPartner);
+//                return parameters;
+//            }
+//        };
+//        VolleySingleton.getInstance(this).getRequestQueue().add(request);
     }
 
     private void getPriceFromLocalDB(){
-//        db = dbHelper.getReadableDatabase();
-//        String sql;
-//        sql = "SELECT  FROM items";
-//        Cursor c = db.rawQuery(sql, null);
-//        if (c.moveToFirst()) {
-//            int idColIndex = c.getColumnIndex("Наименование");
-//            do {
-//                Log.d(LOG_TAG,"ID = " + c.getString(idColIndex));
-//                itemsList.add(c.getString(idColIndex));
-//            } while (c.moveToNext());
-//            onLoadActivity();
-//        } else {
-//            Log.d(LOG_TAG, "0 rows");
-//            Toast.makeText(getApplicationContext(), "Ошибка: CreateInvoiceChooseSalesPartner receiveDataFromLocalDB 001",
-//                    Toast.LENGTH_SHORT).show();
-//        }
-//        arrayAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_multiple_choice, itemsList);
-//        listViewItems.setAdapter(arrayAdapter);
-//        c.close();
+        db = dbHelper.getReadableDatabase();
+        String sql;
+        sql = "SELECT items.Цена, discount.Скидка, discount.Тип_скидки FROM items " +
+                "INNER JOIN itemsWithDiscount ON items.Артикул = itemsWithDiscount.Артикул " +
+                "INNER JOIN discount ON discount.serverDB_ID = itemsWithDiscount.ID_скидки " +
+                "INNER JOIN salesPartners ON salesPartners.serverDB_ID = itemsWithDiscount.ID_контрагента " +
+                "WHERE items.Наименование LIKE ? AND salesPartners.Наименование LIKE ? ";
+        Cursor c = db.rawQuery(sql, new String[]{item, salesPartner});
+        if (c.moveToFirst()) {
+            int itemPriceTmp = c.getColumnIndex("Цена");
+            int discountValueTmp = c.getColumnIndex("Скидка");
+            int discountTypeTmp = c.getColumnIndex("Тип_скидки");
+            do {
+                itemPrice = c.getString(itemPriceTmp);
+                discountType = c.getString(discountTypeTmp);
+                discountValue = c.getString(discountValueTmp);
+            } while (c.moveToNext());
+        } else {
+            sql = "SELECT items.Цена FROM items WHERE items.Наименование LIKE ? ";
+            c = db.rawQuery(sql, new String[]{item});
+            if (c.moveToFirst()){
+                int itemPriceTmp = c.getColumnIndex("Цена");
+                do {
+                    itemPrice = c.getString(itemPriceTmp);
+                    discountType = String.valueOf(0);
+                    discountValue = String.valueOf(0);
+                } while(c.moveToNext());
+            }
+        }
+        if (discountType.equals("0")){
+            editTextPrice.setText(itemPrice);
+            finalPrice = Double.parseDouble(editTextPrice.getText().toString());
+        }
+        if (discountType.equals("1")){
+            finalPrice = Double.parseDouble(itemPrice) - Double.parseDouble(discountValue);
+            editTextPrice.setText(finalPrice.toString());
+        }
+        if (discountType.equals("2")){
+            finalPrice = Double.parseDouble(itemPrice) - (Double.parseDouble(itemPrice) / 10);
+            editTextPrice.setText(finalPrice.toString());
+        }
+        priceChanged = finalPrice;
+        c.close();
     }
 
     private void getDataFromTmp(){
@@ -415,6 +447,7 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
                 tmpQuantityOnStart = tmpQuantity;
                 tmpExchangeOnStart = tmpExchange;
                 tmpReturnOnStart = tmpReturn;
+                finish();
             }
         }
     }
