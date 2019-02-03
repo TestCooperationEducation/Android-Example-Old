@@ -44,10 +44,10 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
     Button btnSaveInvoiceToLocalDB;
     Integer invoiceNumberServer, invoiceNumberLocalTmp;
     SharedPreferences sPrefDBName, sPrefDBPassword, sPrefDBUser, sPrefLogin, sPrefAccountingTypeDefault,
-            sPrefArea, sPrefAreaDefault;
+            sPrefArea, sPrefAreaDefault, sPrefInvoiceNumberLast;
     String paymentStatus, invoiceNumbers = "", dbName, dbUser, dbPassword,
             requestUrlSaveRecord = "https://caiman.ru.com/php/saveNewInvoice_new.php",
-            loginSecurity, statusSave = "", areaDefault;
+            loginSecurity, statusSave = "", areaDefault, invoiceNumberLast;
     final String SAVED_DBName = "dbName";
     final String SAVED_DBUser = "dbUser";
     final String SAVED_DBPassword = "dbPassword";
@@ -55,6 +55,7 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
     final String SAVED_ACCOUNTINGTYPEDEFAULT = "AccountingTypeDefault";
     final String SAVED_AREA = "Area";
     final String SAVED_AREADEFAULT = "areaDefault";
+    final String SAVED_InvoiceNumberLast = "invoiceNumberLast";
     ArrayList<String> arrItems, invoiceNumberServerTmp, dateTimeDocServer;
     ArrayList<Double> arrQuantity, arrExchange, arrReturn, arrSum;
     ArrayList<Integer> arrPriceChanged, invoiceNumbersList;
@@ -90,12 +91,14 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
         sPrefAccountingTypeDefault = getSharedPreferences(SAVED_ACCOUNTINGTYPEDEFAULT, Context.MODE_PRIVATE);
         sPrefArea= getSharedPreferences(SAVED_AREA, Context.MODE_PRIVATE);
         sPrefAreaDefault  = getSharedPreferences(SAVED_AREADEFAULT, Context.MODE_PRIVATE);
+        sPrefInvoiceNumberLast = getSharedPreferences(SAVED_InvoiceNumberLast, Context.MODE_PRIVATE);
 
         areaDefault = sPrefAreaDefault.getString(SAVED_AREADEFAULT, "");
         dbName = sPrefDBName.getString(SAVED_DBName, "");
         dbUser = sPrefDBUser.getString(SAVED_DBUser, "");
         dbPassword = sPrefDBPassword.getString(SAVED_DBPassword, "");
         loginSecurity = sPrefLogin.getString(SAVED_LOGIN, "");
+        invoiceNumberLast = sPrefInvoiceNumberLast.getString(SAVED_InvoiceNumberLast, "");
 
         setInitialData();
     }
@@ -146,23 +149,24 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
             dateTimeDocServer.add("");
         }
 
-        if (resultExists(db, "syncedInvoice","invoiceNumber")){
-            String sql = "SELECT DISTINCT invoiceLocalDB.invoiceNumber FROM invoiceLocalDB " +
-                    "WHERE NOT EXISTS (SELECT syncedInvoice.invoiceNumber FROM syncedInvoice " +
-                    "WHERE invoiceLocalDB.invoiceNumber LIKE  syncedInvoice.invoiceNumber) ";
-            Cursor c = db.rawQuery(sql, null);
-            if (c.moveToFirst()) {
-                int iNumber = c.getColumnIndex("invoiceNumber");
-                do {
-                    invoiceNumbers = invoiceNumbers + "----" + c.getString(iNumber) ;
-                    invoiceNumbersList.add(Integer.parseInt(c.getString(iNumber)));
-                } while (c.moveToNext());
-            } else {
-                alreadySyncedPrompt();
-            }
-            c.close();
-            Toast.makeText(getApplicationContext(), "Несинхронизированные: " + invoiceNumbers, Toast.LENGTH_SHORT).show();
-        } else {
+//        if (resultExists(db, "syncedInvoice","invoiceNumber")){
+//            String sql = "SELECT DISTINCT invoiceLocalDB.invoiceNumber FROM invoiceLocalDB " +
+//                    "WHERE NOT EXISTS (SELECT syncedInvoice.invoiceNumber FROM syncedInvoice " +
+//                    "WHERE invoiceLocalDB.invoiceNumber LIKE  syncedInvoice.invoiceNumber) ";
+//            Cursor c = db.rawQuery(sql, null);
+//            if (c.moveToFirst()) {
+//                int iNumber = c.getColumnIndex("invoiceNumber");
+//                do {
+//                    invoiceNumbers = invoiceNumbers + "----" + c.getString(iNumber) ;
+//                    invoiceNumbersList.add(Integer.parseInt(c.getString(iNumber)));
+//                } while (c.moveToNext());
+//            } else {
+//                alreadySyncedPrompt();
+//            }
+//            c.close();
+//            Toast.makeText(getApplicationContext(), "Несинхронизированные: " + invoiceNumbers, Toast.LENGTH_SHORT).show();
+//        } else {
+        if (resultExists(db, "invoiceLocalDB", "invoiceNumber")){
             String sql = "SELECT DISTINCT invoiceNumber FROM invoiceLocalDB ";
             Cursor c = db.rawQuery(sql, null);
             if (c.moveToFirst()) {
@@ -176,6 +180,8 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
             for (int i = 0; i < invoiceNumbersList.size(); i++){
                 Toast.makeText(getApplicationContext(), "Ничего не синхронизировано: " + invoiceNumbers, Toast.LENGTH_SHORT).show();
             }
+        } else {
+            alreadySyncedPrompt();
         }
 
         for (int i = 0; i < invoiceNumbersList.size(); i++){
@@ -285,24 +291,27 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
                     invoiceNumberFromRequest = new String[jsonArray.length()];
                     dateTimeDocServerFromRequest = new String[jsonArray.length()];
 
-                    ContentValues cv = new ContentValues();
-                    Log.d(LOG_TAG, "--- Insert in syncedInvoice: ---");
+//                    ContentValues cv = new ContentValues();
+//                    Log.d(LOG_TAG, "--- Insert in syncedInvoice: ---");
 
                     if (jsonArray.length() > 0){
                         for (int i = 0; i < jsonArray.length(); i++) {
                             JSONObject obj = jsonArray.getJSONObject(i);
                             invoiceNumberFromRequest[i] = obj.getString("invoiceNumber");
                             dateTimeDocServerFromRequest[i] = obj.getString("dateTimeDoc");
-                            cv.put("invoiceNumber", Integer.parseInt(invoiceNumberFromRequest[i]));
-                            cv.put("agentID", areaDefault);
-                            cv.put("dateTimeDoc", dateTimeDocServerFromRequest[i]);
-                            long rowID = db.insert("syncedInvoice", null, cv);
-                            Log.d(LOG_TAG, "row inserted, ID = " + rowID);
-                            statusSave = "saved";
+//                            cv.put("invoiceNumber", Integer.parseInt(invoiceNumberFromRequest[i]));
+//                            cv.put("agentID", areaDefault);
+//                            cv.put("dateTimeDoc", dateTimeDocServerFromRequest[i]);
+//                            long rowID = db.insert("syncedInvoice", null, cv);
+//                            Log.d(LOG_TAG, "row inserted, ID = " + rowID);
                         }
+//                        if (invoiceNumberFromRequest[jsonArray.length() - 1] == invoiceNumberLast){
+//                            statusSave = "saved";
+                            clearTable("invoiceLocalDB");
+//                        }
 //                        paymentPrompt();
                         invoiceNumbersList.clear();
-                        if (statusSave.equals("saved")){
+//                        if (statusSave.equals("saved")){
                             builder.setTitle("Поздравляю")
                                     .setMessage("Синхронизировано успешно")
                                     .setCancelable(false)
@@ -315,7 +324,7 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
                                             });
                             AlertDialog alert = builder.create();
                             alert.show();
-                        }
+//                        }
                     }else{
                         Toast.makeText(getApplicationContext(), "Ошибка загрузки. Проверьте Интернет или Учётку", Toast.LENGTH_SHORT).show();
                     }
@@ -396,5 +405,13 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
                         });
         AlertDialog alert = builder.create();
         alert.show();
+    }
+
+    private void clearTable(String tableName){
+        Log.d(LOG_TAG, "--- Clear " + tableName + " : ---");
+        // удаляем все записи
+        int clearCount = db.delete(tableName, null, null);
+        Log.d(LOG_TAG, "deleted rows count = " + clearCount);
+        Toast.makeText(getApplicationContext(), "<<< Таблицы очищены >>>", Toast.LENGTH_SHORT).show();
     }
 }

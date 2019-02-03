@@ -64,7 +64,9 @@
         <activity android:name=".ViewPaymentsFilterSP" />
         <activity android:name=".ViewPaymentsFilterComplete" />
         <activity android:name=".ViewPaymentsShowAllActivity" />
-        <activity android:name=".CreateInvoiceMakeCommentActivity"></activity>
+        <activity android:name=".CreateInvoiceMakeCommentActivity" />
+        <activity android:name=".ViewInvoicesChangeNotSyncedActivity" />
+        <activity android:name=".ChangeInvoiceChooseItemsActivity"></activity>
     </application>
 
 </manifest>

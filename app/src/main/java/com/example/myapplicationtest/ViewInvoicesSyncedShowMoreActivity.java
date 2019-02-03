@@ -48,18 +48,20 @@ public class ViewInvoicesSyncedShowMoreActivity extends AppCompatActivity {
     }
 
     private void showMore(){
-        String sql = "SELECT * FROM invoiceLocalDB WHERE invoiceNumber LIKE ?";
+        String sql = "SELECT *, items.Наименование, salesPartners.Наименование FROM invoice " +
+                "INNER JOIN items ON invoice.ItemID LIKE items.Артикул INNER JOIN salesPartners " +
+                "ON invoice.SalesPartnerID LIKE salesPartners.serverDB_ID WHERE invoice.InvoiceNumber LIKE ?";
         Cursor c = db.rawQuery(sql, new String[]{salesPartner});
         if (c.moveToFirst()) {
-            int exchange = c.getColumnIndex("exchangeQuantity");
-            int itemName = c.getColumnIndex("itemName");
-            int price = c.getColumnIndex("price");
-            int quantity = c.getColumnIndex("quantity");
-            int total = c.getColumnIndex("totalCost");
-            int returnQuantity = c.getColumnIndex("returnQuantity");
-            int salesPartnerNameTmp = c.getColumnIndex("salesPartnerName");
-            int accountingTypeDocTmp = c.getColumnIndex("accountingTypeDoc");
-            int invoiceSumTmp = c.getColumnIndex("invoiceSum");
+            int exchange = c.getColumnIndex("ExchangeQuantity");
+            int itemName = c.getColumnIndex("Наименование");
+            int price = c.getColumnIndex("Price");
+            int quantity = c.getColumnIndex("Quantity");
+            int total = c.getColumnIndex("Total");
+            int returnQuantity = c.getColumnIndex("ReturnQuantity");
+            int salesPartnerNameTmp = c.getColumnIndex("Наименование");
+            int accountingTypeDocTmp = c.getColumnIndex("AccountingType");
+            int invoiceSumTmp = c.getColumnIndex("InvoiceSum");
             textViewSalesPartner.setText(c.getString(salesPartnerNameTmp));
             textViewAccountingType.setText(c.getString(accountingTypeDocTmp));
             textViewTotalSum.setText(c.getString(invoiceSumTmp));

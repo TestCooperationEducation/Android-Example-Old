@@ -8,7 +8,7 @@ import android.widget.Button;
 
 public class ViewInvoicesMenuActivity extends AppCompatActivity implements View.OnClickListener {
 
-    Button btnInvoiceNotSynced, btnInvoiceSynced, btnInvoiceFilterSPName, btnInvoiceFilterComplete;
+    Button btnInvoiceNotSynced, btnInvoiceSynced, btnInvoiceFilterSPName, btnInvoiceFilterComplete, btnInvoicesChangeNotSynced;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -19,10 +19,12 @@ public class ViewInvoicesMenuActivity extends AppCompatActivity implements View.
         btnInvoiceSynced = findViewById(R.id.buttonInvoicesSynced);
         btnInvoiceFilterSPName = findViewById(R.id.buttonInvoicesFilterSPName);
         btnInvoiceFilterComplete = findViewById(R.id.buttonInvoicesFilterComplete);
+        btnInvoicesChangeNotSynced = findViewById(R.id.buttonChangeInvoicesNotSynced);
         btnInvoiceNotSynced.setOnClickListener(this);
         btnInvoiceSynced.setOnClickListener(this);
         btnInvoiceFilterSPName.setOnClickListener(this);
         btnInvoiceFilterComplete.setOnClickListener(this);
+        btnInvoicesChangeNotSynced.setOnClickListener(this);
     }
 
     @Override
@@ -39,6 +41,9 @@ public class ViewInvoicesMenuActivity extends AppCompatActivity implements View.
                 break;
             case R.id.buttonInvoicesFilterComplete:
                 invoicesFilterComplete();
+                break;
+            case R.id.buttonChangeInvoicesNotSynced:
+                invoicesChangeNotSynced();
                 break;
             default:
                 break;
@@ -62,6 +67,11 @@ public class ViewInvoicesMenuActivity extends AppCompatActivity implements View.
 
     private void invoicesFilterComplete(){
         Intent intent = new Intent(getApplicationContext(), ViewInvoicesFilterCompleteActivity.class);
+        startActivity(intent);
+    }
+
+    private void invoicesChangeNotSynced(){
+        Intent intent = new Intent(getApplicationContext(), ViewInvoicesChangeNotSyncedActivity.class);
         startActivity(intent);
     }
 }

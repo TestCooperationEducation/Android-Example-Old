@@ -20,6 +20,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.text.DecimalFormat;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -43,6 +44,7 @@ public class ViewInvoicesSyncedActivity extends AppCompatActivity {
     SharedPreferences.Editor e;
     SharedPreferences sPrefSalesPartnerSyncedTmp;
     final String SAVED_SalesPartnerSyncedTmp = "salesPartnerSyncedTmp";
+    Integer tmpInvTO = 0, tmpInvTT = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,6 +81,7 @@ public class ViewInvoicesSyncedActivity extends AppCompatActivity {
                 for (int i = 0; i < listViewSalesPartners.getCount(); i++) {
                     if (salesPartners.get(i).equals(salesPartner) && chosen.get(i) == true) {
                         invoiceNumberTmp = String.valueOf(invoiceNumbersList.get(i));
+                        Toast.makeText(getApplicationContext(), "Контрагент: " + salesPartner, Toast.LENGTH_SHORT).show();
                     }
 //                    if (itemsList.get(i).equals(item) && chosen.get(i) == false) {
 //                        iTmp = i;
@@ -86,7 +89,7 @@ public class ViewInvoicesSyncedActivity extends AppCompatActivity {
 //                    }
                 }
                 showMore();
-                Toast.makeText(getApplicationContext(), "Контрагент: " + salesPartner, Toast.LENGTH_SHORT).show();
+
 
             }
         });
@@ -113,27 +116,28 @@ public class ViewInvoicesSyncedActivity extends AppCompatActivity {
 
     private void setListValues(){
         LocalDateTime now = LocalDateTime.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern( "yyyy/MM/dd HH:mm:ss" );
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern( "yyyy-MM-dd HH:mm:ss" );
         final String output = now.with(LocalTime.MIN).format( formatter );
         Toast.makeText(getApplicationContext(), output, Toast.LENGTH_SHORT).show();
 
-        if (resultExists(db, "syncedInvoice","invoiceNumber")){
-            String sql = "SELECT DISTINCT invoiceLocalDB.invoiceNumber FROM invoiceLocalDB " +
-                    "WHERE EXISTS (SELECT syncedInvoice.invoiceNumber FROM syncedInvoice " +
-                    "WHERE invoiceLocalDB.invoiceNumber LIKE  syncedInvoice.invoiceNumber) " +
-                    "AND invoiceLocalDB.dateTimeDocLocal > ? ";
+        if (resultExists(db, "invoice","InvoiceNumber")){
+//            String sql = "SELECT DISTINCT invoiceLocalDB.invoiceNumber FROM invoiceLocalDB " +
+//                    "WHERE EXISTS (SELECT syncedInvoice.invoiceNumber FROM syncedInvoice " +
+//                    "WHERE invoiceLocalDB.invoiceNumber LIKE  syncedInvoice.invoiceNumber) " +
+//                    "AND invoiceLocalDB.dateTimeDocLocal > ? ";
+            String sql = "SELECT DISTINCT InvoiceNumber FROM invoice WHERE DateTimeDoc > ?";
             Cursor c = db.rawQuery(sql, new String[]{output});
             if (c.moveToFirst()) {
-                int iNumber = c.getColumnIndex("invoiceNumber");
+                int iNumber = c.getColumnIndex("InvoiceNumber");
                 do {
                     invoiceNumbers = invoiceNumbers + "----" + c.getString(iNumber) ;
                     invoiceNumbersList.add(Integer.parseInt(c.getString(iNumber)));
                 } while (c.moveToNext());
             } else {
-                Toast.makeText(getApplicationContext(), "<<< Не найдено соответствий >>>", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(getApplicationContext(), "<<< Не найдено соответствий >>>", Toast.LENGTH_SHORT).show();
             }
             c.close();
-            Toast.makeText(getApplicationContext(), invoiceNumbers, Toast.LENGTH_SHORT).show();
+
         }
 //        else {
 //            String sql = "SELECT DISTINCT invoiceNumber FROM invoiceLocalDB ";
@@ -152,32 +156,33 @@ public class ViewInvoicesSyncedActivity extends AppCompatActivity {
 //        }
         if (invoiceNumbersList.size() > 0){
             for (int i = 0; i < invoiceNumbersList.size(); i++){
-                String sql = "SELECT DISTINCT salesPartnerName, accountingTypeDoc, invoiceSum" +
-                        " FROM invoiceLocalDB WHERE invoiceNumber LIKE ?";
+                String sql = "SELECT DISTINCT invoice.AccountingType, invoice.InvoiceSum, salesPartners.Наименование" +
+                        " FROM invoice INNER JOIN salesPartners ON invoice.SalesPartnerID LIKE salesPartners.serverDB_ID " +
+                        "WHERE invoice.InvoiceNumber LIKE ?";
                 Cursor c = db.rawQuery(sql, new String[]{invoiceNumbersList.get(i).toString()});
                 if (c.moveToFirst()) {
-                    int salesPartnerNameTmp = c.getColumnIndex("salesPartnerName");
-                    int accountingTypeDocTmp = c.getColumnIndex("accountingTypeDoc");
-                    int invoiceSumTmp = c.getColumnIndex("invoiceSum");
+                    int salesPartnerNameTmp = c.getColumnIndex("Наименование");
+                    int accountingTypeDocTmp = c.getColumnIndex("AccountingType");
+                    int invoiceSumTmp = c.getColumnIndex("InvoiceSum");
                     String salesPartnerName = c.getString(salesPartnerNameTmp);
                     String accountingTypeDoc = c.getString(accountingTypeDocTmp);
                     Double invoiceSum = Double.parseDouble(c.getString(invoiceSumTmp));
                     salesPartners.add(salesPartnerName);
                     Double tmpInvTotalSum = (Double.parseDouble(textViewInvoicesTotalSum.getText().toString())
                             + invoiceSum);
-                    textViewInvoicesTotalSum.setText(tmpInvTotalSum.toString());
+                    textViewInvoicesTotalSum.setText(String.valueOf(new DecimalFormat("##.##").format(tmpInvTotalSum)));
                     if (accountingTypeDoc.equals("провод")){
-                        Integer tmpInvTO = 0;
-                        textViewInvoicesTotalTypeOne.setText(String.valueOf(tmpInvTO + 1));
+                        tmpInvTO = tmpInvTO + 1;
+                        textViewInvoicesTotalTypeOne.setText(String.valueOf(tmpInvTO));
                         Double tmpInvTotalSumTO = (Double.parseDouble(textViewInvoicesTotalSumTypeOne.getText().toString())
                                 + invoiceSum);
-                        textViewInvoicesTotalSumTypeOne.setText(tmpInvTotalSumTO.toString());
+                        textViewInvoicesTotalSumTypeOne.setText(String.valueOf(new DecimalFormat("##.##").format(tmpInvTotalSumTO)));
                     } else {
-                        Integer tmpInvTT = 0;
-                        textViewInvoicesTotalTypeTwo.setText(String.valueOf(tmpInvTT + 1));
+                        tmpInvTT = tmpInvTT + 1;
+                        textViewInvoicesTotalTypeTwo.setText(String.valueOf(tmpInvTT));
                         Double tmpInvTotalSumTT = (Double.parseDouble(textViewInvoicesTotalSumTypeTwo.getText().toString())
                                 + invoiceSum);
-                        textViewInvoicesTotalSumTypeTwo.setText(tmpInvTotalSumTT.toString());
+                        textViewInvoicesTotalSumTypeTwo.setText(String.valueOf(new DecimalFormat("##.##").format(tmpInvTotalSumTT)));
                     }
                 }
                 c.close();

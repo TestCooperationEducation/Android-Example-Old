@@ -135,34 +135,34 @@ public class ViewPaymentsNotSyncedActivity extends AppCompatActivity implements 
         Toast.makeText(getApplicationContext(), output, Toast.LENGTH_SHORT).show();
 
         if (resultExists(db, "payments","InvoiceNumber")){
-            String sql = "SELECT payments.id FROM payments " +
-                    "WHERE NOT EXISTS (SELECT syncedPayments.paymentID FROM syncedPayments " +
-                    "WHERE payments.id LIKE  syncedPayments.paymentID) " +
-                    "AND payments.DateTimeDoc > ? ";
-            Cursor c = db.rawQuery(sql, new String[]{output});
+//            String sql = "SELECT payments.id FROM payments " +
+//                    "WHERE NOT EXISTS (SELECT syncedPayments.paymentID FROM syncedPayments " +
+//                    "WHERE payments.id LIKE  syncedPayments.paymentID) " +
+//                    "AND payments.DateTimeDoc > ? ";
+//            Cursor c = db.rawQuery(sql, new String[]{output});
+//            if (c.moveToFirst()) {
+//                int iNumber = c.getColumnIndex("id");
+//                do {
+//                    paymentsID = paymentsID + "----" + c.getString(iNumber) ;
+//                    paymentsIDsList.add(Integer.parseInt(c.getString(iNumber)));
+//                } while (c.moveToNext());
+//            } else {
+//                alreadySyncedPrompt();
+//            }
+//            c.close();
+//            Toast.makeText(getApplicationContext(), "Несинхронизированные: " + String.valueOf(paymentsIDsList.size()), Toast.LENGTH_SHORT).show();
+//        } else {
+            String sql = "SELECT id FROM payments ";
+            Cursor c = db.rawQuery(sql, null);
             if (c.moveToFirst()) {
-                int iNumber = c.getColumnIndex("id");
+                int idTmp = c.getColumnIndex("id");
                 do {
-                    paymentsID = paymentsID + "----" + c.getString(iNumber) ;
-                    paymentsIDsList.add(Integer.parseInt(c.getString(iNumber)));
+                    paymentsID = paymentsID + "----" + c.getString(idTmp);
+                    paymentsIDsList.add(Integer.parseInt(c.getString(idTmp)));
                 } while (c.moveToNext());
-            } else {
-                alreadySyncedPrompt();
             }
             c.close();
-            Toast.makeText(getApplicationContext(), "Несинхронизированные: " + String.valueOf(paymentsIDsList.size()), Toast.LENGTH_SHORT).show();
-        } else {
-            String sql = "SELECT id FROM payments WHERE payments.DateTimeDoc > ? ";
-            Cursor c = db.rawQuery(sql, new String[]{output});
-            if (c.moveToFirst()) {
-                int iNumber = c.getColumnIndex("InvoiceNumber");
-                do {
-                    paymentsID = paymentsID + "----" + c.getString(iNumber);
-                    paymentsIDsList.add(Integer.parseInt(c.getString(iNumber)));
-                } while (c.moveToNext());
-            }
-            c.close();
-            Toast.makeText(getApplicationContext(), "Ничего не синхронизировано: " + paymentsID, Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "Несинхронизированые: " + paymentsID, Toast.LENGTH_SHORT).show();
         }
 
         for (int i = 0; i < paymentsIDsList.size(); i++){
@@ -191,7 +191,7 @@ public class ViewPaymentsNotSyncedActivity extends AppCompatActivity implements 
                     listTmp.add(new DataPaymentLocal(salesPartnerName, accountingTypeDoc,
                             invoiceNumber, paymentIDLocal, invoiceSum, paymentSum, dateTimeDocLocal,
                             dateTimeDocServer));
-                    DataPay dt = new DataPay(invoiceNumber, invoiceSum, paymentIDLocal);
+                    DataPay dt = new DataPay(invoiceNumber, invoiceSum);
                     dataPay.add(dt);
                 } while (c.moveToNext());
             }
@@ -247,25 +247,25 @@ public class ViewPaymentsNotSyncedActivity extends AppCompatActivity implements 
                     String[] status = new String[jsonArray.length()];
                     String tmpStatus = "";
 
-                    ContentValues cv = new ContentValues();
-                    Log.d(LOG_TAG, "--- Insert in syncedPayments: ---");
+//                    ContentValues cv = new ContentValues();
+//                    Log.d(LOG_TAG, "--- Insert in syncedPayments: ---");
 
                     if (jsonArray.length() > 0){
                         for (int i = 0; i < jsonArray.length(); i++) {
                             JSONObject obj = jsonArray.getJSONObject(i);
                             invoiceNumberFromRequest[i] = obj.getString("invoiceNumber");
-                            paymentIDFromRequest[i] = obj.getString("paymentID");
+//                            paymentIDFromRequest[i] = obj.getString("paymentID");
                             status[i] = obj.getString("status");
                             if (status[i].equals("Бабло внесено")) {
                                 tmpStatus = "Yes";
                             }
 
-                            cv.put("invoiceNumber", Integer.parseInt(invoiceNumberFromRequest[i]));
-                            cv.put("paymentID", paymentIDFromRequest[i]);
-                            cv.put("agentID", areaDefault);
-                            cv.put("dateTimeDoc", output);
-                            long rowID = db.insert("syncedPayments", null, cv);
-                            Log.d(LOG_TAG, "row inserted, ID = " + rowID);
+//                            cv.put("invoiceNumber", Integer.parseInt(invoiceNumberFromRequest[i]));
+//                            cv.put("paymentID", paymentIDFromRequest[i]);
+//                            cv.put("agentID", areaDefault);
+//                            cv.put("dateTimeDoc", output);
+//                            long rowID = db.insert("syncedPayments", null, cv);
+//                            Log.d(LOG_TAG, "row inserted, ID = " + rowID);
                         }
                         if (tmpStatus.equals("Yes")){
                             Toast.makeText(getApplicationContext(), response, Toast.LENGTH_SHORT).show();
@@ -282,6 +282,7 @@ public class ViewPaymentsNotSyncedActivity extends AppCompatActivity implements 
                             AlertDialog alert = builder.create();
                             alert.show();
                         }
+                        clearTable("payments");
                         Toast.makeText(getApplicationContext(), "<<< Платеж Синхронизирован >>>", Toast.LENGTH_SHORT).show();
                     }else{
                         Toast.makeText(getApplicationContext(), "Ошибка загрузки. Проверьте Интернет или Учётку", Toast.LENGTH_SHORT).show();
@@ -380,5 +381,13 @@ public class ViewPaymentsNotSyncedActivity extends AppCompatActivity implements 
                         });
         AlertDialog alert = builder.create();
         alert.show();
+    }
+
+    private void clearTable(String tableName){
+        Log.d(LOG_TAG, "--- Clear " + tableName + " : ---");
+        // удаляем все записи
+        int clearCount = db.delete(tableName, null, null);
+        Log.d(LOG_TAG, "deleted rows count = " + clearCount);
+        Toast.makeText(getApplicationContext(), "<<< Таблицы очищены >>>", Toast.LENGTH_SHORT).show();
     }
 }

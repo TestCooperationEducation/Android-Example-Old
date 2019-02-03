@@ -166,92 +166,106 @@ public class MakePaymentPartialActivity extends AppCompatActivity implements Vie
         long rowID = db.insert("payments", null, cv);
         Log.d(LOG_TAG, "row inserted, ID = " + rowID);
 
-        DataPay dt = new DataPay(Integer.parseInt(invoiceNumber), Double.parseDouble(editTextPaymentSum.getText().toString()), (int)rowID);
-        dataPay.add(dt);
-
-        Gson gson = new Gson();
-        final String newDataArray = gson.toJson(dataPay);
-
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-
-        StringRequest request = new StringRequest(Request.Method.POST,
-                requestUrlMakePayment, new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                Log.d("response", "result: " + response);
-                dataPay.clear();
-                try{
-                    JSONArray jsonArray = new JSONArray(response);
-                    String[] invoiceNumberFromRequest = new String[jsonArray.length()];
-                    String[] paymentIDFromRequest = new String[jsonArray.length()];
-                    String[] status = new String[jsonArray.length()];
-                    String tmpStatus = "";
-
-                    ContentValues cv = new ContentValues();
-                    Log.d(LOG_TAG, "--- Insert in syncedPayments: ---");
-
-                    if (jsonArray.length() > 0){
-                        for (int i = 0; i < jsonArray.length(); i++) {
-                            JSONObject obj = jsonArray.getJSONObject(i);
-                            invoiceNumberFromRequest[i] = obj.getString("invoiceNumber");
-                            paymentIDFromRequest[i] = obj.getString("paymentID");
-                            status[i] = obj.getString("status");
-                            if (status[i].equals("Бабло внесено")) {
-                                tmpStatus = "Yes";
+                builder.setTitle("Успешно")
+                .setMessage("Деньги внесены и синхронизированы")
+                .setCancelable(false)
+                .setPositiveButton("Назад",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                finish();
+                                dialog.cancel();
                             }
+                        });
+        AlertDialog alert = builder.create();
+        alert.show();
 
-                            cv.put("invoiceNumber", Integer.parseInt(invoiceNumberFromRequest[i]));
-                            cv.put("paymentID", paymentIDFromRequest[i]);
-                            cv.put("agentID", areaDefault);
-                            cv.put("dateTimeDoc", output);
-                            long rowID = db.insert("syncedPayments", null, cv);
-                            Log.d(LOG_TAG, "row inserted, ID = " + rowID);
-                        }
-                        if (tmpStatus.equals("Yes")){
-                            Toast.makeText(getApplicationContext(), response, Toast.LENGTH_SHORT).show();
-                            builder.setTitle("Успешно")
-                                    .setMessage("Деньги внесены и синхронизированы")
-                                    .setCancelable(false)
-                                    .setPositiveButton("Назад",
-                                            new DialogInterface.OnClickListener() {
-                                                public void onClick(DialogInterface dialog, int id) {
-                                                    finish();
-                                                    dialog.cancel();
-                                                }
-                                            });
-                            AlertDialog alert = builder.create();
-                            alert.show();
-                        }
-                        Toast.makeText(getApplicationContext(), "<<< Платеж Синхронизирован >>>", Toast.LENGTH_SHORT).show();
-                    }else{
-                        Toast.makeText(getApplicationContext(), "Ошибка загрузки. Проверьте Интернет или Учётку", Toast.LENGTH_SHORT).show();
-                    }
-                }
-                catch (JSONException e1) {
-                    e1.printStackTrace();
-                }
-            }
-        }, new Response.ErrorListener(){
-            @Override
-            public void onErrorResponse(VolleyError error){
-                onConnectionFailedPayment();
-                Toast.makeText(getApplicationContext(), "Нет ответа от Сервера", Toast.LENGTH_SHORT).show();
-                Log.e("TAG", "Error " + error.getMessage());
-            }
-        }){
-            @Override
-            protected Map<String, String> getParams(){
-                Map<String, String> parameters = new HashMap<>();
-                parameters.put("dbName", dbName);
-                parameters.put("dbUser", dbUser);
-                parameters.put("dbPassword", dbPassword);
-                parameters.put("agent", agent);
-                parameters.put("agentID", areaDefault);
-                parameters.put("array", newDataArray);
-                return parameters;
-            }
-        };
-        VolleySingleton.getInstance(this).getRequestQueue().add(request);
+//        DataPay dt = new DataPay(Integer.parseInt(invoiceNumber), Double.parseDouble(editTextPaymentSum.getText().toString()));
+//        dataPay.add(dt);
+//
+//        Gson gson = new Gson();
+//        final String newDataArray = gson.toJson(dataPay);
+//
+//        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+//
+//        StringRequest request = new StringRequest(Request.Method.POST,
+//                requestUrlMakePayment, new Response.Listener<String>() {
+//            @Override
+//            public void onResponse(String response) {
+//                Log.d("response", "result: " + response);
+//                dataPay.clear();
+//                try{
+//                    JSONArray jsonArray = new JSONArray(response);
+//                    String[] invoiceNumberFromRequest = new String[jsonArray.length()];
+//                    String[] paymentIDFromRequest = new String[jsonArray.length()];
+//                    String[] status = new String[jsonArray.length()];
+//                    String tmpStatus = "";
+//
+//                    ContentValues cv = new ContentValues();
+//                    Log.d(LOG_TAG, "--- Insert in syncedPayments: ---");
+//
+//                    if (jsonArray.length() > 0){
+//                        for (int i = 0; i < jsonArray.length(); i++) {
+//                            JSONObject obj = jsonArray.getJSONObject(i);
+//                            invoiceNumberFromRequest[i] = obj.getString("invoiceNumber");
+//                            paymentIDFromRequest[i] = obj.getString("paymentID");
+//                            status[i] = obj.getString("status");
+//                            if (status[i].equals("Бабло внесено")) {
+//                                tmpStatus = "Yes";
+//                            }
+//
+//                            cv.put("invoiceNumber", Integer.parseInt(invoiceNumberFromRequest[i]));
+//                            cv.put("paymentID", paymentIDFromRequest[i]);
+//                            cv.put("agentID", areaDefault);
+//                            cv.put("dateTimeDoc", output);
+//                            long rowID = db.insert("syncedPayments", null, cv);
+//                            Log.d(LOG_TAG, "row inserted, ID = " + rowID);
+//                        }
+//                        if (tmpStatus.equals("Yes")){
+//                            Toast.makeText(getApplicationContext(), response, Toast.LENGTH_SHORT).show();
+//                            builder.setTitle("Успешно")
+//                                    .setMessage("Деньги внесены и синхронизированы")
+//                                    .setCancelable(false)
+//                                    .setPositiveButton("Назад",
+//                                            new DialogInterface.OnClickListener() {
+//                                                public void onClick(DialogInterface dialog, int id) {
+//                                                    finish();
+//                                                    dialog.cancel();
+//                                                }
+//                                            });
+//                            AlertDialog alert = builder.create();
+//                            alert.show();
+//                        }
+//                        Toast.makeText(getApplicationContext(), "<<< Платеж Синхронизирован >>>", Toast.LENGTH_SHORT).show();
+//                    }else{
+//                        Toast.makeText(getApplicationContext(), "Ошибка загрузки. Проверьте Интернет или Учётку", Toast.LENGTH_SHORT).show();
+//                    }
+//                }
+//                catch (JSONException e1) {
+//                    e1.printStackTrace();
+//                }
+//            }
+//        }, new Response.ErrorListener(){
+//            @Override
+//            public void onErrorResponse(VolleyError error){
+//                onConnectionFailedPayment();
+//                Toast.makeText(getApplicationContext(), "Нет ответа от Сервера", Toast.LENGTH_SHORT).show();
+//                Log.e("TAG", "Error " + error.getMessage());
+//            }
+//        }){
+//            @Override
+//            protected Map<String, String> getParams(){
+//                Map<String, String> parameters = new HashMap<>();
+//                parameters.put("dbName", dbName);
+//                parameters.put("dbUser", dbUser);
+//                parameters.put("dbPassword", dbPassword);
+//                parameters.put("agent", agent);
+//                parameters.put("agentID", areaDefault);
+//                parameters.put("array", newDataArray);
+//                return parameters;
+//            }
+//        };
+//        VolleySingleton.getInstance(this).getRequestQueue().add(request);
     }
 
     class DBHelper extends SQLiteOpenHelper {

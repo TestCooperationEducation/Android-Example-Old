@@ -9,6 +9,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -35,7 +36,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
             btnReports, btnViewInvoices;
     SharedPreferences sPrefArea, sPrefAccountingType, sPrefDayOfTheWeekDefault, sPrefDBName,
             sPrefFreshStatus, sPrefDBPassword, sPrefDBUser, sPrefDayOfTheWeek, sPrefVisited,
-            sPrefConnectionStatus, sPrefAreaDefault;
+            sPrefConnectionStatus, sPrefAreaDefault, sPrefInvoiceNumberLast, sPrefPaymentNumberLast;
     final String SAVED_AREA = "Area";
     final String SAVED_ACCOUNTINGTYPE = "AccountingType";
     final String SAVED_DAYOFTHEWEEKDEFAULT = "DayOfTheWeekDefault";
@@ -47,8 +48,11 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
     final String SAVED_CONNSTATUS = "connectionStatus";
     final String SAVED_FRESHSTATUS = "freshStatus";
     final String SAVED_AREADEFAULT = "areaDefault";
+    final String SAVED_InvoiceNumberLast = "invoiceNumberLast";
+    final String SAVED_PaymentNumberLast = "paymentNumberLast";
     String loginUrl = "https://caiman.ru.com/php/login.php", dbName, dbUser, dbPassword,
-            syncUrl = "https://caiman.ru.com/php/syncDB.php", connStatus, areaDefault;
+            syncUrl = "https://caiman.ru.com/php/syncDB.php", connStatus, areaDefault, invoiceNumberLast,
+            paymentNumberLast;
     String[] dayOfTheWeek, salesPartnersName, accountingType, author, itemName, comment, dateTimeDoc;
     Integer[] itemPrice, discountID, spID, area, serverDB_ID, itemNumber, discountType, discount,
             invoiceNumber, agentID, salesPartnerID;
@@ -98,17 +102,20 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         sPrefVisited = getSharedPreferences(SAVED_VISITED, Context.MODE_PRIVATE);
         sPrefFreshStatus = getSharedPreferences(SAVED_FRESHSTATUS, Context.MODE_PRIVATE);
         sPrefAreaDefault = getSharedPreferences(SAVED_AREADEFAULT, Context.MODE_PRIVATE);
+        sPrefInvoiceNumberLast = getSharedPreferences(SAVED_InvoiceNumberLast, Context.MODE_PRIVATE);
+        sPrefPaymentNumberLast = getSharedPreferences(SAVED_PaymentNumberLast, Context.MODE_PRIVATE);
 
         dbName = sPrefDBName.getString(SAVED_DBName, "");
         dbUser = sPrefDBUser.getString(SAVED_DBUser, "");
         dbPassword = sPrefDBPassword.getString(SAVED_DBPassword, "");
         areaDefault = sPrefAreaDefault.getString(SAVED_AREADEFAULT, "");
+        invoiceNumberLast = sPrefInvoiceNumberLast.getString(SAVED_InvoiceNumberLast, "");
+        paymentNumberLast = sPrefPaymentNumberLast.getString(SAVED_PaymentNumberLast, "");
 
         sPrefArea.edit().clear().apply();
         sPrefAccountingType.edit().clear().apply();
         sPrefDayOfTheWeek.edit().clear().apply();
         sPrefVisited.edit().clear().apply();
-
 
         e = sPrefFreshStatus.edit();
         e.putString(SAVED_FRESHSTATUS, "fresh");
@@ -137,10 +144,72 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                 makePayments();
                 break;
             case R.id.buttonSalesPartners:
-                manageSalesPartners();
+//                final String[] choice ={};
+                AlertDialog.Builder builder;
+//                builder = new AlertDialog.Builder(this);
+//                builder.setTitle("Choice");
+//                builder.setItems(choice, new DialogInterface.OnClickListener() {
+//                    @Override
+//                    public void onClick(DialogInterface dialog, int item) {
+//                        if (choice[item].equals("Choice")){
+//                            manageSalesPartners();
+//                        }
+//                    }
+//                });
+//                builder.setCancelable(false);
+//                AlertDialog alert = builder.create();
+//                alert.show();
+
+//                final boolean[] mCheckedItems = new boolean[3];
+//                final String[] checkCatsName = { "Васька", "Рыжик", "Мурзик" };
+//                builder = new AlertDialog.Builder(this);
+//                builder.setTitle("Выберите котов")
+//                    .setCancelable(true)
+//                    .setMultiChoiceItems(checkCatsName, mCheckedItems,
+//                            new DialogInterface.OnMultiChoiceClickListener() {
+//                                @Override
+//                                public void onClick(DialogInterface dialog,
+//                                                    int which, boolean isChecked) {
+//                                    mCheckedItems[which] = isChecked;
+//                                }
+//                            })
+//                    .setPositiveButton("Готово",
+//                            new DialogInterface.OnClickListener() {
+//                                @Override
+//                                public void onClick(DialogInterface dialog,
+//                                                    int id) {
+//                                    StringBuilder state = new StringBuilder();
+//                                    for (int i = 0; i < checkCatsName.length; i++) {
+//                                        state.append("" + checkCatsName[i]);
+//                                        if (mCheckedItems[i])
+//                                            state.append(" выбран\n");
+//                                        else
+//                                            state.append(" не выбран\n");
+//                                    }
+//                                }
+//                            })
+//                    .setNegativeButton("Отмена",
+//                            new DialogInterface.OnClickListener() {
+//                                @Override
+//                                public void onClick(DialogInterface dialog,
+//                                                    int id) {
+//                                    dialog.cancel();
+//
+//                                }
+//                            });
+//                AlertDialog alert = builder.create();
+//                alert.show();
+//                WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
+//                lp.copyFrom(alert.getWindow().getAttributes());
+//                lp.width = 720;
+//                lp.height = 1200;
+//                lp.x=-170;
+//                lp.y=100;
+//                alert.getWindow().setAttributes(lp);
                 break;
             case R.id.buttonUpdateLocalDB:
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+//                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder = new AlertDialog.Builder(this);
                 builder.setTitle("Обновление локальной базы данных")
                         .setMessage("Все таблицы будут перезаписаны!")
                         .setCancelable(true)
@@ -322,86 +391,149 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
     }
 
     private void updateLocalDB(){
-        sPrefConnectionStatus = getSharedPreferences(SAVED_CONNSTATUS, Context.MODE_PRIVATE);
-        if (sPrefConnectionStatus.contains(SAVED_CONNSTATUS)){
-            connStatus = sPrefConnectionStatus.getString(SAVED_CONNSTATUS, "");
-            if (!connStatus.equals("failed")){
-                db.execSQL("DROP TABLE IF EXISTS salesPartners");//Удаление таблицы
-                db.execSQL("DROP TABLE IF EXISTS items");
-                db.execSQL("DROP TABLE IF EXISTS itemsWithDiscount");
-                db.execSQL("DROP TABLE IF EXISTS discount");
-                db.execSQL("DROP TABLE IF EXISTS invoice");
-                db.execSQL("DROP TABLE IF EXISTS paymentsServer");
-                dropped = true;
-            } else {
-                Toast.makeText(getApplicationContext(), "<<< Локальная База >>>" + connStatus, Toast.LENGTH_SHORT).show();
-            }
-        }
-        if (sPrefFreshStatus.getString(SAVED_FRESHSTATUS, "").equals("fresh")){
-            if (dropped == true){
-                dbHelper.onUpgrade(db, 1, 2);
+        final boolean[] listChecked = new boolean[6];
+        final String[] listCheckTableName = { "Контрагенты", "Номенклатура", "Индивидуальные скидки",
+                "Тип скидки", "Накладная", "Платежи" };
+        AlertDialog.Builder builder;
+        builder = new AlertDialog.Builder(this);
+        builder.setTitle("Выберите таблицу(цы) для обновления")
+                .setCancelable(false)
+                .setMultiChoiceItems(listCheckTableName, listChecked,
+                        new DialogInterface.OnMultiChoiceClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog,
+                                                int which, boolean isChecked) {
+                                listChecked[which] = isChecked;
+                            }
+                        })
+                .setPositiveButton("Обновить",
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog,
+                                                int id) {
+//                                StringBuilder state = new StringBuilder();
+                                loadDateFromServer();
+                                for (int i = 0; i < listCheckTableName.length; i++) {
+//                                    state.append("" + listCheckTableName[i]);
+////                                    if (listChecked[i])
+////                                        state.append(" выбран\n");
+////                                    else
+////                                        state.append(" не выбран\n");
+                                    if (listChecked[i] == true){
+                                        sPrefConnectionStatus = getSharedPreferences(SAVED_CONNSTATUS, Context.MODE_PRIVATE);
+                                        if (sPrefConnectionStatus.contains(SAVED_CONNSTATUS)){
+                                            if (sPrefFreshStatus.getString(SAVED_FRESHSTATUS, "").equals("fresh")){
+                                                connStatus = sPrefConnectionStatus.getString(SAVED_CONNSTATUS, "");
+                                                if (!connStatus.equals("failed")){
+                                                    if (listCheckTableName[i].equals("Контрагенты")){
+                                                        db.execSQL("DROP TABLE IF EXISTS salesPartners");
+                                                        dbHelper.onUpgrade(db, 1, 2);
+                                                        Runnable runnable = new Runnable() {
+                                                            @Override
+                                                            public void run() {
 
-                loadDateFromServer();
+                                                                loadSalesPartnersFromServerDB();
+                                                            }
+                                                        };
+                                                        Thread thread1 = new Thread(runnable);
+                                                        thread1.start();
+                                                    }
+                                                    if (listCheckTableName[i].equals("Номенклатура")){
+                                                        db.execSQL("DROP TABLE IF EXISTS items");
+                                                        dbHelper.onUpgrade(db, 1, 2);
+                                                        Runnable runnable = new Runnable() {
+                                                            @Override
+                                                            public void run() {
 
-                Runnable runnable = new Runnable() {
-                    @Override
-                    public void run() {
-                        loadSalesPartnersFromServerDB();
-                    }
-                };
-                Thread thread2 = new Thread(runnable);
-                thread2.start();
+                                                                loadItemsFromServerDB();
+                                                            }
+                                                        };
+                                                        Thread thread2 = new Thread(runnable);
+                                                        thread2.start();
+                                                    }
+                                                    if (listCheckTableName[i].equals("Индивидуальные скидки")){
+                                                        db.execSQL("DROP TABLE IF EXISTS itemsWithDiscount");
+                                                        dbHelper.onUpgrade(db, 1, 2);
+                                                        Runnable runnable = new Runnable() {
+                                                            @Override
+                                                            public void run() {
 
-                runnable = new Runnable() {
-                    @Override
-                    public void run() {
-                        loadItemsFromServerDB();
-                    }
-                };
-                Thread thread3 = new Thread(runnable);
-                thread3.start();
+                                                                loadItemsWithDiscountsFromServerDB();
+                                                            }
+                                                        };
+                                                        Thread thread3 = new Thread(runnable);
+                                                        thread3.start();
+                                                    }
+                                                    if (listCheckTableName[i].equals("Тип скидки")){
+                                                        db.execSQL("DROP TABLE IF EXISTS discount");
+                                                        dbHelper.onUpgrade(db, 1, 2);
+                                                        Runnable runnable = new Runnable() {
+                                                            @Override
+                                                            public void run() {
 
-                runnable = new Runnable() {
-                    @Override
-                    public void run() {
-                        loadItemsWithDiscountsFromServerDB();
-                    }
-                };
-                Thread thread4 = new Thread(runnable);
-                thread4.start();
+                                                                loadDiscountsFromServerDB();
+                                                            }
+                                                        };
+                                                        Thread thread4 = new Thread(runnable);
+                                                        thread4.start();
+                                                    }
+                                                    if (listCheckTableName[i].equals("Накладная")){
+                                                        db.execSQL("DROP TABLE IF EXISTS invoice");
+                                                        dbHelper.onUpgrade(db, 1, 2);
+                                                        Runnable runnable = new Runnable() {
+                                                            @Override
+                                                            public void run() {
 
-                runnable = new Runnable() {
-                    @Override
-                    public void run() {
-                        loadDiscountsFromServerDB();
-                    }
-                };
-                Thread thread5 = new Thread(runnable);
-                thread5.start();
+                                                                loadInvoicesFromServerDB();
+                                                            }
+                                                        };
+                                                        Thread thread5 = new Thread(runnable);
+                                                        thread5.start();
+                                                    }
+                                                    if (listCheckTableName[i].equals("Платежи")){
+                                                        db.execSQL("DROP TABLE IF EXISTS paymentsServer");
+                                                        dbHelper.onUpgrade(db, 1, 2);
+                                                        Runnable runnable = new Runnable() {
+                                                            @Override
+                                                            public void run() {
 
-                runnable = new Runnable() {
-                    @Override
-                    public void run() {
-                        loadInvoicesFromServerDB();
-                    }
-                };
-                Thread thread6 = new Thread(runnable);
-                thread6.start();
+                                                                loadPaymentsFromServerDB();
+                                                            }
+                                                        };
+                                                        Thread thread6 = new Thread(runnable);
+                                                        thread6.start();
+                                                    }
+                                                } else {
+                                                    Toast.makeText(getApplicationContext(), "<<< НЕТ подключения к Серверу >>>" + connStatus, Toast.LENGTH_SHORT).show();
+                                                }
+                                            } else {
+                                                Toast.makeText(getApplicationContext(), "<<< Локальная База >>>" + connStatus, Toast.LENGTH_SHORT).show();
+                                            }
+                                        } else {
+                                            Toast.makeText(getApplicationContext(), "<<< Обновление возможно только при первом входе >>>" + connStatus, Toast.LENGTH_SHORT).show();
+                                        }
+                                    }
+                                }
+                            }
+                        })
+                .setNegativeButton("Я передумал(а)",
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog,
+                                                int id) {
+                                dialog.cancel();
 
-                runnable = new Runnable() {
-                    @Override
-                    public void run() {
-                        loadPaymentsFromServerDB();
-                    }
-                };
-                Thread thread7 = new Thread(runnable);
-                thread7.start();
-            } else {
-                Toast.makeText(getApplicationContext(), "<<< НЕТ подключения к Серверу >>>" + connStatus, Toast.LENGTH_SHORT).show();
-            }
-        } else {
-            Toast.makeText(getApplicationContext(), "<<< Обновление возможно только при первом входе >>>" + connStatus, Toast.LENGTH_SHORT).show();
-        }
+                            }
+                        });
+        AlertDialog alert = builder.create();
+        alert.show();
+//        WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
+//        lp.copyFrom(alert.getWindow().getAttributes());
+//        lp.width = 720;
+//        lp.height = 500;
+//        lp.x=-170;
+//        lp.y=100;
+//        alert.getWindow().setAttributes(lp);
     }
 
     private void loadDateFromServer(){
@@ -488,7 +620,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
 //                                Toast.makeText(getApplicationContext(), "Ошибка: MainMenu контрагенты loadDB", Toast.LENGTH_SHORT).show();
 //                            }
                         }
-//                        Toast.makeText(getApplicationContext(), "Контрагенты загружены", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), "Контрагенты загружены", Toast.LENGTH_SHORT).show();
                         two = true;
                     }else{
                         Toast.makeText(getApplicationContext(), "Ошибка загрузки. Проверьте Интернет или Учётку", Toast.LENGTH_SHORT).show();
@@ -548,7 +680,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
 //                                Toast.makeText(getApplicationContext(), "Ошибка: MainMenu items loadDB", Toast.LENGTH_SHORT).show();
 //                            }
                         }
-//                        Toast.makeText(getApplicationContext(), "Номенклатура загружена", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), "Номенклатура загружена", Toast.LENGTH_SHORT).show();
                         three = true;
                         loadMessage();
                     }else{
@@ -615,7 +747,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
 //                                Toast.makeText(getApplicationContext(), "Ошибка: MainMenu itemsWithDiscount loadDB", Toast.LENGTH_SHORT).show();
 //                            }
                         }
-//                        Toast.makeText(getApplicationContext(), "НоменклатураСоСкидкой загружена", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), "Индивидуальные скидки загружены", Toast.LENGTH_SHORT).show();
                         four = true;
                         loadMessage();
                     }else{
@@ -679,7 +811,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
 //                                Toast.makeText(getApplicationContext(), "Ошибка: MainMenu discount loadDB", Toast.LENGTH_SHORT).show();
 //                            }
                         }
-//                        Toast.makeText(getApplicationContext(), "Скидки загружены", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), "Типы скидок загружены", Toast.LENGTH_SHORT).show();
                         five = true;
                         loadMessage();
                     }else{
@@ -773,7 +905,24 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
 //                                Toast.makeText(getApplicationContext(), "Ошибка: MainMenu invoice loadDB", Toast.LENGTH_SHORT).show();
 //                            }
                         }
-//                        Toast.makeText(getApplicationContext(), "Накладные загружены", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), "Накладные загружены", Toast.LENGTH_SHORT).show();
+                        if (resultExistsVariantTwo(db, "invoice","InvoiceNumber")){
+                            String sql = "SELECT DISTINCT InvoiceNumber FROM invoice ORDER BY id DESC LIMIT 1 ";
+                            Cursor c = db.rawQuery(sql, null);
+                            if (c.moveToFirst()) {
+                                int iNumber = c.getColumnIndex("InvoiceNumber");
+                                invoiceNumberLast = c.getString(iNumber);
+                                c.moveToNext();
+                            } else {
+                                invoiceNumberLast = "0";
+                            }
+                            c.close();
+                        }
+
+                        e = sPrefInvoiceNumberLast.edit();
+                        e.putString(SAVED_InvoiceNumberLast, invoiceNumberLast);
+                        e.apply();
+
                         six = true;
                         loadMessage();
                     }else{
@@ -830,7 +979,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
 //                            if (!resultExists(db, "paymentsServer","Автор", "Автор", "Рождественская Яна Андреевна")){
                                 ContentValues cv = new ContentValues();
                                 Log.d(LOG_TAG, "--- Insert in paymentsServer: ---");
-//                                cv.put("serverDB_ID", serverDB_ID[i]);
+                                cv.put("serverDB_ID", serverDB_ID[i]);
                                 cv.put("DateTimeDoc", dateTimeDoc[i]);
                                 cv.put("InvoiceNumber", invoiceNumber[i]);
                                 cv.put("сумма_внесения", paymentAmount[i]);
@@ -841,7 +990,24 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
 //                                Toast.makeText(getApplicationContext(), "Ошибка: MainMenu платежи loadDB", Toast.LENGTH_SHORT).show();
 //                            }
                         }
-//                        Toast.makeText(getApplicationContext(), "Платежи загружены", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), "Платежи загружены", Toast.LENGTH_SHORT).show();
+
+                        if (resultExistsVariantTwo(db, "paymentsServer","serverDB_ID")){
+                            String sql = "SELECT DISTINCT serverDB_ID FROM paymentsServer ORDER BY id DESC LIMIT 1 ";
+                            Cursor c = db.rawQuery(sql, null);
+                            if (c.moveToFirst()) {
+                                int iNumber = c.getColumnIndex("serverDB_ID");
+                                paymentNumberLast = c.getString(iNumber);
+                                c.moveToNext();
+                            } else {
+                                paymentNumberLast = "0";
+                            }
+                            c.close();
+                        }
+                        e = sPrefPaymentNumberLast.edit();
+                        e.putString(SAVED_PaymentNumberLast, paymentNumberLast);
+                        e.apply();
+
                         seven = true;
                         loadMessage();
                     }else{
@@ -902,59 +1068,73 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         @Override
         public void onCreate(SQLiteDatabase db) {
             Log.d(LOG_TAG, "--- onCreate database ---");
-            db.execSQL("create table salesPartners ("
-                    + "id integer primary key autoincrement,"
-                    + "serverDB_ID integer UNIQUE ON CONFLICT REPLACE,"
-                    + "Наименование text,"
-                    + "Район integer,"
-                    + "Учет text,"
-                    + "DayOfTheWeek text,"
-                    + "Автор text" + ");");
 
-            db.execSQL("create table items ("
-                    + "id integer primary key autoincrement,"
-                    + "Артикул integer UNIQUE ON CONFLICT REPLACE,"
-                    + "Наименование text,"
-                    + "Цена integer" + ");");
+            if (!tableExists(db, "salesPartners")) {
+                db.execSQL("create table salesPartners ("
+                        + "id integer primary key autoincrement,"
+                        + "serverDB_ID integer UNIQUE ON CONFLICT REPLACE,"
+                        + "Наименование text,"
+                        + "Район integer,"
+                        + "Учет text,"
+                        + "DayOfTheWeek text,"
+                        + "Автор text" + ");");
+            }
 
-            db.execSQL("create table itemsWithDiscount ("
-                    + "id integer primary key autoincrement,"
-                    + "serverDB_ID integer UNIQUE ON CONFLICT REPLACE,"
-                    + "Артикул integer,"
-                    + "ID_скидки integer,"
-                    + "ID_контрагента integer,"
-                    + "Автор text" + ");");
+            if (!tableExists(db, "items")) {
+                db.execSQL("create table items ("
+                        + "id integer primary key autoincrement,"
+                        + "Артикул integer UNIQUE ON CONFLICT REPLACE,"
+                        + "Наименование text,"
+                        + "Цена integer" + ");");
+            }
 
-            db.execSQL("create table discount ("
-                    + "id integer primary key autoincrement,"
-                    + "serverDB_ID integer UNIQUE ON CONFLICT REPLACE,"
-                    + "Тип_скидки integer,"
-                    + "Скидка integer,"
-                    + "Автор текст" + ");");
+            if (!tableExists(db, "itemsWithDiscount")) {
+                db.execSQL("create table itemsWithDiscount ("
+                        + "id integer primary key autoincrement,"
+                        + "serverDB_ID integer UNIQUE ON CONFLICT REPLACE,"
+                        + "Артикул integer,"
+                        + "ID_скидки integer,"
+                        + "ID_контрагента integer,"
+                        + "Автор text" + ");");
+            }
 
-            db.execSQL("create table invoice ("
-                    + "id integer primary key autoincrement,"
-                    + "serverDB_ID integer UNIQUE ON CONFLICT REPLACE,"
-                    + "InvoiceNumber integer,"
-                    + "AgentID integer,"
-                    + "SalesPartnerID integer,"
-                    + "AccountingType text,"
-                    + "ItemID integer,"
-                    + "Quantity real,"
-                    + "Price real,"
-                    + "Total real,"
-                    + "ExchangeQuantity real,"
-                    + "ReturnQuantity  real,"
-                    + "DateTimeDoc text,"
-                    + "InvoiceSum real,"
-                    + "Comment text" + ");");
+            if (!tableExists(db, "discount")) {
+                db.execSQL("create table discount ("
+                        + "id integer primary key autoincrement,"
+                        + "serverDB_ID integer UNIQUE ON CONFLICT REPLACE,"
+                        + "Тип_скидки integer,"
+                        + "Скидка integer,"
+                        + "Автор текст" + ");");
+            }
 
-            db.execSQL("create table paymentsServer ("
-                    + "id integer primary key autoincrement,"
-                    + "DateTimeDoc text,"
-                    + "InvoiceNumber integer,"
-                    + "сумма_внесения real,"
-                    + "Автор text" + ");");
+            if (!tableExists(db, "invoice")) {
+                db.execSQL("create table invoice ("
+                        + "id integer primary key autoincrement,"
+                        + "serverDB_ID integer UNIQUE ON CONFLICT REPLACE,"
+                        + "InvoiceNumber integer,"
+                        + "AgentID integer,"
+                        + "SalesPartnerID integer,"
+                        + "AccountingType text,"
+                        + "ItemID integer,"
+                        + "Quantity real,"
+                        + "Price real,"
+                        + "Total real,"
+                        + "ExchangeQuantity real,"
+                        + "ReturnQuantity  real,"
+                        + "DateTimeDoc text,"
+                        + "InvoiceSum real,"
+                        + "Comment text" + ");");
+            }
+
+            if (!tableExists(db, "paymentsServer")) {
+                db.execSQL("create table paymentsServer ("
+                        + "id integer primary key autoincrement,"
+                        + "serverDB_ID integer UNIQUE,"
+                        + "DateTimeDoc text,"
+                        + "InvoiceNumber integer,"
+                        + "сумма_внесения real,"
+                        + "Автор text" + ");");
+            }
 
             if (!tableExists(db, "payments")) {
                 db.execSQL("create table payments ("
@@ -1054,6 +1234,23 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         int count = cursor.getInt(0);
         cursor.close();
         countGlobal = count;
+        return count > 0;
+    }
+
+    boolean resultExistsVariantTwo(SQLiteDatabase db, String tableName, String selectField){
+        if (tableName == null || db == null || !db.isOpen())
+        {
+            return false;
+        }
+        String sql = "SELECT COUNT(?) FROM " + tableName;
+        Cursor cursor = db.rawQuery(sql, new String[]{selectField});
+        if (!cursor.moveToFirst())
+        {
+            cursor.close();
+            return false;
+        }
+        int count = cursor.getInt(0);
+        cursor.close();
         return count > 0;
     }
 

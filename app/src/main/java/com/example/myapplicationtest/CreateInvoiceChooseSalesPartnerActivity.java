@@ -303,6 +303,9 @@ public class CreateInvoiceChooseSalesPartnerActivity extends AppCompatActivity i
                 if (sPrefAreaDefault.getString(SAVED_AREADEFAULT, "").equals("4")){
                     dayOfTheWeek = "север";
                 }
+                if (sPrefAreaDefault.getString(SAVED_AREADEFAULT, "").equals("6")){
+                    dayOfTheWeek = "среда";
+                }
             }
         }
     }

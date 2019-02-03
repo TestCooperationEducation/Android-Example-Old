@@ -49,7 +49,7 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
     List<DataItemsListTmp> listTmp = new ArrayList<>();
     SharedPreferences sPrefDBName, sPrefDBPassword, sPrefDBUser, sPrefSalesPartner, sPrefInvoiceNumberTmp,
             sPrefAccountingType, sPrefAgent, sPrefAreaDefault, sPrefArea, sPrefAccountingTypeDefault,
-            sPrefItemsListSaveStatus, sPrefComment;
+            sPrefItemsListSaveStatus, sPrefComment, sPrefInvoiceNumberLast;
     final String LOG_TAG = "myLogs";
     DBHelper dbHelper;
     SQLiteDatabase db;
@@ -57,7 +57,8 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
     String requestUrlFinalPrice = "https://caiman.ru.com/php/price.php", dbName, dbUser, dbPassword,
             requestUrlSaveRecord = "https://caiman.ru.com/php/saveNewInvoice_new.php",
             requestUrlMakePayment = "https://caiman.ru.com/php/makePayment.php", comment = "",
-            salesPartner, accountingType, agent, areaDefault, area, accountingTypeDefault, statusSave;
+            salesPartner, accountingType, agent, areaDefault, area, accountingTypeDefault, statusSave,
+            invoiceNumberLast;
     TextView textViewSalesPartner, textViewInvoiceTotal, textViewAgent, textViewAccountingType;
     final String SAVED_DBName = "dbName";
     final String SAVED_DBUser = "dbUser";
@@ -71,6 +72,7 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
     final String SAVED_INVOICENUMBERTMP = "invoiceNumberTmp";
     final String SAVED_ItemsListSaveStatus = "itemsListSaveStatus";
     final String SAVED_Comment = "comment";
+    final String SAVED_InvoiceNumberLast = "invoiceNumberLast";
     Double invoiceSum = 0d;
     Button btnSaveInvoiceToLocalDB;
     Integer invoiceNumber, tmpCount;
@@ -119,6 +121,7 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
         sPrefInvoiceNumberTmp = getSharedPreferences(SAVED_INVOICENUMBERTMP, Context.MODE_PRIVATE);
         sPrefItemsListSaveStatus = getSharedPreferences(SAVED_ItemsListSaveStatus, Context.MODE_PRIVATE);
         sPrefComment = getSharedPreferences(SAVED_Comment, Context.MODE_PRIVATE);
+        sPrefInvoiceNumberLast = getSharedPreferences(SAVED_InvoiceNumberLast, Context.MODE_PRIVATE);
 
         sPrefInvoiceNumberTmp.edit().clear().apply();
 
@@ -131,6 +134,7 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
         accountingType = sPrefAccountingType.getString(SAVED_ACCOUNTINGTYPE, "");
         area = sPrefArea.getString(SAVED_AREA, "");
         accountingTypeDefault = sPrefAccountingTypeDefault.getString(SAVED_ACCOUNTINGTYPEDEFAULT, "");
+        invoiceNumberLast = sPrefInvoiceNumberLast.getString(SAVED_InvoiceNumberLast, "");
 
         textViewSalesPartner.setText(salesPartner);
         textViewAccountingType.setText(accountingType);
@@ -194,22 +198,25 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
         c.close();
         textViewInvoiceTotal.setText(invoiceSum.toString());
 
-        if (tableExists(db, "invoiceLocalDB")){
-            if (resultExists(db, "invoiceLocalDB", "invoiceNumber")){
-                String sql = "SELECT DISTINCT invoiceNumber FROM invoiceLocalDB ORDER BY id DESC LIMIT 1";
-                c = db.rawQuery(sql, null);
-                if (c.moveToFirst()) {
-                    int iNumber = c.getColumnIndex("invoiceNumber");
-                    do {
-                        invoiceNumber = Integer.parseInt(c.getString(iNumber)) + 1;
-                    } while (c.moveToNext());
-                }
-            } else {
-                invoiceNumber = 1;
-            }
-        } else {
-            Toast.makeText(getApplicationContext(), "<<< Нет локальной таблицы накладных >>>", Toast.LENGTH_SHORT).show();
-        }
+//        if (tableExists(db, "invoiceLocalDB")){
+//            if (resultExists(db, "invoiceLocalDB", "invoiceNumber")){
+//                String sql = "SELECT DISTINCT invoiceNumber FROM invoiceLocalDB ORDER BY id DESC LIMIT 1";
+//                c = db.rawQuery(sql, null);
+//                if (c.moveToFirst()) {
+//                    int iNumber = c.getColumnIndex("invoiceNumber");
+//                    do {
+//                        invoiceNumber = Integer.parseInt(c.getString(iNumber)) + 1;
+//                    } while (c.moveToNext());
+//                }
+//            } else {
+//                invoiceNumber = 1;
+//            }
+//        } else {
+//            Toast.makeText(getApplicationContext(), "<<< Нет локальной таблицы накладных >>>", Toast.LENGTH_SHORT).show();
+//        }
+
+        invoiceNumber = Integer.parseInt(invoiceNumberLast) + 1;
+        Toast.makeText(getApplicationContext(), invoiceNumber.toString(), Toast.LENGTH_SHORT).show();
     }
 
     private void saveInvoiceToLocalDB(){
@@ -256,7 +263,17 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
                 clearTable("itemsToInvoiceTmp");
             }
             sPrefComment.edit().clear().apply();
-            sendToServer();
+
+//            sendToServer();
+
+            e = sPrefInvoiceNumberLast.edit();
+            e.putString(SAVED_InvoiceNumberLast, invoiceNumber.toString());
+            e.apply();
+
+            Toast.makeText(getApplicationContext(), invoiceNumber.toString(), Toast.LENGTH_SHORT).show();
+
+            paymentPrompt();
+
         } else {
             Toast.makeText(getApplicationContext(), "<<< Уже сохранено >>>", Toast.LENGTH_SHORT).show();
         }
@@ -468,93 +485,108 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
         long rowID = db.insert("payments", null, cv);
         Log.d(LOG_TAG, "row inserted, ID = " + rowID);
 
-        DataPay dt = new DataPay(invoiceNumber, invoiceSum, (int)rowID);
-        dataPay.add(dt);
-
-        Gson gson = new Gson();
-        final String newDataArray = gson.toJson(dataPay);
-
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-
-        StringRequest request = new StringRequest(Request.Method.POST,
-                requestUrlMakePayment, new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                Log.d("response", "result: " + response);
-                dataPay.clear();
-                try{
-                    JSONArray jsonArray = new JSONArray(response);
-                    invoiceNumberFromRequest = new String[jsonArray.length()];
-                    paymentIDFromRequest = new String[jsonArray.length()];
-                    String[] status = new String[jsonArray.length()];
-                    String tmpStatus = "";
-
-                    ContentValues cv = new ContentValues();
-                    Log.d(LOG_TAG, "--- Insert in syncedPayments: ---");
-
-                    if (jsonArray.length() > 0){
-                        for (int i = 0; i < jsonArray.length(); i++) {
-                            JSONObject obj = jsonArray.getJSONObject(i);
-                            invoiceNumberFromRequest[i] = obj.getString("invoiceNumber");
-                            paymentIDFromRequest[i] = obj.getString("paymentID");
-                            status[i] = obj.getString("status");
-                            if (status[i].equals("Бабло внесено")) {
-                                tmpStatus = "Yes";
+        builder.setTitle("Успешно сохранено")
+                .setMessage("Деньги внесены в локальную базу")
+                .setCancelable(false)
+                .setPositiveButton("Назад",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                sPrefAccountingType.edit().clear().apply();
+                                finish();
+                                dialog.cancel();
                             }
+                        });
+        AlertDialog alert = builder.create();
+        alert.show();
 
-                            cv.put("invoiceNumber", Integer.parseInt(invoiceNumberFromRequest[i]));
-                            cv.put("paymentID", paymentIDFromRequest[i]);
-                            cv.put("agentID", areaDefault);
-                            cv.put("dateTimeDoc", output);
-                            long rowID = db.insert("syncedPayments", null, cv);
-                            Log.d(LOG_TAG, "row inserted, ID = " + rowID);
-                        }
-                        if (tmpStatus.equals("Yes")){
-                            Toast.makeText(getApplicationContext(), response, Toast.LENGTH_SHORT).show();
-                            builder.setTitle("Успешно синхронизировано")
-                                    .setMessage("Деньги внесены и синхронизированы с сервером")
-                                    .setCancelable(false)
-                                    .setPositiveButton("Назад",
-                                            new DialogInterface.OnClickListener() {
-                                                public void onClick(DialogInterface dialog, int id) {
-                                                    sPrefAccountingType.edit().clear().apply();
-                                                    finish();
-                                                    dialog.cancel();
-                                                }
-                                            });
-                            AlertDialog alert = builder.create();
-                            alert.show();
-                        }
-                        Toast.makeText(getApplicationContext(), "<<< Платеж Синхронизирован >>>", Toast.LENGTH_SHORT).show();
-                    }else{
-                        Toast.makeText(getApplicationContext(), "Ошибка загрузки. Проверьте Интернет или Учётку", Toast.LENGTH_SHORT).show();
-                    }
-                }
-                catch (JSONException e1) {
-                    e1.printStackTrace();
-                }
-            }
-        }, new Response.ErrorListener(){
-            @Override
-            public void onErrorResponse(VolleyError error){
-                onConnectionFailedPayment();
-                Toast.makeText(getApplicationContext(), "Сообщите об этой ошибке. Код 002", Toast.LENGTH_SHORT).show();
-                Log.e("TAG", "Error " + error.getMessage());
-            }
-        }){
-            @Override
-            protected Map<String, String> getParams(){
-                Map<String, String> parameters = new HashMap<>();
-                parameters.put("dbName", dbName);
-                parameters.put("dbUser", dbUser);
-                parameters.put("dbPassword", dbPassword);
-                parameters.put("agent", agent);
-                parameters.put("agentID", areaDefault);
-                parameters.put("array", newDataArray);
-                return parameters;
-            }
-        };
-        VolleySingleton.getInstance(this).getRequestQueue().add(request);
+//        DataPay dt = new DataPay(invoiceNumber, invoiceSum);
+//        dataPay.add(dt);
+//
+//        Gson gson = new Gson();
+//        final String newDataArray = gson.toJson(dataPay);
+//
+//        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+//
+//        StringRequest request = new StringRequest(Request.Method.POST,
+//                requestUrlMakePayment, new Response.Listener<String>() {
+//            @Override
+//            public void onResponse(String response) {
+//                Log.d("response", "result: " + response);
+//                dataPay.clear();
+//                try{
+//                    JSONArray jsonArray = new JSONArray(response);
+//                    invoiceNumberFromRequest = new String[jsonArray.length()];
+//                    paymentIDFromRequest = new String[jsonArray.length()];
+//                    String[] status = new String[jsonArray.length()];
+//                    String tmpStatus = "";
+//
+//                    ContentValues cv = new ContentValues();
+//                    Log.d(LOG_TAG, "--- Insert in syncedPayments: ---");
+//
+//                    if (jsonArray.length() > 0){
+//                        for (int i = 0; i < jsonArray.length(); i++) {
+//                            JSONObject obj = jsonArray.getJSONObject(i);
+//                            invoiceNumberFromRequest[i] = obj.getString("invoiceNumber");
+//                            paymentIDFromRequest[i] = obj.getString("paymentID");
+//                            status[i] = obj.getString("status");
+//                            if (status[i].equals("Бабло внесено")) {
+//                                tmpStatus = "Yes";
+//                            }
+//
+//                            cv.put("invoiceNumber", Integer.parseInt(invoiceNumberFromRequest[i]));
+//                            cv.put("paymentID", paymentIDFromRequest[i]);
+//                            cv.put("agentID", areaDefault);
+//                            cv.put("dateTimeDoc", output);
+//                            long rowID = db.insert("syncedPayments", null, cv);
+//                            Log.d(LOG_TAG, "row inserted, ID = " + rowID);
+//                        }
+//                        if (tmpStatus.equals("Yes")){
+//                            Toast.makeText(getApplicationContext(), response, Toast.LENGTH_SHORT).show();
+//                            builder.setTitle("Успешно синхронизировано")
+//                                    .setMessage("Деньги внесены и синхронизированы с сервером")
+//                                    .setCancelable(false)
+//                                    .setPositiveButton("Назад",
+//                                            new DialogInterface.OnClickListener() {
+//                                                public void onClick(DialogInterface dialog, int id) {
+//                                                    sPrefAccountingType.edit().clear().apply();
+//                                                    finish();
+//                                                    dialog.cancel();
+//                                                }
+//                                            });
+//                            AlertDialog alert = builder.create();
+//                            alert.show();
+//                        }
+//                        Toast.makeText(getApplicationContext(), "<<< Платеж Синхронизирован >>>", Toast.LENGTH_SHORT).show();
+//                    }else{
+//                        Toast.makeText(getApplicationContext(), "Ошибка загрузки. Проверьте Интернет или Учётку", Toast.LENGTH_SHORT).show();
+//                    }
+//                }
+//                catch (JSONException e1) {
+//                    e1.printStackTrace();
+//                }
+//            }
+//        }, new Response.ErrorListener(){
+//            @Override
+//            public void onErrorResponse(VolleyError error){
+//                onConnectionFailedPayment();
+//                Toast.makeText(getApplicationContext(), "Сообщите об этой ошибке. Код 002", Toast.LENGTH_SHORT).show();
+//                Log.e("TAG", "Error " + error.getMessage());
+//            }
+//        }){
+//            @Override
+//            protected Map<String, String> getParams(){
+//                Map<String, String> parameters = new HashMap<>();
+//                parameters.put("dbName", dbName);
+//                parameters.put("dbUser", dbUser);
+//                parameters.put("dbPassword", dbPassword);
+//                parameters.put("agent", agent);
+//                parameters.put("agentID", areaDefault);
+//                parameters.put("array", newDataArray);
+//                return parameters;
+//            }
+//        };
+//        VolleySingleton.getInstance(this).getRequestQueue().add(request);
     }
 
     private void makePaymentPartial(){

@@ -29,6 +29,15 @@
                 tools:layout_editor_absoluteY="154dp" />
 
             <Button
+                android:id="@+id/buttonChangeInvoicesNotSynced"
+                android:layout_width="match_parent"
+                android:layout_height="150dp"
+                android:text="@string/btnChangeNotSynced"
+                android:textSize="18sp"
+                tools:layout_editor_absoluteX="147dp"
+                tools:layout_editor_absoluteY="154dp" />
+
+            <Button
                 android:id="@+id/buttonInvoicesSynced"
                 android:layout_width="match_parent"
                 android:layout_height="150dp"

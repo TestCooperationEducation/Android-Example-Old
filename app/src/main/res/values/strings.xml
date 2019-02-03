@@ -78,5 +78,6 @@
     <string name="paymentIDLocalLabel">Номер платежа:</string>
     <string name="invoiceNumberLabel">Номер накладной:</string>
     <string name="editTextComment">Введите название нового магазина</string>
+    <string name="btnChangeNotSynced">Изменить несинхронизированные</string>
 
 </resources>
