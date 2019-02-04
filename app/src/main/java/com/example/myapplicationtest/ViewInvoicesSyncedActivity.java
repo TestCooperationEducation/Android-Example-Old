@@ -20,6 +20,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -45,6 +46,7 @@ public class ViewInvoicesSyncedActivity extends AppCompatActivity {
     SharedPreferences sPrefSalesPartnerSyncedTmp;
     final String SAVED_SalesPartnerSyncedTmp = "salesPartnerSyncedTmp";
     Integer tmpInvTO = 0, tmpInvTT = 0;
+    Double tmpInvTotalSum = 0d, tmpInvTotalSumTO = 0d, tmpInvTotalSumTT = 0d;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -166,23 +168,20 @@ public class ViewInvoicesSyncedActivity extends AppCompatActivity {
                     int invoiceSumTmp = c.getColumnIndex("InvoiceSum");
                     String salesPartnerName = c.getString(salesPartnerNameTmp);
                     String accountingTypeDoc = c.getString(accountingTypeDocTmp);
-                    Double invoiceSum = Double.parseDouble(c.getString(invoiceSumTmp));
+                    Double invoiceSum = c.getDouble(invoiceSumTmp);
                     salesPartners.add(salesPartnerName);
-                    Double tmpInvTotalSum = (Double.parseDouble(textViewInvoicesTotalSum.getText().toString())
-                            + invoiceSum);
+                    tmpInvTotalSum = tmpInvTotalSum + invoiceSum;
                     textViewInvoicesTotalSum.setText(String.valueOf(new DecimalFormat("##.##").format(tmpInvTotalSum)));
                     if (accountingTypeDoc.equals("провод")){
                         tmpInvTO = tmpInvTO + 1;
                         textViewInvoicesTotalTypeOne.setText(String.valueOf(tmpInvTO));
-                        Double tmpInvTotalSumTO = (Double.parseDouble(textViewInvoicesTotalSumTypeOne.getText().toString())
-                                + invoiceSum);
-                        textViewInvoicesTotalSumTypeOne.setText(String.valueOf(new DecimalFormat("##.##").format(tmpInvTotalSumTO)));
+                        tmpInvTotalSumTO = tmpInvTotalSumTO + invoiceSum;
+                        textViewInvoicesTotalSumTypeOne.setText(String.valueOf(roundUp(tmpInvTotalSumTO, 2)));
                     } else {
                         tmpInvTT = tmpInvTT + 1;
                         textViewInvoicesTotalTypeTwo.setText(String.valueOf(tmpInvTT));
-                        Double tmpInvTotalSumTT = (Double.parseDouble(textViewInvoicesTotalSumTypeTwo.getText().toString())
-                                + invoiceSum);
-                        textViewInvoicesTotalSumTypeTwo.setText(String.valueOf(new DecimalFormat("##.##").format(tmpInvTotalSumTT)));
+                        tmpInvTotalSumTT = tmpInvTotalSumTT + invoiceSum;
+                        textViewInvoicesTotalSumTypeTwo.setText(String.valueOf(roundUp(tmpInvTotalSumTT, 2)));
                     }
                 }
                 c.close();
@@ -243,5 +242,9 @@ public class ViewInvoicesSyncedActivity extends AppCompatActivity {
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 
         }
+    }
+
+    public BigDecimal roundUp(double value, int digits){
+        return new BigDecimal(""+value).setScale(digits, BigDecimal.ROUND_HALF_UP);
     }
 }

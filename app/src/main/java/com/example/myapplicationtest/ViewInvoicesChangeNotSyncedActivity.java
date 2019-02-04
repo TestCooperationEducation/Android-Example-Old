@@ -237,32 +237,32 @@ public class ViewInvoicesChangeNotSyncedActivity extends AppCompatActivity imple
 
         }
 
+        sPListTmp = new String[invoiceNumbersList.size()];
+        invoiceNumberNotSyncedChange = new String[invoiceNumbersList.size()];
+
         for (int i = 0; i < invoiceNumbersList.size(); i++){
             String sql = "SELECT DISTINCT salesPartnerName, accountingTypeDoc, dateTimeDocLocal, invoiceSum" +
                     " FROM invoiceLocalDB WHERE invoiceNumber LIKE ?";
             Cursor c = db.rawQuery(sql, new String[]{invoiceNumbersList.get(i).toString()});
-            sPListTmp = new String[invoiceNumbersList.size()];
-            invoiceNumberNotSyncedChange = new String[invoiceNumbersList.size()];
             if (c.moveToFirst()) {
                 int salesPartnerNameTmp = c.getColumnIndex("salesPartnerName");
                 int accountingTypeDocTmp = c.getColumnIndex("accountingTypeDoc");
                 int dateTimeDocLocalTmp = c.getColumnIndex("dateTimeDocLocal");
                 int invoiceSumTmp = c.getColumnIndex("invoiceSum");
-                do {
-                    salesPartnerName = c.getString(salesPartnerNameTmp);
-                    String accountingTypeDoc = c.getString(accountingTypeDocTmp);
-                    String dateTimeDocLocal = c.getString(dateTimeDocLocalTmp);
-                    Double invoiceSum = Double.parseDouble(c.getString(invoiceSumTmp));
-                    paymentStatus = "";
-                    listTmp.add(new DataInvoiceLocal(salesPartnerName, accountingTypeDoc,
-                            Integer.parseInt(invoiceNumberServerTmp.get(0)), dateTimeDocServer.get(0), dateTimeDocLocal,
-                            invoiceSum, paymentStatus));
-
-                } while (c.moveToNext());
-                sPListTmp[i] = salesPartnerName;
-                invoiceNumberNotSyncedChange[i] = String.valueOf(invoiceNumbersList.get(i));
+                salesPartnerName = c.getString(salesPartnerNameTmp);
+                String accountingTypeDoc = c.getString(accountingTypeDocTmp);
+                String dateTimeDocLocal = c.getString(dateTimeDocLocalTmp);
+                Double invoiceSum = Double.parseDouble(c.getString(invoiceSumTmp));
+                paymentStatus = "";
+                listTmp.add(new DataInvoiceLocal(salesPartnerName, accountingTypeDoc,
+                        Integer.parseInt(invoiceNumberServerTmp.get(0)), dateTimeDocServer.get(0), dateTimeDocLocal,
+                        invoiceSum, paymentStatus));
+                c.moveToNext();
             }
             c.close();
+            sPListTmp[i] = salesPartnerName;
+            invoiceNumberNotSyncedChange[i] = String.valueOf(invoiceNumbersList.get(i));
+            Toast.makeText(getApplicationContext(), "Список накладных: " + sPListTmp[0], Toast.LENGTH_SHORT).show();
         }
         RecyclerView recyclerView = findViewById(R.id.recyclerViewInvoicesLocal);
         DataAdapterViewInvoicesFromLocalDB adapter = new DataAdapterViewInvoicesFromLocalDB(this, listTmp);
