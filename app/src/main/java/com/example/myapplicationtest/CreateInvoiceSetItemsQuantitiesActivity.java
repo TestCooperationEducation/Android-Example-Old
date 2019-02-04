@@ -79,8 +79,6 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
         quantityType = false;
 
         dataArray = new ArrayList<>();
-//        btnChangePrice = findViewById(R.id.buttonChangePrice);
-//        btnChangePrice.setOnClickListener(this);
         btnSaveTmp = findViewById(R.id.buttonSaveTmp);
         btnSaveTmp.setOnClickListener(this);
 
@@ -325,10 +323,8 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
     private void getDataFromTmp(){
         if (resultExists(db, "itemsToInvoiceTmp", "Наименование", item)){
             Log.d(LOG_TAG, "--- Rows in itemsToInvoiceTmp: ---");
-            // делаем запрос всех данных из таблицы itemsToInvoiceTmp, получаем Cursor
             Cursor c = db.query("itemsToInvoiceTmp", null, null, null, null, null, null);
-            // ставим позицию курсора на первую строку выборки
-            // если в выборке нет строк, вернется false
+
             if (c.moveToFirst()) {
                 // определяем номера столбцов по имени в выборке
                 int itemName = c.getColumnIndex("Наименование");
@@ -353,13 +349,10 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
                         }
                         textViewTotal.setText(c.getString(total));
                     }
-                    // получаем значения по номерам столбцов и пишем все в лог
                     Log.d(LOG_TAG,
                             "ID = " + c.getInt(itemName) +
                                     ", name = " + c.getString(price) +
                                     ", email = " + c.getString(priceChangedTmp));
-                    // переход на следующую строку
-                    // а если следующей нет (текущая - последняя), то false - выходим из цикла
                 } while (c.moveToNext());
                 tmpQuantityOnStart = Double.parseDouble(editTextQuantity.getText().toString());
                 tmpExchangeOnStart = Double.parseDouble(editTextExchange.getText().toString());

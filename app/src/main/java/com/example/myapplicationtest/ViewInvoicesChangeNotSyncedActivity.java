@@ -1,5 +1,6 @@
 package com.example.myapplicationtest;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -53,7 +54,8 @@ public class ViewInvoicesChangeNotSyncedActivity extends AppCompatActivity imple
     final String SAVED_InvoiceNumberLast = "invoiceNumberLast";
     final String SAVED_ChangeInvoiceNotSynced = "changeInvoiceNotSynced";
     final String SAVED_ChangeInvoiceNumberNotSynced = "changeInvoiceNumberNotSynced";
-    ArrayList<String> arrItems, invoiceNumberServerTmp, dateTimeDocServer;
+    ArrayList<String> arrItems, invoiceNumberServerTmp, dateTimeDocServer, itemNameList, priceList,
+            quantityList, exchangeQuantityList, returnQuantityList, totalCostList;
     ArrayList<Double> arrQuantity, arrExchange, arrReturn, arrSum;
     ArrayList<Integer> arrPriceChanged, invoiceNumbersList;
     List<DataInvoice> dataArray;
@@ -78,6 +80,12 @@ public class ViewInvoicesChangeNotSyncedActivity extends AppCompatActivity imple
         invoiceNumbersList = new ArrayList<>();
         invoiceNumberServerTmp = new ArrayList<>();
         dateTimeDocServer = new ArrayList<>();
+        itemNameList = new ArrayList<>();
+        priceList = new ArrayList<>();
+        quantityList = new ArrayList<>();
+        exchangeQuantityList = new ArrayList<>();
+        returnQuantityList = new ArrayList<>();
+        totalCostList = new ArrayList<>();
 
         btnChangeInvoiceNotSynced = findViewById(R.id.buttonChangeInvoiceNotSynced);
         btnChangeInvoiceNotSynced.setOnClickListener(this);
@@ -136,6 +144,66 @@ public class ViewInvoicesChangeNotSyncedActivity extends AppCompatActivity imple
                                         e = sPrefChangeInvoiceNumberNotSynced.edit();
                                         e.putString(SAVED_ChangeInvoiceNumberNotSynced, invoiceNumberNotSyncedChange[item]);
                                         e.apply();
+                                        if (resultExists(db, "invoiceLocalDB", "invoiceNumber")){
+                                            String sql = "SELECT * FROM invoiceLocalDB WHERE invoiceNumber LIKE ? " +
+                                                    "AND salesPartnerName LIKE ?";
+                                            Cursor c = db.rawQuery(sql, new String[]{String.valueOf(invoiceNumbersList.get(item)),
+                                                    sPListTmp[item]});
+                                            if (c.moveToFirst()) {
+                                                int itemNameTmp = c.getColumnIndex("itemName");
+                                                int priceTmp = c.getColumnIndex("price");
+                                                int quantityTmp = c.getColumnIndex("quantity");
+                                                int exchangeQuantityTmp = c.getColumnIndex("exchangeQuantity");
+                                                int returnQuantityTmp = c.getColumnIndex("returnQuantity");
+                                                int totalCostTmp = c.getColumnIndex("totalCost");
+                                                String itemName = c.getString(itemNameTmp);
+                                                String price = c.getString(priceTmp);
+                                                String quantity = c.getString(quantityTmp);
+                                                String exchangeQuantity = c.getString(exchangeQuantityTmp);
+                                                String returnQuantity = c.getString(returnQuantityTmp);
+                                                String totalCost = c.getString(totalCostTmp);
+                                                do {
+//                                                    itemNameList;
+//                                                    priceList;
+//                                                    quantityList;
+//                                                    exchangeQuantityList;
+//                                                    returnQuantityList;
+//                                                    totalCostList;
+//                                                    itemNameList;
+                                                    ContentValues cv = new ContentValues();
+                                                    Log.d(LOG_TAG, "--- Insert in itemsToInvoiceTmp: ---");
+                                                    cv.put("Контрагент", sPListTmp[item]);
+                                                    cv.put("Наименование", itemName);
+                                                    cv.put("Цена", price);
+                                                    cv.put("ЦенаИзмененная", price);
+                                                    cv.put("Количество", quantity);
+                                                    cv.put("Обмен", exchangeQuantity);
+                                                    cv.put("Возврат", returnQuantity);
+                                                    cv.put("Итого", totalCost);
+                                                    long rowID = db.insert("itemsToInvoiceTmp", null, cv);
+                                                    Log.d(LOG_TAG, "row inserted, ID = " + rowID);
+                                                } while (c.moveToNext());
+                                            }
+                                            c.close();
+                                            for (int i = 0; i < invoiceNumbersList.size(); i++){
+                                                Toast.makeText(getApplicationContext(), "Ничего не синхронизировано: " + invoiceNumbers, Toast.LENGTH_SHORT).show();
+                                            }
+                                        }
+
+//                                        ContentValues cv = new ContentValues();
+//                                        for (int i = 0; i < invoiceNumbersList.size(); i++){
+//                                            Log.d(LOG_TAG, "--- Insert in itemsToInvoiceTmp: ---");
+//                                            cv.put("Контрагент", sPListTmp[item]);
+//                                            cv.put("Наименование", item);
+//                                            cv.put("Цена", finalPrice);
+//                                            cv.put("ЦенаИзмененная", priceChanged);
+//                                            cv.put("Количество", tmpQuantity);
+//                                            cv.put("Обмен", tmpExchange);
+//                                            cv.put("Возврат", tmpReturn);
+//                                            cv.put("Итого", tmpSum);
+//                                            long rowID = db.insert("itemsToInvoiceTmp", null, cv);
+//                                            Log.d(LOG_TAG, "row inserted, ID = " + rowID);
+//                                        }
                                         Intent intent = new Intent(getApplicationContext(), ChangeInvoiceChooseItemsActivity.class);
                                         startActivity(intent);
                                     }
@@ -170,7 +238,7 @@ public class ViewInvoicesChangeNotSyncedActivity extends AppCompatActivity imple
         }
 
         for (int i = 0; i < invoiceNumbersList.size(); i++){
-            String sql = "SELECT salesPartnerName, accountingTypeDoc, dateTimeDocLocal, invoiceSum" +
+            String sql = "SELECT DISTINCT salesPartnerName, accountingTypeDoc, dateTimeDocLocal, invoiceSum" +
                     " FROM invoiceLocalDB WHERE invoiceNumber LIKE ?";
             Cursor c = db.rawQuery(sql, new String[]{invoiceNumbersList.get(i).toString()});
             sPListTmp = new String[invoiceNumbersList.size()];
@@ -199,6 +267,7 @@ public class ViewInvoicesChangeNotSyncedActivity extends AppCompatActivity imple
         RecyclerView recyclerView = findViewById(R.id.recyclerViewInvoicesLocal);
         DataAdapterViewInvoicesFromLocalDB adapter = new DataAdapterViewInvoicesFromLocalDB(this, listTmp);
         recyclerView.setAdapter(adapter);
+
     }
 
     class DBHelper extends SQLiteOpenHelper {

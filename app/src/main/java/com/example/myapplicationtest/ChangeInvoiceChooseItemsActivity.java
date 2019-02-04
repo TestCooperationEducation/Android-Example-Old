@@ -95,7 +95,7 @@ public class ChangeInvoiceChooseItemsActivity extends AppCompatActivity implemen
         e.putString(SAVED_ItemsListSaveStatus, "notSaved");
         e.apply();
 
-        onLoadInvoiceNotSyncedChange();
+//        onLoadInvoiceNotSyncedChange();
     }
 
     public void onClick(View v) {

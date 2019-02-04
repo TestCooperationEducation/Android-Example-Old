@@ -917,8 +917,10 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                                 invoiceNumberLast = "0";
                             }
                             c.close();
+                        } else {
+                            invoiceNumberLast = "0";
                         }
-
+                        Toast.makeText(getApplicationContext(), invoiceNumberLast, Toast.LENGTH_SHORT).show();
                         e = sPrefInvoiceNumberLast.edit();
                         e.putString(SAVED_InvoiceNumberLast, invoiceNumberLast);
                         e.apply();
@@ -926,7 +928,10 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                         six = true;
                         loadMessage();
                     }else{
-                        Toast.makeText(getApplicationContext(), "Ошибка загрузки. Проверьте Интернет или Учётку", Toast.LENGTH_SHORT).show();
+                        e = sPrefInvoiceNumberLast.edit();
+                        e.putString(SAVED_InvoiceNumberLast, "0");
+                        e.apply();
+                        Toast.makeText(getApplicationContext(), "Пустой результат", Toast.LENGTH_SHORT).show();
                     }
                 }
                 catch (JSONException e1) {
@@ -1003,6 +1008,8 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                                 paymentNumberLast = "0";
                             }
                             c.close();
+                        } else {
+                            paymentNumberLast = "0";
                         }
                         e = sPrefPaymentNumberLast.edit();
                         e.putString(SAVED_PaymentNumberLast, paymentNumberLast);
@@ -1011,6 +1018,9 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                         seven = true;
                         loadMessage();
                     }else{
+                        e = sPrefPaymentNumberLast.edit();
+                        e.putString(SAVED_PaymentNumberLast, "0");
+                        e.apply();
                         Toast.makeText(getApplicationContext(), "Ошибка загрузки. Проверьте Интернет или Учётку", Toast.LENGTH_SHORT).show();
                     }
                 }

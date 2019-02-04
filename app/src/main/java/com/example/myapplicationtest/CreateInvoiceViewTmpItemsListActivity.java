@@ -49,7 +49,7 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
     List<DataItemsListTmp> listTmp = new ArrayList<>();
     SharedPreferences sPrefDBName, sPrefDBPassword, sPrefDBUser, sPrefSalesPartner, sPrefInvoiceNumberTmp,
             sPrefAccountingType, sPrefAgent, sPrefAreaDefault, sPrefArea, sPrefAccountingTypeDefault,
-            sPrefItemsListSaveStatus, sPrefComment, sPrefInvoiceNumberLast;
+            sPrefItemsListSaveStatus, sPrefComment, sPrefInvoiceNumberLast, sPrefChangeInvoiceNumberNotSynced;
     final String LOG_TAG = "myLogs";
     DBHelper dbHelper;
     SQLiteDatabase db;
@@ -58,7 +58,7 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
             requestUrlSaveRecord = "https://caiman.ru.com/php/saveNewInvoice_new.php",
             requestUrlMakePayment = "https://caiman.ru.com/php/makePayment.php", comment = "",
             salesPartner, accountingType, agent, areaDefault, area, accountingTypeDefault, statusSave,
-            invoiceNumberLast;
+            invoiceNumberLast, invoiceNumberNotSyncedChange;
     TextView textViewSalesPartner, textViewInvoiceTotal, textViewAgent, textViewAccountingType;
     final String SAVED_DBName = "dbName";
     final String SAVED_DBUser = "dbUser";
@@ -73,6 +73,7 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
     final String SAVED_ItemsListSaveStatus = "itemsListSaveStatus";
     final String SAVED_Comment = "comment";
     final String SAVED_InvoiceNumberLast = "invoiceNumberLast";
+    final String SAVED_ChangeInvoiceNumberNotSynced = "changeInvoiceNumberNotSynced";
     Double invoiceSum = 0d;
     Button btnSaveInvoiceToLocalDB;
     Integer invoiceNumber, tmpCount;
@@ -122,6 +123,7 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
         sPrefItemsListSaveStatus = getSharedPreferences(SAVED_ItemsListSaveStatus, Context.MODE_PRIVATE);
         sPrefComment = getSharedPreferences(SAVED_Comment, Context.MODE_PRIVATE);
         sPrefInvoiceNumberLast = getSharedPreferences(SAVED_InvoiceNumberLast, Context.MODE_PRIVATE);
+        sPrefChangeInvoiceNumberNotSynced = getSharedPreferences(SAVED_ChangeInvoiceNumberNotSynced, Context.MODE_PRIVATE);
 
         sPrefInvoiceNumberTmp.edit().clear().apply();
 
@@ -135,6 +137,7 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
         area = sPrefArea.getString(SAVED_AREA, "");
         accountingTypeDefault = sPrefAccountingTypeDefault.getString(SAVED_ACCOUNTINGTYPEDEFAULT, "");
         invoiceNumberLast = sPrefInvoiceNumberLast.getString(SAVED_InvoiceNumberLast, "");
+        invoiceNumberNotSyncedChange = sPrefChangeInvoiceNumberNotSynced.getString(SAVED_ChangeInvoiceNumberNotSynced, "");
 
         textViewSalesPartner.setText(salesPartner);
         textViewAccountingType.setText(accountingType);
@@ -214,9 +217,13 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
 //        } else {
 //            Toast.makeText(getApplicationContext(), "<<< Нет локальной таблицы накладных >>>", Toast.LENGTH_SHORT).show();
 //        }
-
-        invoiceNumber = Integer.parseInt(invoiceNumberLast) + 1;
-        Toast.makeText(getApplicationContext(), invoiceNumber.toString(), Toast.LENGTH_SHORT).show();
+        if (sPrefChangeInvoiceNumberNotSynced.contains(SAVED_ChangeInvoiceNumberNotSynced)){
+            invoiceNumber = Integer.parseInt(invoiceNumberNotSyncedChange);
+            Toast.makeText(getApplicationContext(), "Изменение: " + invoiceNumber.toString(), Toast.LENGTH_SHORT).show();
+        } else {
+            invoiceNumber = Integer.parseInt(invoiceNumberLast) + 1;
+            Toast.makeText(getApplicationContext(), invoiceNumber.toString(), Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void saveInvoiceToLocalDB(){
@@ -265,7 +272,6 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
             sPrefComment.edit().clear().apply();
 
 //            sendToServer();
-
             e = sPrefInvoiceNumberLast.edit();
             e.putString(SAVED_InvoiceNumberLast, invoiceNumber.toString());
             e.apply();
@@ -275,7 +281,41 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
             paymentPrompt();
 
         } else {
-            Toast.makeText(getApplicationContext(), "<<< Уже сохранено >>>", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "<<< Запись существует >>>", Toast.LENGTH_SHORT).show();
+
+            Log.d(LOG_TAG, "--- Update invoiceLocalDB: ---");
+            for (int i = 0; i < arrItems.size(); i++) {
+                cv.put("invoiceNumber", invoiceNumber);
+                cv.put("agentID", areaDefault);
+                cv.put("areaSP", area);
+                cv.put("salesPartnerName", salesPartner);
+                cv.put("accountingTypeDoc", accountingType);
+                cv.put("accountingTypeSP", accountingTypeDefault);
+                cv.put("itemName", arrItems.get(i));
+                cv.put("quantity", arrQuantity.get(i));
+                cv.put("price", arrPriceChanged.get(i));
+                cv.put("totalCost", arrSum.get(i));
+                cv.put("exchangeQuantity", arrExchange.get(i));
+                cv.put("returnQuantity", arrReturn.get(i));
+                cv.put("dateTimeDocLocal", output);
+                cv.put("invoiceSum", invoiceSum);
+                cv.put("comment", comment);
+
+                long rowID = db.update("invoiceLocalDB", cv, "invoiceNumber = ?",
+                        new String[]{invoiceNumber.toString()});
+                Log.d(LOG_TAG, "row updated, ID = " + rowID);
+            }
+            e = sPrefItemsListSaveStatus.edit();
+            e.putString(SAVED_ItemsListSaveStatus, "saved");
+            e.apply();
+
+            if (tableExists(db, "itemsToInvoiceTmp")){
+                clearTable("itemsToInvoiceTmp");
+            }
+            sPrefComment.edit().clear().apply();
+            sPrefChangeInvoiceNumberNotSynced.edit().clear().apply();
+            Toast.makeText(getApplicationContext(), "<<< Обновление записи завершено >>>", Toast.LENGTH_SHORT).show();
+            paymentPrompt();
         }
     }
 

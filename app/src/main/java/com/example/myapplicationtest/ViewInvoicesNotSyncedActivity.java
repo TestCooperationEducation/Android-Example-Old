@@ -143,7 +143,7 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
 //        cursor.close();
 //        tmpCount = count;
         if (statusSave.equals("Saved")){
-
+            Toast.makeText(getApplicationContext(), "StatusSave", Toast.LENGTH_SHORT).show();
         } else {
             invoiceNumberServerTmp.add(String.valueOf(0));
             dateTimeDocServer.add("");
