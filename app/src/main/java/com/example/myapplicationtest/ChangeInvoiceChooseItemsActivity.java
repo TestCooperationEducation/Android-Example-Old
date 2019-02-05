@@ -27,7 +27,7 @@ public class ChangeInvoiceChooseItemsActivity extends AppCompatActivity implemen
     String item, salesPartner, itemsListSaveStatus;
     ArrayList<String> itemsList;
     ListView listViewItems;
-    SharedPreferences sPrefDBName, sPrefDBPassword, sPrefDBUser, sPrefItemsList, sPrefConnectionStatus,
+    SharedPreferences sPrefItemsList, sPrefConnectionStatus,
             sPrefItemName, sPrefSalesPartner, sPrefItemsListSaveStatus,
             sPrefChangeInvoiceNumberNotSynced, sPrefChangeInvoiceNotSynced;
     final String SAVED_ItemsListToInvoice = "itemsToInvoice";
@@ -64,12 +64,13 @@ public class ChangeInvoiceChooseItemsActivity extends AppCompatActivity implemen
         sPrefItemsList = getSharedPreferences(SAVED_ItemsListToInvoice, Context.MODE_PRIVATE);
         sPrefConnectionStatus = getSharedPreferences(SAVED_CONNSTATUS, Context.MODE_PRIVATE);
         sPrefItemName = getSharedPreferences(SAVED_ITEMNAME, Context.MODE_PRIVATE);
-        sPrefSalesPartner = getSharedPreferences(SAVED_SALESPARTNER, Context.MODE_PRIVATE);
+
         sPrefItemsListSaveStatus = getSharedPreferences(SAVED_ItemsListSaveStatus, Context.MODE_PRIVATE);
         sPrefChangeInvoiceNotSynced = getSharedPreferences(SAVED_ChangeInvoiceNotSynced, Context.MODE_PRIVATE);
         sPrefChangeInvoiceNumberNotSynced = getSharedPreferences(SAVED_ChangeInvoiceNumberNotSynced, Context.MODE_PRIVATE);
 
-        salesPartner = sPrefSalesPartner.getString(SAVED_SALESPARTNER, "");
+        onLoadInvoiceNotSyncedChange();
+
         itemsListSaveStatus = sPrefItemsListSaveStatus.getString(SAVED_ItemsListSaveStatus, "");
 
         receiveItemsListFromLocalDB();
@@ -95,7 +96,6 @@ public class ChangeInvoiceChooseItemsActivity extends AppCompatActivity implemen
         e.putString(SAVED_ItemsListSaveStatus, "notSaved");
         e.apply();
 
-//        onLoadInvoiceNotSyncedChange();
     }
 
     public void onClick(View v) {
@@ -157,25 +157,25 @@ public class ChangeInvoiceChooseItemsActivity extends AppCompatActivity implemen
                 sPrefChangeInvoiceNumberNotSynced.contains(SAVED_ChangeInvoiceNumberNotSynced)) {
             String sPTmp = sPrefChangeInvoiceNotSynced.getString(SAVED_ChangeInvoiceNotSynced, "");
             String iNTmp = sPrefChangeInvoiceNumberNotSynced.getString(SAVED_ChangeInvoiceNumberNotSynced, "");
-
-            String sql = "SELECT itemName FROM invoiceLocalDB WHERE salesPartnerName LIKE ? AND invoiceNumber LIKE ?";
-            Cursor c = db.rawQuery(sql, new String[]{sPTmp, iNTmp});
-            if (c.moveToFirst()) {
-                Toast.makeText(getApplicationContext(), "<<< Готово >>>", Toast.LENGTH_SHORT).show();
-                int iNameTmp = c.getColumnIndex("itemName");
-                do {
-//                    invoiceNumbers = invoiceNumbers + "----" + c.getString(iNumber);
-                    itemNameList.add(c.getString(iNameTmp));
-                } while (c.moveToNext());
-            }
-            c.close();
-            for (int i = 0; i < listViewItems.getCount(); i++) {
-                for (int b = 0; b < itemNameList.size(); b++) {
-                    if (itemNameList.get(b).equals(itemsList.get(i))) {
-                        listViewItems.setItemChecked(i, true);
-                    }
-                }
-            }
+            salesPartner = sPTmp;
+//            String sql = "SELECT itemName FROM invoiceLocalDB WHERE salesPartnerName LIKE ? AND invoiceNumber LIKE ?";
+//            Cursor c = db.rawQuery(sql, new String[]{sPTmp, iNTmp});
+//            if (c.moveToFirst()) {
+//                Toast.makeText(getApplicationContext(), "<<< Готово >>>", Toast.LENGTH_SHORT).show();
+//                int iNameTmp = c.getColumnIndex("itemName");
+//                do {
+////                    invoiceNumbers = invoiceNumbers + "----" + c.getString(iNumber);
+//                    itemNameList.add(c.getString(iNameTmp));
+//                } while (c.moveToNext());
+//            }
+//            c.close();
+//            for (int i = 0; i < listViewItems.getCount(); i++) {
+//                for (int b = 0; b < itemNameList.size(); b++) {
+//                    if (itemNameList.get(b).equals(itemsList.get(i))) {
+//                        listViewItems.setItemChecked(i, true);
+//                    }
+//                }
+//            }
 //            sPrefChangeInvoiceNotSynced.edit().clear().apply();
 //            sPrefChangeInvoiceNumberNotSynced.edit().clear().apply();
         }
@@ -286,7 +286,6 @@ public class ChangeInvoiceChooseItemsActivity extends AppCompatActivity implemen
     }
 
     private void onLoadActivity() {
-
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
         if (tableExists(db, "itemsToInvoiceTmp")) {
             if (valueExists(db, "itemsToInvoiceTmp", "Контрагент", salesPartner)) {
@@ -300,9 +299,9 @@ public class ChangeInvoiceChooseItemsActivity extends AppCompatActivity implemen
                                             if (valueExists(db, "itemsToInvoiceTmp", "Наименование", itemsList.get(i))) {
                                                 listViewItems.setItemChecked(i, true);
                                             }
-                                            if (!valueExists(db, "itemsToInvoiceTmp", "Наименование", itemsList.get(i))) {
-                                                listViewItems.setItemChecked(i, false);
-                                            }
+//                                            if (!valueExists(db, "itemsToInvoiceTmp", "Наименование", itemsList.get(i))) {
+//                                                listViewItems.setItemChecked(i, false);
+//                                            }
                                         }
                                         dialog.cancel();
                                     }
@@ -311,7 +310,6 @@ public class ChangeInvoiceChooseItemsActivity extends AppCompatActivity implemen
                                 new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialog, int id) {
                                         clearTable("ItemsToInvoiceTmp");
-                                        onLoadInvoiceNotSyncedChange();
                                         dialog.cancel();
                                     }
                                 });
@@ -341,7 +339,33 @@ public class ChangeInvoiceChooseItemsActivity extends AppCompatActivity implemen
                     listViewItems.setItemChecked(i, false);
                 }
             }
-            onLoadInvoiceNotSyncedChange();
+//            onLoadInvoiceNotSyncedChange();
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Внимание")
+                .setMessage("Выйти из редактирования?")
+                .setCancelable(false)
+                .setNegativeButton("Да",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                clearTable("ItemsToInvoiceTmp");
+                                sPrefChangeInvoiceNotSynced.edit().clear().apply();
+                                sPrefChangeInvoiceNumberNotSynced.edit().clear().apply();
+                                finish();
+                                dialog.cancel();
+                            }
+                        })
+                .setPositiveButton("Остаться",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialog.cancel();
+                            }
+                        });
+        AlertDialog alert = builder.create();
+        alert.show();
     }
 }

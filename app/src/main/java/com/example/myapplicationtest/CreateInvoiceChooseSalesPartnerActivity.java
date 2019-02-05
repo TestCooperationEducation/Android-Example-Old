@@ -41,7 +41,8 @@ public class CreateInvoiceChooseSalesPartnerActivity extends AppCompatActivity i
     ListView listViewSalesPartners, listViewAccountingType;
     SharedPreferences sPrefArea, sPrefAccountingType, sPrefDBName, sPrefDBPassword, sPrefDBUser,
             sPrefDayOfTheWeek, sPrefSalesPartner, sPrefAreaDefault, sPrefDayOfTheWeekDefault,
-            sPrefConnectionStatus, sPrefAccountingTypeDefault, sPrefItemsListSaveStatus;
+            sPrefConnectionStatus, sPrefAccountingTypeDefault, sPrefItemsListSaveStatus, sPrefChangeInvoiceNumberNotSynced,
+            sPrefChangeInvoiceNotSynced;
     ArrayAdapter<String> arrayAdapter;
     final String SAVED_AREA = "Area";
     final String SAVED_AREADEFAULT = "areaDefault";
@@ -55,6 +56,8 @@ public class CreateInvoiceChooseSalesPartnerActivity extends AppCompatActivity i
     final String SAVED_CONNSTATUS = "connectionStatus";
     final String SAVED_ACCOUNTINGTYPEDEFAULT = "AccountingTypeDefault";
     final String SAVED_ItemsListSaveStatus = "itemsListSaveStatus";
+    final String SAVED_ChangeInvoiceNotSynced = "changeInvoiceNotSynced";
+    final String SAVED_ChangeInvoiceNumberNotSynced = "changeInvoiceNumberNotSynced";
     SharedPreferences.Editor e;
     String requestUrl = "https://caiman.ru.com/php/filter_new.php", salesPartner, dbName, dbUser, dbPassword,
             area, accountingType, dayOfTheWeek, connStatus;
@@ -87,6 +90,11 @@ public class CreateInvoiceChooseSalesPartnerActivity extends AppCompatActivity i
         sPrefConnectionStatus = getSharedPreferences(SAVED_CONNSTATUS, Context.MODE_PRIVATE);
         sPrefAccountingTypeDefault = getSharedPreferences(SAVED_ACCOUNTINGTYPEDEFAULT, Context.MODE_PRIVATE);
         sPrefItemsListSaveStatus = getSharedPreferences(SAVED_ItemsListSaveStatus, Context.MODE_PRIVATE);
+        sPrefChangeInvoiceNotSynced = getSharedPreferences(SAVED_ChangeInvoiceNotSynced, Context.MODE_PRIVATE);
+        sPrefChangeInvoiceNumberNotSynced = getSharedPreferences(SAVED_ChangeInvoiceNumberNotSynced, Context.MODE_PRIVATE);
+
+        sPrefChangeInvoiceNotSynced.edit().clear().apply();
+        sPrefChangeInvoiceNumberNotSynced.edit().clear().apply();
 
         initialValues();
         onLoadActivity();

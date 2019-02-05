@@ -49,14 +49,14 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
     List<DataItemsListTmp> listTmp = new ArrayList<>();
     SharedPreferences sPrefDBName, sPrefDBPassword, sPrefDBUser, sPrefSalesPartner, sPrefInvoiceNumberTmp,
             sPrefAccountingType, sPrefAgent, sPrefAreaDefault, sPrefArea, sPrefAccountingTypeDefault,
-            sPrefItemsListSaveStatus, sPrefComment, sPrefInvoiceNumberLast, sPrefChangeInvoiceNumberNotSynced;
+            sPrefItemsListSaveStatus, sPrefComment, sPrefInvoiceNumberLast, sPrefChangeInvoiceNotSynced,
+            sPrefChangeInvoiceNumberNotSynced, sPrefAccountingTypeDoc, sPrefAccountingTypeSP, sPrefAreaSP;
     final String LOG_TAG = "myLogs";
     DBHelper dbHelper;
     SQLiteDatabase db;
     SharedPreferences.Editor e;
-    String requestUrlFinalPrice = "https://caiman.ru.com/php/price.php", dbName, dbUser, dbPassword,
-            requestUrlSaveRecord = "https://caiman.ru.com/php/saveNewInvoice_new.php",
-            requestUrlMakePayment = "https://caiman.ru.com/php/makePayment.php", comment = "",
+    String dbName, dbUser, dbPassword,
+            requestUrlSaveRecord = "https://caiman.ru.com/php/saveNewInvoice_new.php", comment = "",
             salesPartner, accountingType, agent, areaDefault, area, accountingTypeDefault, statusSave,
             invoiceNumberLast, invoiceNumberNotSyncedChange;
     TextView textViewSalesPartner, textViewInvoiceTotal, textViewAgent, textViewAccountingType;
@@ -74,6 +74,10 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
     final String SAVED_Comment = "comment";
     final String SAVED_InvoiceNumberLast = "invoiceNumberLast";
     final String SAVED_ChangeInvoiceNumberNotSynced = "changeInvoiceNumberNotSynced";
+    final String SAVED_ChangeInvoiceNotSynced = "changeInvoiceNotSynced";
+    final String SAVED_AccountingTypeDoc = "accountingTypeDoc";
+    final String SAVED_AccountingTypeSP = "accountingTypeSP";
+    final String SAVED_AreaSP = "areaSP";
     Double invoiceSum = 0d;
     Button btnSaveInvoiceToLocalDB;
     Integer invoiceNumber, tmpCount;
@@ -123,7 +127,11 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
         sPrefItemsListSaveStatus = getSharedPreferences(SAVED_ItemsListSaveStatus, Context.MODE_PRIVATE);
         sPrefComment = getSharedPreferences(SAVED_Comment, Context.MODE_PRIVATE);
         sPrefInvoiceNumberLast = getSharedPreferences(SAVED_InvoiceNumberLast, Context.MODE_PRIVATE);
+        sPrefChangeInvoiceNotSynced = getSharedPreferences(SAVED_ChangeInvoiceNotSynced, Context.MODE_PRIVATE);
         sPrefChangeInvoiceNumberNotSynced = getSharedPreferences(SAVED_ChangeInvoiceNumberNotSynced, Context.MODE_PRIVATE);
+        sPrefAccountingTypeDoc = getSharedPreferences(SAVED_AccountingTypeDoc, Context.MODE_PRIVATE);
+        sPrefAccountingTypeSP = getSharedPreferences(SAVED_AccountingTypeSP, Context.MODE_PRIVATE);
+        sPrefAreaSP = getSharedPreferences(SAVED_AreaSP, Context.MODE_PRIVATE);
 
         sPrefInvoiceNumberTmp.edit().clear().apply();
 
@@ -131,13 +139,26 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
         dbUser = sPrefDBUser.getString(SAVED_DBUser, "");
         dbPassword = sPrefDBPassword.getString(SAVED_DBPassword, "");
         agent = sPrefAgent.getString(SAVED_AGENT, "");
-        salesPartner = sPrefSalesPartner.getString(SAVED_SALESPARTNER, "");
+
         areaDefault = sPrefAreaDefault.getString(SAVED_AREADEFAULT, "");
-        accountingType = sPrefAccountingType.getString(SAVED_ACCOUNTINGTYPE, "");
-        area = sPrefArea.getString(SAVED_AREA, "");
-        accountingTypeDefault = sPrefAccountingTypeDefault.getString(SAVED_ACCOUNTINGTYPEDEFAULT, "");
+
         invoiceNumberLast = sPrefInvoiceNumberLast.getString(SAVED_InvoiceNumberLast, "");
         invoiceNumberNotSyncedChange = sPrefChangeInvoiceNumberNotSynced.getString(SAVED_ChangeInvoiceNumberNotSynced, "");
+
+        if (sPrefChangeInvoiceNotSynced.contains(SAVED_ChangeInvoiceNotSynced) &&
+                sPrefChangeInvoiceNumberNotSynced.contains(SAVED_ChangeInvoiceNumberNotSynced)) {
+            String sPTmp = sPrefChangeInvoiceNotSynced.getString(SAVED_ChangeInvoiceNotSynced, "");
+            String iNTmp = sPrefChangeInvoiceNumberNotSynced.getString(SAVED_ChangeInvoiceNumberNotSynced, "");
+            salesPartner = sPTmp;
+            accountingType = sPrefAccountingTypeDoc.getString(SAVED_AccountingTypeDoc, "");
+            area = sPrefAreaSP.getString(SAVED_AreaSP, "");
+            accountingTypeDefault = sPrefAccountingTypeSP.getString(SAVED_AccountingTypeSP, "");
+        } else {
+            salesPartner = sPrefSalesPartner.getString(SAVED_SALESPARTNER, "");
+            accountingType = sPrefAccountingType.getString(SAVED_ACCOUNTINGTYPE, "");
+            area = sPrefArea.getString(SAVED_AREA, "");
+            accountingTypeDefault = sPrefAccountingTypeDefault.getString(SAVED_ACCOUNTINGTYPEDEFAULT, "");
+        }
 
         textViewSalesPartner.setText(salesPartner);
         textViewAccountingType.setText(accountingType);
@@ -285,25 +306,40 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
 
             Log.d(LOG_TAG, "--- Update invoiceLocalDB: ---");
             for (int i = 0; i < arrItems.size(); i++) {
-                cv.put("invoiceNumber", invoiceNumber);
-                cv.put("agentID", areaDefault);
-                cv.put("areaSP", area);
-                cv.put("salesPartnerName", salesPartner);
-                cv.put("accountingTypeDoc", accountingType);
-                cv.put("accountingTypeSP", accountingTypeDefault);
-                cv.put("itemName", arrItems.get(i));
-                cv.put("quantity", arrQuantity.get(i));
-                cv.put("price", arrPriceChanged.get(i));
-                cv.put("totalCost", arrSum.get(i));
-                cv.put("exchangeQuantity", arrExchange.get(i));
-                cv.put("returnQuantity", arrReturn.get(i));
-                cv.put("dateTimeDocLocal", output);
-                cv.put("invoiceSum", invoiceSum);
-                cv.put("comment", comment);
+                if (valueExistsVariant(db, "invoiceLocalDB", "invoiceNumber", "invoiceNumber",
+                        invoiceNumber.toString(), "itemName", arrItems.get(i))){
+                    cv.put("itemName", arrItems.get(i));
+                    cv.put("quantity", arrQuantity.get(i));
+                    cv.put("price", arrPriceChanged.get(i));
+                    cv.put("totalCost", arrSum.get(i));
+                    cv.put("exchangeQuantity", arrExchange.get(i));
+                    cv.put("returnQuantity", arrReturn.get(i));
+//                cv.put("dateTimeDocLocal", output);
+                    cv.put("invoiceSum", invoiceSum);
+//                cv.put("comment", comment);
 
-                long rowID = db.update("invoiceLocalDB", cv, "invoiceNumber = ?",
-                        new String[]{invoiceNumber.toString()});
-                Log.d(LOG_TAG, "row updated, ID = " + rowID);
+                    long rowID = db.update("invoiceLocalDB", cv, "invoiceNumber = ?",
+                            new String[]{invoiceNumber.toString()});
+                    Log.d(LOG_TAG, "row updated, ID = " + rowID);
+                } else {
+                    cv.put("invoiceNumber", invoiceNumber);
+
+                    cv.put("agentID", areaDefault);
+                    cv.put("areaSP", area);
+                    cv.put("salesPartnerName", salesPartner);
+                    cv.put("accountingTypeDoc", accountingType);
+                    cv.put("accountingTypeSP", accountingTypeDefault);
+
+                    cv.put("itemName", arrItems.get(i));
+                    cv.put("quantity", arrQuantity.get(i));
+                    cv.put("price", arrPriceChanged.get(i));
+                    cv.put("totalCost", arrSum.get(i));
+                    cv.put("exchangeQuantity", arrExchange.get(i));
+                    cv.put("returnQuantity", arrReturn.get(i));
+                    cv.put("invoiceSum", invoiceSum);
+                    long rowID = db.insert("invoiceLocalDB", null, cv);
+                    Log.d(LOG_TAG, "row inserted, ID = " + rowID);
+                }
             }
             e = sPrefItemsListSaveStatus.edit();
             e.putString(SAVED_ItemsListSaveStatus, "saved");
@@ -313,6 +349,7 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
                 clearTable("itemsToInvoiceTmp");
             }
             sPrefComment.edit().clear().apply();
+            sPrefChangeInvoiceNotSynced.edit().clear().apply();
             sPrefChangeInvoiceNumberNotSynced.edit().clear().apply();
             Toast.makeText(getApplicationContext(), "<<< Обновление записи завершено >>>", Toast.LENGTH_SHORT).show();
             paymentPrompt();
@@ -704,6 +741,25 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
         }
         String sql = "SELECT COUNT(?) FROM " + tableName + " WHERE " + fieldName + " LIKE " + "?";
         Cursor cursor = db.rawQuery(sql, new String[]{selectField, value});
+        if (!cursor.moveToFirst())
+        {
+            cursor.close();
+            return false;
+        }
+        int count = cursor.getInt(0);
+        cursor.close();
+        return count > 0;
+    }
+
+    boolean valueExistsVariant(SQLiteDatabase db, String tableName, String selectField, String fieldNameOne,
+                               String valueOne, String fieldNameTwo, String valueTwo){
+        if (tableName == null || db == null || !db.isOpen())
+        {
+            return false;
+        }
+        String sql = "SELECT COUNT(?) FROM " + tableName + " WHERE " + fieldNameOne + " LIKE ? " +
+                "AND " + fieldNameTwo + " LIKE ?";
+        Cursor cursor = db.rawQuery(sql, new String[]{selectField, valueOne, valueTwo});
         if (!cursor.moveToFirst())
         {
             cursor.close();

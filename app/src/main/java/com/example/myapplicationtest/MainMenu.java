@@ -36,7 +36,8 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
             btnReports, btnViewInvoices;
     SharedPreferences sPrefArea, sPrefAccountingType, sPrefDayOfTheWeekDefault, sPrefDBName,
             sPrefFreshStatus, sPrefDBPassword, sPrefDBUser, sPrefDayOfTheWeek, sPrefVisited,
-            sPrefConnectionStatus, sPrefAreaDefault, sPrefInvoiceNumberLast, sPrefPaymentNumberLast;
+            sPrefConnectionStatus, sPrefAreaDefault, sPrefInvoiceNumberLast, sPrefPaymentNumberLast,
+            sPrefChangeInvoiceNumberNotSynced, sPrefChangeInvoiceNotSynced, sPrefAccountingTypeDoc;
     final String SAVED_AREA = "Area";
     final String SAVED_ACCOUNTINGTYPE = "AccountingType";
     final String SAVED_DAYOFTHEWEEKDEFAULT = "DayOfTheWeekDefault";
@@ -50,6 +51,9 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
     final String SAVED_AREADEFAULT = "areaDefault";
     final String SAVED_InvoiceNumberLast = "invoiceNumberLast";
     final String SAVED_PaymentNumberLast = "paymentNumberLast";
+    final String SAVED_ChangeInvoiceNotSynced = "changeInvoiceNotSynced";
+    final String SAVED_ChangeInvoiceNumberNotSynced = "changeInvoiceNumberNotSynced";
+    final String SAVED_AccountingTypeDoc = "accountingTypeDoc";
     String loginUrl = "https://caiman.ru.com/php/login.php", dbName, dbUser, dbPassword,
             syncUrl = "https://caiman.ru.com/php/syncDB.php", connStatus, areaDefault, invoiceNumberLast,
             paymentNumberLast;
@@ -104,6 +108,9 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         sPrefAreaDefault = getSharedPreferences(SAVED_AREADEFAULT, Context.MODE_PRIVATE);
         sPrefInvoiceNumberLast = getSharedPreferences(SAVED_InvoiceNumberLast, Context.MODE_PRIVATE);
         sPrefPaymentNumberLast = getSharedPreferences(SAVED_PaymentNumberLast, Context.MODE_PRIVATE);
+        sPrefChangeInvoiceNotSynced = getSharedPreferences(SAVED_ChangeInvoiceNotSynced, Context.MODE_PRIVATE);
+        sPrefChangeInvoiceNumberNotSynced = getSharedPreferences(SAVED_ChangeInvoiceNumberNotSynced, Context.MODE_PRIVATE);
+        sPrefAccountingTypeDoc = getSharedPreferences(SAVED_AccountingTypeDoc, Context.MODE_PRIVATE);
 
         dbName = sPrefDBName.getString(SAVED_DBName, "");
         dbUser = sPrefDBUser.getString(SAVED_DBUser, "");
@@ -116,6 +123,9 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         sPrefAccountingType.edit().clear().apply();
         sPrefDayOfTheWeek.edit().clear().apply();
         sPrefVisited.edit().clear().apply();
+        sPrefChangeInvoiceNotSynced.edit().clear().apply();
+        sPrefChangeInvoiceNumberNotSynced.edit().clear().apply();
+        sPrefAccountingTypeDoc.edit().clear().apply();
 
         e = sPrefFreshStatus.edit();
         e.putString(SAVED_FRESHSTATUS, "fresh");

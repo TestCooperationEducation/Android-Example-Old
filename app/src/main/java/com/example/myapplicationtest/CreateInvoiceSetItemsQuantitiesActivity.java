@@ -45,7 +45,8 @@ import java.util.Map;
 public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity implements View.OnClickListener {
 
     SharedPreferences sPrefDBName, sPrefDBPassword, sPrefDBUser, sPrefItemsList, sPrefSalesPartner,
-            sPrefConnectionStatus, sPrefAccountingType, sPrefItemName;
+            sPrefConnectionStatus, sPrefAccountingType, sPrefItemName, sPrefChangeInvoiceNumberNotSynced,
+            sPrefChangeInvoiceNotSynced;
     String requestUrlFinalPrice = "https://caiman.ru.com/php/price.php", dbName, dbUser, dbPassword,
             salesPartner, connStatus, item;
     String itemPrice, discountType, discountValue;
@@ -130,7 +131,7 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
                 priceChanged = finalPrice;
                 getPriceFromLocalDB();
             }
-            if (resultExists(db, "itemsToInvoiceTmp", "Наименование", item)) {
+            if (valueExists(db, "itemsToInvoiceTmp", "Наименование", item)) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setTitle("Внимание")
                         .setMessage("Вы хотите загрузить данные из последней сессии?")
@@ -321,7 +322,7 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
     }
 
     private void getDataFromTmp(){
-        if (resultExists(db, "itemsToInvoiceTmp", "Наименование", item)){
+        if (valueExists(db, "itemsToInvoiceTmp", "Наименование", item)){
             Log.d(LOG_TAG, "--- Rows in itemsToInvoiceTmp: ---");
             Cursor c = db.query("itemsToInvoiceTmp", null, null, null, null, null, null);
 
@@ -424,23 +425,38 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
             }
 
             if (tmpQuantity != 0d || tmpExchange != 0d || tmpReturn != 0d){
-                ContentValues cv = new ContentValues();
-                Log.d(LOG_TAG, "--- Insert in itemsToInvoiceTmp: ---");
-                cv.put("Контрагент", salesPartner);
-                cv.put("Наименование", item);
-                cv.put("Цена", finalPrice);
-                cv.put("ЦенаИзмененная", priceChanged);
-                cv.put("Количество", tmpQuantity);
-                cv.put("Обмен", tmpExchange);
-                cv.put("Возврат", tmpReturn);
-                cv.put("Итого", tmpSum);
-                long rowID = db.insert("itemsToInvoiceTmp", null, cv);
-                Log.d(LOG_TAG, "row inserted, ID = " + rowID);
-                Toast.makeText(getApplicationContext(), "<<< Товар добавлен в список >>>", Toast.LENGTH_SHORT).show();
-                tmpQuantityOnStart = tmpQuantity;
-                tmpExchangeOnStart = tmpExchange;
-                tmpReturnOnStart = tmpReturn;
-                finish();
+                if (!valueExists(db, "itemsToInvoiceTmp", "Наименование", item)) {
+                    ContentValues cv = new ContentValues();
+                    Log.d(LOG_TAG, "--- Insert in itemsToInvoiceTmp: ---");
+                    cv.put("Контрагент", salesPartner);
+                    cv.put("Наименование", item);
+                    cv.put("Цена", finalPrice);
+                    cv.put("ЦенаИзмененная", priceChanged);
+                    cv.put("Количество", tmpQuantity);
+                    cv.put("Обмен", tmpExchange);
+                    cv.put("Возврат", tmpReturn);
+                    cv.put("Итого", tmpSum);
+                    long rowID = db.insert("itemsToInvoiceTmp", null, cv);
+                    Log.d(LOG_TAG, "row inserted, ID = " + rowID);
+                    Toast.makeText(getApplicationContext(), "<<< Товар добавлен в список >>>", Toast.LENGTH_SHORT).show();
+                    tmpQuantityOnStart = tmpQuantity;
+                    tmpExchangeOnStart = tmpExchange;
+                    tmpReturnOnStart = tmpReturn;
+                    finish();
+                } else {
+                    ContentValues cv = new ContentValues();
+                    Log.d(LOG_TAG, "--- Insert in itemsToInvoiceTmp: ---");
+                    cv.put("Цена", finalPrice);
+                    cv.put("ЦенаИзмененная", priceChanged);
+                    cv.put("Количество", tmpQuantity);
+                    cv.put("Обмен", tmpExchange);
+                    cv.put("Возврат", tmpReturn);
+                    cv.put("Итого", tmpSum);
+                    long rowID = db.update("itemsToInvoiceTmp", cv, "Наименование = ?",
+                            new String[]{item});
+                    Log.d(LOG_TAG, "row inserted, ID = " + rowID);
+                    Toast.makeText(getApplicationContext(), "<<< Изменения внесены >>>", Toast.LENGTH_SHORT).show();
+                }
             }
         }
     }
@@ -643,7 +659,7 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
         });
     }
 
-    boolean resultExists(SQLiteDatabase db, String tableName, String fieldName, String fieldValue){
+    boolean valueExists(SQLiteDatabase db, String tableName, String fieldName, String fieldValue){
         if (tableName == null || db == null || !db.isOpen())
         {
             return false;

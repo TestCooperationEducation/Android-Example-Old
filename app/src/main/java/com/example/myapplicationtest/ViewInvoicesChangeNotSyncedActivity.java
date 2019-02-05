@@ -41,9 +41,9 @@ public class ViewInvoicesChangeNotSyncedActivity extends AppCompatActivity imple
     Button btnChangeInvoiceNotSynced;
     SharedPreferences sPrefDBName, sPrefDBPassword, sPrefDBUser, sPrefLogin, sPrefAccountingTypeDefault,
             sPrefArea, sPrefAreaDefault, sPrefInvoiceNumberLast, sPrefChangeInvoiceNotSynced,
-            sPrefChangeInvoiceNumberNotSynced;
-    String paymentStatus, invoiceNumbers = "", dbName, dbUser, dbPassword,
-            loginSecurity, areaDefault, invoiceNumberLast, salesPartnerName;
+            sPrefChangeInvoiceNumberNotSynced, sPrefAccountingTypeDoc, sPrefAccountingTypeSP, sPrefAreaSP;
+    String paymentStatus, invoiceNumbers = "", dbName, dbUser, dbPassword, accountingTypeDocStr, areaSPStr,
+            loginSecurity, areaDefault, invoiceNumberLast, salesPartnerName, accountingTypeSPStr;
     final String SAVED_DBName = "dbName";
     final String SAVED_DBUser = "dbUser";
     final String SAVED_DBPassword = "dbPassword";
@@ -54,12 +54,15 @@ public class ViewInvoicesChangeNotSyncedActivity extends AppCompatActivity imple
     final String SAVED_InvoiceNumberLast = "invoiceNumberLast";
     final String SAVED_ChangeInvoiceNotSynced = "changeInvoiceNotSynced";
     final String SAVED_ChangeInvoiceNumberNotSynced = "changeInvoiceNumberNotSynced";
+    final String SAVED_AccountingTypeDoc = "accountingTypeDoc";
+    final String SAVED_AccountingTypeSP = "accountingTypeSP";
+    final String SAVED_AreaSP = "areaSP";
     ArrayList<String> arrItems, invoiceNumberServerTmp, dateTimeDocServer, itemNameList, priceList,
             quantityList, exchangeQuantityList, returnQuantityList, totalCostList;
     ArrayList<Double> arrQuantity, arrExchange, arrReturn, arrSum;
     ArrayList<Integer> arrPriceChanged, invoiceNumbersList;
     List<DataInvoice> dataArray;
-    String[] sPListTmp, invoiceNumberNotSyncedChange;
+    String[] sPListTmp, invoiceNumberNotSyncedChange, accountingTypeDoc, accountingTypeSP, areaSP;
     SharedPreferences.Editor e;
 
     @Override
@@ -100,6 +103,9 @@ public class ViewInvoicesChangeNotSyncedActivity extends AppCompatActivity imple
         sPrefInvoiceNumberLast = getSharedPreferences(SAVED_InvoiceNumberLast, Context.MODE_PRIVATE);
         sPrefChangeInvoiceNotSynced = getSharedPreferences(SAVED_ChangeInvoiceNotSynced, Context.MODE_PRIVATE);
         sPrefChangeInvoiceNumberNotSynced = getSharedPreferences(SAVED_ChangeInvoiceNumberNotSynced, Context.MODE_PRIVATE);
+        sPrefAccountingTypeDoc = getSharedPreferences(SAVED_AccountingTypeDoc, Context.MODE_PRIVATE);
+        sPrefAccountingTypeSP = getSharedPreferences(SAVED_AccountingTypeSP, Context.MODE_PRIVATE);
+        sPrefAreaSP = getSharedPreferences(SAVED_AreaSP, Context.MODE_PRIVATE);
 
         areaDefault = sPrefAreaDefault.getString(SAVED_AREADEFAULT, "");
         dbName = sPrefDBName.getString(SAVED_DBName, "");
@@ -144,6 +150,15 @@ public class ViewInvoicesChangeNotSyncedActivity extends AppCompatActivity imple
                                         e = sPrefChangeInvoiceNumberNotSynced.edit();
                                         e.putString(SAVED_ChangeInvoiceNumberNotSynced, invoiceNumberNotSyncedChange[item]);
                                         e.apply();
+                                        e = sPrefAccountingTypeDoc.edit();
+                                        e.putString(SAVED_AccountingTypeDoc, accountingTypeDoc[item]);
+                                        e.apply();
+                                        e = sPrefAccountingTypeSP.edit();
+                                        e.putString(SAVED_AccountingTypeSP, accountingTypeSP[item]);
+                                        e.apply();
+                                        e = sPrefAreaSP.edit();
+                                        e.putString(SAVED_AccountingTypeSP, areaSP[item]);
+                                        e.apply();
                                         if (resultExists(db, "invoiceLocalDB", "invoiceNumber")){
                                             String sql = "SELECT * FROM invoiceLocalDB WHERE invoiceNumber LIKE ? " +
                                                     "AND salesPartnerName LIKE ?";
@@ -156,12 +171,7 @@ public class ViewInvoicesChangeNotSyncedActivity extends AppCompatActivity imple
                                                 int exchangeQuantityTmp = c.getColumnIndex("exchangeQuantity");
                                                 int returnQuantityTmp = c.getColumnIndex("returnQuantity");
                                                 int totalCostTmp = c.getColumnIndex("totalCost");
-                                                String itemName = c.getString(itemNameTmp);
-                                                String price = c.getString(priceTmp);
-                                                String quantity = c.getString(quantityTmp);
-                                                String exchangeQuantity = c.getString(exchangeQuantityTmp);
-                                                String returnQuantity = c.getString(returnQuantityTmp);
-                                                String totalCost = c.getString(totalCostTmp);
+
                                                 do {
 //                                                    itemNameList;
 //                                                    priceList;
@@ -170,6 +180,12 @@ public class ViewInvoicesChangeNotSyncedActivity extends AppCompatActivity imple
 //                                                    returnQuantityList;
 //                                                    totalCostList;
 //                                                    itemNameList;
+                                                    String itemName = c.getString(itemNameTmp);
+                                                    String price = c.getString(priceTmp);
+                                                    String quantity = c.getString(quantityTmp);
+                                                    String exchangeQuantity = c.getString(exchangeQuantityTmp);
+                                                    String returnQuantity = c.getString(returnQuantityTmp);
+                                                    String totalCost = c.getString(totalCostTmp);
                                                     ContentValues cv = new ContentValues();
                                                     Log.d(LOG_TAG, "--- Insert in itemsToInvoiceTmp: ---");
                                                     cv.put("Контрагент", sPListTmp[item]);
@@ -239,22 +255,29 @@ public class ViewInvoicesChangeNotSyncedActivity extends AppCompatActivity imple
 
         sPListTmp = new String[invoiceNumbersList.size()];
         invoiceNumberNotSyncedChange = new String[invoiceNumbersList.size()];
+        accountingTypeDoc = new String[invoiceNumbersList.size()];
+        accountingTypeSP = new String[invoiceNumbersList.size()];
+        areaSP = new String[invoiceNumbersList.size()];
 
         for (int i = 0; i < invoiceNumbersList.size(); i++){
-            String sql = "SELECT DISTINCT salesPartnerName, accountingTypeDoc, dateTimeDocLocal, invoiceSum" +
+            String sql = "SELECT DISTINCT areaSP, salesPartnerName, accountingTypeDoc, accountingTypeSP, dateTimeDocLocal, invoiceSum" +
                     " FROM invoiceLocalDB WHERE invoiceNumber LIKE ?";
             Cursor c = db.rawQuery(sql, new String[]{invoiceNumbersList.get(i).toString()});
             if (c.moveToFirst()) {
                 int salesPartnerNameTmp = c.getColumnIndex("salesPartnerName");
                 int accountingTypeDocTmp = c.getColumnIndex("accountingTypeDoc");
+                int accountingTypeSPTmp = c.getColumnIndex("accountingTypeSP");
                 int dateTimeDocLocalTmp = c.getColumnIndex("dateTimeDocLocal");
                 int invoiceSumTmp = c.getColumnIndex("invoiceSum");
+                int areaSPTmp = c.getColumnIndex("areaSP");
+                areaSPStr = c.getString(areaSPTmp);
                 salesPartnerName = c.getString(salesPartnerNameTmp);
-                String accountingTypeDoc = c.getString(accountingTypeDocTmp);
+                accountingTypeDocStr = c.getString(accountingTypeDocTmp);
+                accountingTypeSPStr = c.getString(accountingTypeSPTmp);
                 String dateTimeDocLocal = c.getString(dateTimeDocLocalTmp);
                 Double invoiceSum = Double.parseDouble(c.getString(invoiceSumTmp));
                 paymentStatus = "";
-                listTmp.add(new DataInvoiceLocal(salesPartnerName, accountingTypeDoc,
+                listTmp.add(new DataInvoiceLocal(salesPartnerName, accountingTypeDocStr,
                         Integer.parseInt(invoiceNumberServerTmp.get(0)), dateTimeDocServer.get(0), dateTimeDocLocal,
                         invoiceSum, paymentStatus));
                 c.moveToNext();
@@ -262,6 +285,9 @@ public class ViewInvoicesChangeNotSyncedActivity extends AppCompatActivity imple
             c.close();
             sPListTmp[i] = salesPartnerName;
             invoiceNumberNotSyncedChange[i] = String.valueOf(invoiceNumbersList.get(i));
+            accountingTypeDoc[i] = accountingTypeDocStr;
+            accountingTypeSP[i] = accountingTypeSPStr;
+            areaSP[i] = areaSPStr;
             Toast.makeText(getApplicationContext(), "Список накладных: " + sPListTmp[0], Toast.LENGTH_SHORT).show();
         }
         RecyclerView recyclerView = findViewById(R.id.recyclerViewInvoicesLocal);
