@@ -45,11 +45,10 @@ import java.util.Map;
 public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity implements View.OnClickListener {
 
     SharedPreferences sPrefDBName, sPrefDBPassword, sPrefDBUser, sPrefItemsList, sPrefSalesPartner,
-            sPrefConnectionStatus, sPrefAccountingType, sPrefItemName, sPrefChangeInvoiceNumberNotSynced,
-            sPrefChangeInvoiceNotSynced;
-    String requestUrlFinalPrice = "https://caiman.ru.com/php/price.php", dbName, dbUser, dbPassword,
-            salesPartner, connStatus, item;
-    String itemPrice, discountType, discountValue;
+            sPrefConnectionStatus, sPrefAccountingType, sPrefItemName,
+            sPrefChangeInvoiceNotSynced, sPrefAccountingTypeDoc;
+    String dbName, dbUser, dbPassword, accountingType, salesPartner, connStatus, item, itemPrice,
+            discountType, discountValue;
     final String SAVED_DBName = "dbName";
     final String SAVED_DBUser = "dbUser";
     final String SAVED_DBPassword = "dbPassword";
@@ -58,6 +57,8 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
     final String SAVED_CONNSTATUS = "connectionStatus";
     final String SAVED_ACCOUNTINGTYPE = "AccountingType";
     final String SAVED_ITEMNAME = "itemName";
+    final String SAVED_ChangeInvoiceNotSynced = "changeInvoiceNotSynced";
+    final String SAVED_AccountingTypeDoc = "accountingTypeDoc";
     Double finalPrice, priceChanged, tmpQuantityOnStart, tmpExchangeOnStart, tmpReturnOnStart;
 //    ArrayList<String> myList;
     ArrayList<DataPrice> dataArray;
@@ -91,6 +92,8 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
         sPrefConnectionStatus = getSharedPreferences(SAVED_CONNSTATUS, Context.MODE_PRIVATE);
         sPrefAccountingType = getSharedPreferences(SAVED_ACCOUNTINGTYPE, Context.MODE_PRIVATE);
         sPrefItemName = getSharedPreferences(SAVED_ITEMNAME, Context.MODE_PRIVATE);
+        sPrefChangeInvoiceNotSynced = getSharedPreferences(SAVED_ChangeInvoiceNotSynced, Context.MODE_PRIVATE);
+        sPrefAccountingTypeDoc = getSharedPreferences(SAVED_AccountingTypeDoc, Context.MODE_PRIVATE);
 
         textViewSalesPartner = findViewById(R.id.textViewSalesPartner);
         textViewItemName = findViewById(R.id.textViewItemName);
@@ -108,11 +111,18 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
 //        editTextQuantity.dispatchTouchEvent(MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis(), MotionEvent.ACTION_UP , 0, 0, 0));
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
 
-        salesPartner = sPrefSalesPartner.getString(SAVED_SALESPARTNER, "");
+        if (sPrefAccountingTypeDoc.contains(SAVED_AccountingTypeDoc) && sPrefChangeInvoiceNotSynced.contains(SAVED_ChangeInvoiceNotSynced)){
+            salesPartner = sPrefChangeInvoiceNotSynced.getString(SAVED_ChangeInvoiceNotSynced, "");
+            accountingType = sPrefAccountingTypeDoc.getString(SAVED_AccountingTypeDoc, "");
+        } else {
+            salesPartner = sPrefSalesPartner.getString(SAVED_SALESPARTNER, "");
+            accountingType = sPrefAccountingType.getString(SAVED_ACCOUNTINGTYPE, "");
+        }
+
         textViewSalesPartner.setText(salesPartner);
         textViewItemName.setText(sPrefItemName.getString(SAVED_ITEMNAME, ""));
         item = textViewItemName.getText().toString();
-        textViewAccountingType.setText(sPrefAccountingType.getString(SAVED_ACCOUNTINGTYPE, ""));
+        textViewAccountingType.setText(accountingType);
 
         if (sPrefDBName.contains(SAVED_DBName) && sPrefDBUser.contains(SAVED_DBUser) && sPrefDBPassword.contains(SAVED_DBPassword)) {
             dbName = sPrefDBName.getString(SAVED_DBName, "");
@@ -456,6 +466,7 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
                             new String[]{item});
                     Log.d(LOG_TAG, "row inserted, ID = " + rowID);
                     Toast.makeText(getApplicationContext(), "<<< Изменения внесены >>>", Toast.LENGTH_SHORT).show();
+                    finish();
                 }
             }
         }

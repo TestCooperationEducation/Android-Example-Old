@@ -308,18 +308,18 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
             for (int i = 0; i < arrItems.size(); i++) {
                 if (valueExistsVariant(db, "invoiceLocalDB", "invoiceNumber", "invoiceNumber",
                         invoiceNumber.toString(), "itemName", arrItems.get(i))){
-                    cv.put("itemName", arrItems.get(i));
+//                    cv.put("itemName", arrItems.get(i));
                     cv.put("quantity", arrQuantity.get(i));
                     cv.put("price", arrPriceChanged.get(i));
                     cv.put("totalCost", arrSum.get(i));
                     cv.put("exchangeQuantity", arrExchange.get(i));
                     cv.put("returnQuantity", arrReturn.get(i));
-//                cv.put("dateTimeDocLocal", output);
+//                    cv.put("dateTimeDocLocal", output);
                     cv.put("invoiceSum", invoiceSum);
 //                cv.put("comment", comment);
 
-                    long rowID = db.update("invoiceLocalDB", cv, "invoiceNumber = ?",
-                            new String[]{invoiceNumber.toString()});
+                    long rowID = db.update("invoiceLocalDB", cv, "invoiceNumber = ? AND itemName = ?",
+                            new String[]{invoiceNumber.toString(), arrItems.get(i)});
                     Log.d(LOG_TAG, "row updated, ID = " + rowID);
                 } else {
                     cv.put("invoiceNumber", invoiceNumber);
@@ -336,7 +336,9 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
                     cv.put("totalCost", arrSum.get(i));
                     cv.put("exchangeQuantity", arrExchange.get(i));
                     cv.put("returnQuantity", arrReturn.get(i));
+                    cv.put("dateTimeDocLocal", output);
                     cv.put("invoiceSum", invoiceSum);
+                    cv.put("comment", comment);
                     long rowID = db.insert("invoiceLocalDB", null, cv);
                     Log.d(LOG_TAG, "row inserted, ID = " + rowID);
                 }
@@ -347,6 +349,7 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
 
             if (tableExists(db, "itemsToInvoiceTmp")){
                 clearTable("itemsToInvoiceTmp");
+
             }
             sPrefComment.edit().clear().apply();
             sPrefChangeInvoiceNotSynced.edit().clear().apply();

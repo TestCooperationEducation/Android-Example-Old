@@ -326,6 +326,18 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
                             alert.show();
 //                        }
                     }else{
+                        builder.setTitle("Внимание")
+                                .setMessage("Возможно все синхронизировано, но сервер выкаблучивается. Обратитесь к Создателю и больше не жмите до талого!")
+                                .setCancelable(false)
+                                .setNegativeButton("Ясно",
+                                        new DialogInterface.OnClickListener() {
+                                            public void onClick(DialogInterface dialog, int id) {
+                                                finish();
+                                                dialog.cancel();
+                                            }
+                                        });
+                        AlertDialog alert = builder.create();
+                        alert.show();
                         Toast.makeText(getApplicationContext(), "Ошибка загрузки. Проверьте Интернет или Учётку", Toast.LENGTH_SHORT).show();
                     }
                 }

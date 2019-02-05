@@ -54,7 +54,7 @@ public class ViewInvoicesSyncedShowMoreActivity extends AppCompatActivity {
         Cursor c = db.rawQuery(sql, new String[]{salesPartner});
         if (c.moveToFirst()) {
             int exchange = c.getColumnIndex("ExchangeQuantity");
-            int itemName = c.getColumnIndex("Наименование");
+//            int itemName = c.getColumnIndex(15);
             int price = c.getColumnIndex("Price");
             int quantity = c.getColumnIndex("Quantity");
             int total = c.getColumnIndex("Total");
@@ -67,7 +67,7 @@ public class ViewInvoicesSyncedShowMoreActivity extends AppCompatActivity {
             textViewTotalSum.setText(c.getString(invoiceSumTmp));
             do {
                 listTmp.add(new DataItemsListTmp(Double.parseDouble(c.getString(exchange)),
-                        c.getString(itemName), Integer.parseInt(c.getString(price)),
+                        c.getString(17), Integer.parseInt(c.getString(price)),
                         Double.parseDouble(c.getString(quantity)), Double.parseDouble(c.getString(total)),
                         Double.parseDouble(c.getString(returnQuantity))));
 

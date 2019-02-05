@@ -191,7 +191,7 @@ public class ViewPaymentsNotSyncedActivity extends AppCompatActivity implements 
                     listTmp.add(new DataPaymentLocal(salesPartnerName, accountingTypeDoc,
                             invoiceNumber, paymentIDLocal, invoiceSum, paymentSum, dateTimeDocLocal,
                             dateTimeDocServer));
-                    DataPay dt = new DataPay(invoiceNumber, invoiceSum);
+                    DataPay dt = new DataPay(invoiceNumber, paymentSum);
                     dataPay.add(dt);
                 } while (c.moveToNext());
             }
@@ -348,22 +348,6 @@ public class ViewPaymentsNotSyncedActivity extends AppCompatActivity implements 
         int count = cursor.getInt(0);
         cursor.close();
         return count > 0;
-    }
-
-    private void onConnectionFailed(){
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Нет ответа от Сервера")
-                .setMessage("Попробуйте позже")
-                .setCancelable(false)
-                .setNegativeButton("Ok",
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                                finish();
-                                dialog.cancel();
-                            }
-                        });
-        AlertDialog alert = builder.create();
-        alert.show();
     }
 
     private void onConnectionFailedPayment(){
