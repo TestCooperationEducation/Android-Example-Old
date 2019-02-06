@@ -9,9 +9,9 @@
     <android.support.v7.widget.RecyclerView
         android:id="@+id/recyclerViewInvoicesLocal"
         android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:layout_height="438dp"
         app:layoutManager="android.support.v7.widget.LinearLayoutManager"
-        app:layout_constraintBottom_toTopOf="@+id/buttonChangeInvoiceNotSynced"
+        app:layout_constraintBottom_toTopOf="@+id/buttonDeleteInvoiceNotSynced"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
@@ -24,6 +24,16 @@
         android:text="@string/btnChangeNotSynced"
         android:textSize="18sp"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+        android:id="@+id/buttonDeleteInvoiceNotSynced"
+        android:layout_width="0dp"
+        android:layout_height="70dp"
+        android:text="@string/btnRemoveItem"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toTopOf="@+id/buttonChangeInvoiceNotSynced"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 

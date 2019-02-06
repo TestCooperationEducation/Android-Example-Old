@@ -3,6 +3,7 @@ package com.example.myapplicationtest;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -13,6 +14,7 @@ import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -44,12 +46,12 @@ public class ViewPaymentsNotSyncedActivity extends AppCompatActivity implements 
     DBHelper dbHelper;
     SQLiteDatabase db;
     Button btnSyncPaymentsWithServer;
-    Integer invoiceNumberServer, invoiceNumberLocalTmp;
+    Integer paymentIDLocal, iTmp, invoiceNumber;
     SharedPreferences sPrefDBName, sPrefDBPassword, sPrefDBUser, sPrefLogin, sPrefAccountingTypeDefault,
             sPrefArea, sPrefAreaDefault, sPrefAgent;
     String paymentSum, paymentsID = "", dbName, dbUser, dbPassword, agent,
             requestUrlMakePayment = "https://caiman.ru.com/php/makePayment.php",
-            loginSecurity, statusSave = "", areaDefault, dateTimeDocServer;
+            loginSecurity, statusSave = "", areaDefault, dateTimeDocServer, salesPartnerName;
     final String SAVED_DBName = "dbName";
     final String SAVED_DBUser = "dbUser";
     final String SAVED_DBPassword = "dbPassword";
@@ -62,8 +64,11 @@ public class ViewPaymentsNotSyncedActivity extends AppCompatActivity implements 
     ArrayList<Double> arrQuantity, arrExchange, arrReturn, arrSum;
     ArrayList<Integer> arrPriceChanged, paymentsIDsList;
     List<DataInvoice> dataArray;
-    String[] dateTimeDocServerFromRequest, invoiceNumberFromRequest, paymentIDFromRequest;
+    String[] payListTmp, payListTmpIDToDelete, invoiceNumberFromRequest, paymentIDFromRequest,
+            salesPartnerNameList, invoiceNumberList;
     List<DataPay> dataPay;
+    Double paymentSumDouble;
+    Boolean delBoolTmp = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,7 +82,6 @@ public class ViewPaymentsNotSyncedActivity extends AppCompatActivity implements 
         dataPay = new ArrayList<>();
         paymentsIDsList = new ArrayList<>();
         invoiceNumberServerTmp = new ArrayList<>();
-//        dateTimeDocServer = new ArrayList<>();
 
         btnSyncPaymentsWithServer = findViewById(R.id.buttonSyncPaymentsWithServer);
         btnSyncPaymentsWithServer.setOnClickListener(this);
@@ -120,7 +124,34 @@ public class ViewPaymentsNotSyncedActivity extends AppCompatActivity implements 
                     AlertDialog alert = builder.create();
                     alert.show();
                 } else {
-                    savePaymentsToServerDB();
+                    AlertDialog.Builder builder;
+                    builder = new AlertDialog.Builder(this);
+                    builder.setTitle("Выбирете действие")
+//                            .setMessage("Возможно вы забыли обновить локальную таблицу накладных")
+                            .setCancelable(false)
+                            .setNeutralButton("Уйти",
+                                    new DialogInterface.OnClickListener() {
+                                        public void onClick(DialogInterface dialog, int id) {
+                                            finish();
+                                            dialog.cancel();
+                                        }
+                                    })
+                            .setNegativeButton("Удалить",
+                                    new DialogInterface.OnClickListener() {
+                                        public void onClick(DialogInterface dialog, int id) {
+                                            deletePayment();
+                                            dialog.cancel();
+                                        }
+                                    })
+                            .setPositiveButton("Синхронизировать",
+                                    new DialogInterface.OnClickListener() {
+                                        public void onClick(DialogInterface dialog, int id) {
+                                            savePaymentsToServerDB();
+                                            dialog.cancel();
+                                        }
+                                    });
+                    AlertDialog alert = builder.create();
+                    alert.show();
                 }
                 break;
             default:
@@ -165,9 +196,13 @@ public class ViewPaymentsNotSyncedActivity extends AppCompatActivity implements 
             Toast.makeText(getApplicationContext(), "Несинхронизированые: " + paymentsID, Toast.LENGTH_SHORT).show();
         }
 
+        payListTmp = new String[paymentsIDsList.size()];
+        payListTmpIDToDelete = new String[paymentsIDsList.size()];
+        salesPartnerNameList = new String[paymentsIDsList.size()];
+        invoiceNumberList = new String[paymentsIDsList.size()];
         for (int i = 0; i < paymentsIDsList.size(); i++){
-            String sql = "SELECT DISTINCT payments.InvoiceNumber, payments.DateTimeDoc, payments.сумма_внесения, payments.id, " +
-                    "invoiceLocalDB.salesPartnerName, invoiceLocalDB.accountingTypeDoc, invoiceLocalDB.invoiceSum" +
+            String sql = "SELECT DISTINCT payments.InvoiceNumber, payments.DateTimeDoc, payments.сумма_внесения, " +
+                    "payments.id, invoiceLocalDB.salesPartnerName, invoiceLocalDB.accountingTypeDoc, invoiceLocalDB.invoiceSum" +
                     " FROM payments INNER JOIN invoiceLocalDB ON payments.InvoiceNumber LIKE invoiceLocalDB.invoiceNumber" +
                     " WHERE payments.id LIKE ?";
             Cursor c = db.rawQuery(sql, new String[]{paymentsIDsList.get(i).toString()});
@@ -180,22 +215,73 @@ public class ViewPaymentsNotSyncedActivity extends AppCompatActivity implements 
                 int paymentIDTmp = c.getColumnIndex("id");
                 int paymentSumTmp = c.getColumnIndex("сумма_внесения");
                 do {
-                    String salesPartnerName = c.getString(salesPartnerNameTmp);
+                    salesPartnerName = c.getString(salesPartnerNameTmp);
                     String accountingTypeDoc = c.getString(accountingTypeDocTmp);
                     String dateTimeDocLocal = c.getString(dateTimeDocLocalTmp);
                     Double invoiceSum = Double.parseDouble(c.getString(invoiceSumTmp));
-                    Double paymentSum = Double.parseDouble(c.getString(paymentSumTmp));
-                    Integer paymentIDLocal = Integer.parseInt(c.getString(paymentIDTmp));
-                    Integer invoiceNumber = Integer.parseInt(c.getString(invoiceNumberTmp));
+                    paymentSumDouble = Double.parseDouble(c.getString(paymentSumTmp));
+                    paymentIDLocal = Integer.parseInt(c.getString(paymentIDTmp));
+                    invoiceNumber = Integer.parseInt(c.getString(invoiceNumberTmp));
                     dateTimeDocServer = "";
                     listTmp.add(new DataPaymentLocal(salesPartnerName, accountingTypeDoc,
-                            invoiceNumber, paymentIDLocal, invoiceSum, paymentSum, dateTimeDocLocal,
+                            invoiceNumber, paymentIDLocal, invoiceSum, paymentSumDouble, dateTimeDocLocal,
                             dateTimeDocServer));
-                    DataPay dt = new DataPay(invoiceNumber, paymentSum);
+                    DataPay dt = new DataPay(invoiceNumber, paymentSumDouble);
                     dataPay.add(dt);
                 } while (c.moveToNext());
+            } else {
+                sql = "SELECT DISTINCT payments.InvoiceNumber, payments.DateTimeDoc, payments.сумма_внесения, payments.id, " +
+                        "salesPartners.Наименование, invoice.AccountingType, invoice.InvoiceSum" +
+                        " FROM payments INNER JOIN invoice ON payments.InvoiceNumber LIKE invoice.InvoiceNumber" +
+                        " INNER JOIN salesPartners ON invoice.SalesPartnerID LIKE salesPartners.serverDB_ID" +
+                        " WHERE payments.id LIKE ?";
+                c = db.rawQuery(sql, new String[]{paymentsIDsList.get(i).toString()});
+                if (c.moveToFirst()) {
+                    int salesPartnerNameTmp = c.getColumnIndex("Наименование");
+                    int accountingTypeDocTmp = c.getColumnIndex("AccountingType");
+                    int dateTimeDocLocalTmp = c.getColumnIndex("DateTimeDoc");
+                    int invoiceSumTmp = c.getColumnIndex("InvoiceSum");
+                    int invoiceNumberTmp = c.getColumnIndex("InvoiceNumber");
+                    int paymentIDTmp = c.getColumnIndex("id");
+                    int paymentSumTmp = c.getColumnIndex("сумма_внесения");
+                    do {
+                        salesPartnerName = c.getString(salesPartnerNameTmp);
+                        String accountingTypeDoc = c.getString(accountingTypeDocTmp);
+                        String dateTimeDocLocal = c.getString(dateTimeDocLocalTmp);
+                        Double invoiceSum = Double.parseDouble(c.getString(invoiceSumTmp));
+                        paymentSumDouble = Double.parseDouble(c.getString(paymentSumTmp));
+                        paymentIDLocal = Integer.parseInt(c.getString(paymentIDTmp));
+                        invoiceNumber = Integer.parseInt(c.getString(invoiceNumberTmp));
+                        dateTimeDocServer = "";
+                        listTmp.add(new DataPaymentLocal(salesPartnerName, accountingTypeDoc,
+                                invoiceNumber, paymentIDLocal, invoiceSum, paymentSumDouble, dateTimeDocLocal,
+                                dateTimeDocServer));
+                        DataPay dt = new DataPay(invoiceNumber, paymentSumDouble);
+                        dataPay.add(dt);
+                    } while (c.moveToNext());
+                }
             }
             c.close();
+            payListTmp[i] = "№" + paymentIDLocal + " " + salesPartnerName +  " Сумма: " + paymentSumDouble + " Накладная: " + invoiceNumber;
+            payListTmpIDToDelete[i] = paymentIDLocal.toString();
+            salesPartnerNameList[i] = salesPartnerName;
+            invoiceNumberList[i] = invoiceNumber.toString();
+        }
+        if (listTmp.isEmpty()){
+            AlertDialog.Builder builder;
+            builder = new AlertDialog.Builder(this);
+            builder.setTitle("Пусто")
+                    .setMessage("Возможно вы забыли обновить локальную таблицу накладных")
+                    .setCancelable(false)
+                    .setPositiveButton("Уйти",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    finish();
+                                    dialog.cancel();
+                                }
+                            });
+            AlertDialog alert = builder.create();
+            alert.show();
         }
         RecyclerView recyclerView = findViewById(R.id.recyclerViewPaymentsLocal);
         DataAdapterViewPaymentsFromLocalDB adapter = new DataAdapterViewPaymentsFromLocalDB(this, listTmp);
@@ -220,6 +306,64 @@ public class ViewPaymentsNotSyncedActivity extends AppCompatActivity implements 
 
     private void savePaymentsToServerDB(){
         sendToServer();
+    }
+
+    private void deletePayment(){
+        AlertDialog.Builder builder;
+        builder = new AlertDialog.Builder(this);
+        builder.setTitle("Выберите для удаления")
+                .setCancelable(false)
+                .setNeutralButton("Назад",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog,
+                                                int id) {
+                                dialog.cancel();
+                            }
+                        })
+                .setSingleChoiceItems(payListTmp, -1,
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog,
+                                                int item) {
+                                Toast.makeText(
+                                        getApplicationContext(),
+                                        "Вы выбрали: "
+                                                + payListTmp[item],
+                                        Toast.LENGTH_SHORT).show();
+                                iTmp = item;
+                                delBoolTmp = true;
+                            }
+                        })
+                .setPositiveButton("Удалить",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                if (delBoolTmp == true){
+                                    Log.d(LOG_TAG, "--- Delete payments : ---");
+                                    int delCount = db.delete("payments",
+                                            "InvoiceNumber = ? AND id = ?",
+                                            new String[]{invoiceNumberList[iTmp],
+                                                    payListTmpIDToDelete[iTmp]});
+                                    Log.d(LOG_TAG, "deleted rows count = " + delCount);
+                                    Toast.makeText(
+                                            getApplicationContext(),
+                                            "Удалено: "
+                                                    + salesPartnerNameList[iTmp] + " & " + payListTmpIDToDelete[iTmp],
+                                            Toast.LENGTH_SHORT).show();
+                                    delBoolTmp = false;
+                                    finish();
+                                    dialog.cancel();
+                                }
+                            }
+                        });
+        AlertDialog alert = builder.create();
+        alert.show();
+//        WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
+//        lp.copyFrom(alert.getWindow().getAttributes());
+//        lp.width = 740;
+//        lp.height = 500;
+//        lp.x=-790;
+//        lp.y=100;
+//        alert.getWindow().setAttributes(lp);
     }
 
     private void sendToServer(){

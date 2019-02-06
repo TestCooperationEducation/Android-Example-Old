@@ -79,5 +79,7 @@
     <string name="invoiceNumberLabel">Номер накладной:</string>
     <string name="editTextComment">Введите название нового магазина</string>
     <string name="btnChangeNotSynced">Изменить несинхронизированные</string>
+    <string name="textViewInvoicesDebtQuantity">Реал:</string>
+    <string name="textViewInvoicesCashLabel">Налом сразу:</string>
 
 </resources>

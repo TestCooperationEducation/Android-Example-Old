@@ -30,7 +30,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textViewInvoicesTotalSumTypeOneLabel" />
+        app:layout_constraintTop_toBottomOf="@+id/textViewInvoicesDebtTotalSumLabel" />
 
     <TextView
         android:id="@+id/textViewInvoicesTotalLabel"
@@ -70,6 +70,81 @@
         android:text="@string/textViewInvoicesTotalSum"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textViewInvoicesTotalTypeOneLabel" />
+
+    <TextView
+        android:id="@+id/textViewInvoicesDebtLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="5dp"
+        android:layout_marginTop="5dp"
+        android:text="@string/textViewInvoicesDebtQuantity"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewInvoicesTotalSumTypeOneLabel" />
+
+    <TextView
+        android:id="@+id/textViewInvoicesDebt"
+        android:layout_width="wrap_content"
+        android:layout_height="15dp"
+        android:layout_marginStart="2dp"
+        android:layout_marginTop="5dp"
+        app:layout_constraintStart_toEndOf="@+id/textViewInvoicesDebtLabel"
+        app:layout_constraintTop_toBottomOf="@+id/textViewInvoicesTotalSumTypeOneLabel" />
+
+    <TextView
+        android:id="@+id/textViewInvoicesCashLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:text="@string/textViewInvoicesCashLabel"
+        app:layout_constraintEnd_toStartOf="@+id/textViewInvoicesCash"
+        app:layout_constraintTop_toBottomOf="@+id/textViewInvoicesTotalSumTypeTwoLabel" />
+
+    <TextView
+        android:id="@+id/textViewInvoicesCash"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:layout_marginEnd="5dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewInvoicesTotalSumTypeTwoLabel" />
+
+    <TextView
+        android:id="@+id/textViewInvoicesDebtTotalSumLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="5dp"
+        android:layout_marginTop="5dp"
+        android:text="@string/textViewInvoicesTotalSum"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewInvoicesDebtLabel" />
+
+    <TextView
+        android:id="@+id/textViewInvoicesDebtTotalSum"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="2dp"
+        android:layout_marginTop="5dp"
+        app:layout_constraintStart_toEndOf="@+id/textViewInvoicesDebtTotalSumLabel"
+        app:layout_constraintTop_toBottomOf="@+id/textViewInvoicesDebtLabel" />
+
+    <TextView
+        android:id="@+id/textViewInvoicesCashTotalSumLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:layout_marginEnd="2dp"
+        android:text="@string/textViewInvoicesTotalSum"
+        app:layout_constraintEnd_toStartOf="@+id/textViewInvoicesCashTotalSum"
+        app:layout_constraintTop_toBottomOf="@+id/textViewInvoicesCashLabel" />
+
+    <TextView
+        android:id="@+id/textViewInvoicesCashTotalSum"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:layout_marginEnd="5dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewInvoicesCash" />
 
     <TextView
         android:id="@+id/textViewInvoicesTotalSumTypeTwoLabel"

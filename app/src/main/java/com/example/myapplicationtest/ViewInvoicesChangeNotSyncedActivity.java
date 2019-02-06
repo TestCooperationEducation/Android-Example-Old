@@ -38,7 +38,7 @@ public class ViewInvoicesChangeNotSyncedActivity extends AppCompatActivity imple
     final String LOG_TAG = "myLogs";
     DBHelper dbHelper;
     SQLiteDatabase db;
-    Button btnChangeInvoiceNotSynced;
+    Button btnChangeInvoiceNotSynced, btnDeleteInvoiceNotSynced;
     SharedPreferences sPrefDBName, sPrefDBPassword, sPrefDBUser, sPrefLogin, sPrefAccountingTypeDefault,
             sPrefArea, sPrefAreaDefault, sPrefInvoiceNumberLast, sPrefChangeInvoiceNotSynced,
             sPrefChangeInvoiceNumberNotSynced, sPrefAccountingTypeDoc, sPrefAccountingTypeSP, sPrefAreaSP;
@@ -64,6 +64,8 @@ public class ViewInvoicesChangeNotSyncedActivity extends AppCompatActivity imple
     List<DataInvoice> dataArray;
     String[] sPListTmp, invoiceNumberNotSyncedChange, accountingTypeDoc, accountingTypeSP, areaSP;
     SharedPreferences.Editor e;
+    Integer itemTmp;
+    Boolean itemChecked = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,6 +94,8 @@ public class ViewInvoicesChangeNotSyncedActivity extends AppCompatActivity imple
 
         btnChangeInvoiceNotSynced = findViewById(R.id.buttonChangeInvoiceNotSynced);
         btnChangeInvoiceNotSynced.setOnClickListener(this);
+        btnDeleteInvoiceNotSynced = findViewById(R.id.buttonDeleteInvoiceNotSynced);
+        btnDeleteInvoiceNotSynced.setOnClickListener(this);
 
         sPrefDBName = getSharedPreferences(SAVED_DBName, Context.MODE_PRIVATE);
         sPrefDBUser = getSharedPreferences(SAVED_DBUser, Context.MODE_PRIVATE);
@@ -132,7 +136,6 @@ public class ViewInvoicesChangeNotSyncedActivity extends AppCompatActivity imple
                                         dialog.cancel();
                                     }
                                 })
-                        // добавляем переключатели
                         .setSingleChoiceItems(sPListTmp, -1,
                                 new DialogInterface.OnClickListener() {
                                     @Override
@@ -201,9 +204,8 @@ public class ViewInvoicesChangeNotSyncedActivity extends AppCompatActivity imple
                                                 } while (c.moveToNext());
                                             }
                                             c.close();
-                                            for (int i = 0; i < invoiceNumbersList.size(); i++){
-                                                Toast.makeText(getApplicationContext(), "Ничего не синхронизировано: " + invoiceNumbers, Toast.LENGTH_SHORT).show();
-                                            }
+                                            Intent intent = new Intent(getApplicationContext(), ChangeInvoiceChooseItemsActivity.class);
+                                            startActivity(intent);
                                         }
 
 //                                        ContentValues cv = new ContentValues();
@@ -220,12 +222,70 @@ public class ViewInvoicesChangeNotSyncedActivity extends AppCompatActivity imple
 //                                            long rowID = db.insert("itemsToInvoiceTmp", null, cv);
 //                                            Log.d(LOG_TAG, "row inserted, ID = " + rowID);
 //                                        }
-                                        Intent intent = new Intent(getApplicationContext(), ChangeInvoiceChooseItemsActivity.class);
-                                        startActivity(intent);
+
                                     }
                                 });
                     AlertDialog alert = builder.create();
                     alert.show();
+                break;
+            case R.id.buttonDeleteInvoiceNotSynced:
+                builder = new AlertDialog.Builder(this);
+                builder.setTitle("Выберите для удаления")
+                        .setCancelable(false)
+                        .setNeutralButton("Назад",
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog,
+                                                        int id) {
+                                        dialog.cancel();
+                                    }
+                                })
+                        .setNegativeButton("Удалить",
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        if (itemChecked == true) {
+                                            clearTable("itemsToInvoiceTmp");
+                                            sPrefChangeInvoiceNotSynced.edit().clear().apply();
+                                            sPrefChangeInvoiceNumberNotSynced.edit().clear().apply();
+                                            sPrefAccountingTypeDoc.edit().clear().apply();
+                                            sPrefAccountingTypeSP.edit().clear().apply();
+                                            sPrefAreaSP.edit().clear().apply();
+                                            Log.d(LOG_TAG, "--- Clear invoiceLocalDB : ---");
+                                            int delCount = db.delete("invoiceLocalDB",
+                                                    "invoiceNumber = ? AND salesPartnerName = ?",
+                                                    new String[]{String.valueOf(invoiceNumbersList.get(itemTmp)),
+                                                            sPListTmp[itemTmp]});
+                                            Log.d(LOG_TAG, "deleted rows count = " + delCount);
+                                            Toast.makeText(getApplicationContext(), "<<< Запись " +
+                                                    sPListTmp[itemTmp] + " удалeна >>>", Toast.LENGTH_SHORT).show();
+                                            itemChecked = false;
+                                            dialog.cancel();
+                                        }
+                                    }
+                                })
+                        .setPositiveButton("Уйти",
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        finish();
+                                        dialog.cancel();
+                                    }
+                                })
+                        .setSingleChoiceItems(sPListTmp, -1,
+                                new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog,
+                                                        int item) {
+                                        Toast.makeText(
+                                                getApplicationContext(),
+                                                "Вы выбрали: "
+                                                        + sPListTmp[item],
+                                                Toast.LENGTH_SHORT).show();
+                                        itemTmp = item;
+                                        itemChecked = true;
+                                    }
+                                });
+                alert = builder.create();
+                alert.show();
+                break;
             default:
                 break;
         }
@@ -329,6 +389,13 @@ public class ViewInvoicesChangeNotSyncedActivity extends AppCompatActivity imple
         int count = cursor.getInt(0);
         cursor.close();
         return count > 0;
+    }
+
+    private void clearTable(String tableName) {
+        Log.d(LOG_TAG, "--- Clear: " + tableName + " ---");
+        // удаляем все записи
+        int clearCount = db.delete(tableName, null, null);
+        Log.d(LOG_TAG, "deleted rows count = " + clearCount);
     }
 
 }
