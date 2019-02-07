@@ -277,10 +277,10 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
 
                 long rowID = db.insert("invoiceLocalDB", null, cv);
                 Log.d(LOG_TAG, "row inserted, ID = " + rowID);
-                DataInvoice dt = new DataInvoice(salesPartner, accountingType, accountingTypeDefault,
-                        arrItems.get(i), output, comment, invoiceNumber, Integer.parseInt(areaDefault), Integer.parseInt(area), arrPriceChanged.get(i),
-                        arrQuantity.get(i), arrSum.get(i), arrExchange.get(i), arrReturn.get(i), invoiceSum);
-                dataArray.add(dt);
+//                DataInvoice dt = new DataInvoice(salesPartner, accountingType, accountingTypeDefault,
+//                        arrItems.get(i), output, comment, invoiceNumber, Integer.parseInt(areaDefault), Integer.parseInt(area), arrPriceChanged.get(i),
+//                        arrQuantity.get(i), arrSum.get(i), arrExchange.get(i), arrReturn.get(i), invoiceSum);
+//                dataArray.add(dt);
             }
 
             e = sPrefItemsListSaveStatus.edit();

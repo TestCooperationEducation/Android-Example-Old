@@ -271,7 +271,7 @@ public class ViewPaymentsNotSyncedActivity extends AppCompatActivity implements 
             AlertDialog.Builder builder;
             builder = new AlertDialog.Builder(this);
             builder.setTitle("Пусто")
-                    .setMessage("Возможно вы забыли обновить локальную таблицу накладных")
+                    .setMessage("Возможно вы уже все синхронизировали или забыли обновить таблицу накладных после синхронизации накладных")
                     .setCancelable(false)
                     .setPositiveButton("Уйти",
                             new DialogInterface.OnClickListener() {

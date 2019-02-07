@@ -33,15 +33,9 @@ public class ViewPaymentsSyncedActivity extends AppCompatActivity {
     SQLiteDatabase db;
     ListView listViewPayments;
     ArrayAdapter<String> arrayAdapter;
-    String salesPartner, invoiceNumbers = "", invoiceNumberTmp;
-    ArrayList<Integer> invoiceNumbersList;
-    ArrayList<String> salesPartners;
+    String paymentsNumbers = "", paymentsSum;
+    ArrayList<String> salesPartners, paymentsInfoList;
     TextView textViewPaymentsQuantity, textViewPaymentsTotalSum;
-    SharedPreferences.Editor e;
-    SharedPreferences sPrefSalesPartnerSyncedTmp;
-    final String SAVED_SalesPartnerSyncedTmp = "salesPartnerSyncedTmp";
-    Integer tmpInvTO = 0, tmpInvTT = 0;
-    Double tmpInvTotalSum = 0d, tmpInvTotalSumTO = 0d, tmpInvTotalSumTT = 0d;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,7 +45,7 @@ public class ViewPaymentsSyncedActivity extends AppCompatActivity {
         dbHelper = new DBHelper(this);
         db = dbHelper.getReadableDatabase();
 
-        invoiceNumbersList = new ArrayList<>();
+        paymentsInfoList = new ArrayList<>();
         salesPartners = new ArrayList<>();
 
         EditText search = findViewById(R.id.editTextSearch);
@@ -61,47 +55,37 @@ public class ViewPaymentsSyncedActivity extends AppCompatActivity {
         textViewPaymentsQuantity.setText("0");
         textViewPaymentsTotalSum.setText("0");
 
-        sPrefSalesPartnerSyncedTmp = getSharedPreferences(SAVED_SalesPartnerSyncedTmp, Context.MODE_PRIVATE);
-        salesPartner = sPrefSalesPartnerSyncedTmp.getString(SAVED_SalesPartnerSyncedTmp, "");
-
 
         listViewPayments.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view,
                                     int position, long id) {
-                salesPartner = ((TextView) view).getText().toString();
+                String choice = ((TextView) view).getText().toString();
                 SparseBooleanArray chosen = listViewPayments.getCheckedItemPositions();
-                for (int i = 0; i < listViewPayments.getCount(); i++) {
-                    if (salesPartners.get(i).equals(salesPartner) && chosen.get(i) == true) {
-                        invoiceNumberTmp = String.valueOf(invoiceNumbersList.get(i));
-                        Toast.makeText(getApplicationContext(), "Контрагент: " + salesPartner, Toast.LENGTH_SHORT).show();
+                for (int i = 0; i < paymentsInfoList.size(); i++) {
+                    if (paymentsInfoList.get(i).equals(choice)) {
+                        Toast.makeText(getApplicationContext(), "Контрагент: " + salesPartners.get(i), Toast.LENGTH_SHORT).show();
+                        showMore();
                     }
-//                    if (itemsList.get(i).equals(item) && chosen.get(i) == false) {
-//                        iTmp = i;
-//                        onSelectedItem();
-//                    }
                 }
-                showMore();
-
-
             }
         });
 
-        search.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                arrayAdapter.getFilter().filter(charSequence);
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable) {
-
-            }
-        });
+//        search.addTextChangedListener(new TextWatcher() {
+//            @Override
+//            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+//
+//            }
+//
+//            @Override
+//            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+//                arrayAdapter.getFilter().filter(charSequence);
+//            }
+//
+//            @Override
+//            public void afterTextChanged(Editable editable) {
+//
+//            }
+//        });
 
         setListValues();
     }
@@ -110,93 +94,74 @@ public class ViewPaymentsSyncedActivity extends AppCompatActivity {
         LocalDateTime now = LocalDateTime.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern( "yyyy-MM-dd HH:mm:ss" );
         final String output = now.with(LocalTime.MIN).format( formatter );
-        Toast.makeText(getApplicationContext(), output, Toast.LENGTH_SHORT).show();
+        Toast.makeText(getApplicationContext(), "Начало: " + output, Toast.LENGTH_SHORT).show();
+        Double tmpSum = 0d;
 
-        if (resultExists(db, "invoice","InvoiceNumber")){
-//            String sql = "SELECT DISTINCT invoiceLocalDB.invoiceNumber FROM invoiceLocalDB " +
-//                    "WHERE EXISTS (SELECT syncedInvoice.invoiceNumber FROM syncedInvoice " +
-//                    "WHERE invoiceLocalDB.invoiceNumber LIKE  syncedInvoice.invoiceNumber) " +
-//                    "AND invoiceLocalDB.dateTimeDocLocal > ? ";
-            String sql = "SELECT DISTINCT InvoiceNumber FROM invoice WHERE DateTimeDoc > ?";
+        if (resultExists(db, "paymentsServer","InvoiceNumber")){
+            String sql = "SELECT DISTINCT paymentsServer.serverDB_ID, paymentsServer.InvoiceNumber, " +
+                    "paymentsServer.сумма_внесения, salesPartners.Наименование FROM paymentsServer " +
+                    "INNER JOIN invoice ON paymentsServer.InvoiceNumber LIKE invoice.InvoiceNumber " +
+                    "INNER JOIN salesPartners ON invoice.SalesPartnerID LIKE salesPartners.serverDB_ID " +
+                    "WHERE paymentsServer.DateTimeDoc > ?";
             Cursor c = db.rawQuery(sql, new String[]{output});
             if (c.moveToFirst()) {
-                int iNumber = c.getColumnIndex("InvoiceNumber");
+                int paymentIDTmp = c.getColumnIndex("serverDB_ID");
+                int invoiceNumberTmp = c.getColumnIndex("InvoiceNumber");
+                int paymentSumTmp = c.getColumnIndex("сумма_внесения");
+                int salesPartnerTmp = c.getColumnIndex("Наименование");
                 do {
-                    invoiceNumbers = invoiceNumbers + "----" + c.getString(iNumber) ;
-                    invoiceNumbersList.add(Integer.parseInt(c.getString(iNumber)));
+                    paymentsNumbers = paymentsNumbers + "----" + c.getString(paymentIDTmp);
+                    String tmp = c.getString(paymentIDTmp) + " " + c.getString(salesPartnerTmp) + " "
+                            + c.getString(paymentSumTmp);
+                    paymentsInfoList.add(tmp);
+                    tmpSum = tmpSum + Double.parseDouble(c.getString(paymentSumTmp));
+                    salesPartners.add(c.getString(salesPartnerTmp));
                 } while (c.moveToNext());
             } else {
-//                Toast.makeText(getApplicationContext(), "<<< Не найдено соответствий >>>", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "Пусто", Toast.LENGTH_SHORT).show();
             }
             c.close();
 
-        }
-//        else {
-//            String sql = "SELECT DISTINCT invoiceNumber FROM invoiceLocalDB ";
-//            Cursor c = db.rawQuery(sql, null);
-//            if (c.moveToFirst()) {
-//                int iNumber = c.getColumnIndex("invoiceNumber");
-//                do {
-//                    invoiceNumbers = invoiceNumbers + "----" + c.getString(iNumber);
-//                    invoiceNumbersList.add(Integer.parseInt(c.getString(iNumber)));
-//                } while (c.moveToNext());
-//            }
-//            c.close();
-//            for (int i = 0; i < invoiceNumbersList.size(); i++){
-//                Toast.makeText(getApplicationContext(), "Ничего не синхронизировано: " + invoiceNumbers, Toast.LENGTH_SHORT).show();
-//            }
-//        }
-        if (invoiceNumbersList.size() > 0){
-            for (int i = 0; i < invoiceNumbersList.size(); i++){
-                String sql = "SELECT DISTINCT invoice.AccountingType, invoice.InvoiceSum, salesPartners.Наименование" +
-                        " FROM invoice INNER JOIN salesPartners ON invoice.SalesPartnerID LIKE salesPartners.serverDB_ID " +
-                        "WHERE invoice.InvoiceNumber LIKE ?";
-                Cursor c = db.rawQuery(sql, new String[]{invoiceNumbersList.get(i).toString()});
-                if (c.moveToFirst()) {
-                    int salesPartnerNameTmp = c.getColumnIndex("Наименование");
-                    int accountingTypeDocTmp = c.getColumnIndex("AccountingType");
-                    int invoiceSumTmp = c.getColumnIndex("InvoiceSum");
-                    String salesPartnerName = c.getString(salesPartnerNameTmp);
-                    String accountingTypeDoc = c.getString(accountingTypeDocTmp);
-                    Double invoiceSum = c.getDouble(invoiceSumTmp);
-                    salesPartners.add(salesPartnerName);
-                    tmpInvTotalSum = tmpInvTotalSum + invoiceSum;
-                    textViewInvoicesTotalSum.setText(String.valueOf(new DecimalFormat("##.##").format(tmpInvTotalSum)));
-                    if (accountingTypeDoc.equals("провод")){
-                        tmpInvTO = tmpInvTO + 1;
-                        textViewInvoicesTotalTypeOne.setText(String.valueOf(tmpInvTO));
-                        tmpInvTotalSumTO = tmpInvTotalSumTO + invoiceSum;
-                        textViewInvoicesTotalSumTypeOne.setText(String.valueOf(roundUp(tmpInvTotalSumTO, 2)));
-                    } else {
-                        tmpInvTT = tmpInvTT + 1;
-                        textViewInvoicesTotalTypeTwo.setText(String.valueOf(tmpInvTT));
-                        tmpInvTotalSumTT = tmpInvTotalSumTT + invoiceSum;
-                        textViewInvoicesTotalSumTypeTwo.setText(String.valueOf(roundUp(tmpInvTotalSumTT, 2)));
-                    }
-                }
-                c.close();
-            }
-            textViewInvoicesTotal.setText(String.valueOf(invoiceNumbersList.size()));
-            arrayAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_1, salesPartners);
+            textViewPaymentsQuantity.setText(String.valueOf(paymentsInfoList.size()));
+            textViewPaymentsTotalSum.setText(String.valueOf(roundUp(tmpSum, 2)));
+            arrayAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_1, paymentsInfoList);
             listViewPayments.setAdapter(arrayAdapter);
         }
+//        if (invoiceNumbersList.size() > 0){
+//            for (int i = 0; i < invoiceNumbersList.size(); i++){
+//                String sql = "SELECT DISTINCT invoice.AccountingType, invoice.InvoiceSum, salesPartners.Наименование" +
+//                        " FROM invoice INNER JOIN salesPartners ON invoice.SalesPartnerID LIKE salesPartners.serverDB_ID " +
+//                        "WHERE invoice.InvoiceNumber LIKE ?";
+//                Cursor c = db.rawQuery(sql, new String[]{invoiceNumbersList.get(i).toString()});
+//                if (c.moveToFirst()) {
+//                    int salesPartnerNameTmp = c.getColumnIndex("Наименование");
+//                    int accountingTypeDocTmp = c.getColumnIndex("AccountingType");
+//                    int invoiceSumTmp = c.getColumnIndex("InvoiceSum");
+//                    String salesPartnerName = c.getString(salesPartnerNameTmp);
+//                    String accountingTypeDoc = c.getString(accountingTypeDocTmp);
+//                    Double invoiceSum = c.getDouble(invoiceSumTmp);
+//                    salesPartners.add(salesPartnerName);
+//                    tmpInvTotalSum = tmpInvTotalSum + invoiceSum;
+//                    textViewInvoicesTotalSum.setText(String.valueOf(new DecimalFormat("##.##").format(tmpInvTotalSum)));
+//                    if (accountingTypeDoc.equals("провод")){
+//                        tmpInvTO = tmpInvTO + 1;
+//                        textViewInvoicesTotalTypeOne.setText(String.valueOf(tmpInvTO));
+//                        tmpInvTotalSumTO = tmpInvTotalSumTO + invoiceSum;
+//                        textViewInvoicesTotalSumTypeOne.setText(String.valueOf(roundUp(tmpInvTotalSumTO, 2)));
+//                    } else {
+//                        tmpInvTT = tmpInvTT + 1;
+//                        textViewInvoicesTotalTypeTwo.setText(String.valueOf(tmpInvTT));
+//                        tmpInvTotalSumTT = tmpInvTotalSumTT + invoiceSum;
+//                        textViewInvoicesTotalSumTypeTwo.setText(String.valueOf(roundUp(tmpInvTotalSumTT, 2)));
+//                    }
+//                }
+//                c.close();
+//            }
+//        }
     }
 
     private void showMore(){
-        e = sPrefSalesPartnerSyncedTmp.edit();
-        e.putString(SAVED_SalesPartnerSyncedTmp, invoiceNumberTmp);
-        e.apply();
-
-        Intent intent = new Intent(this, ViewInvoicesSyncedShowMoreActivity.class);
-        startActivity(intent);
-    }
-
-    @Override
-    public void onResume(){
-        super.onResume();
-//        for (int i = 0; i < invoiceNumbersList.size(); i++) {
-//            listViewSalesPartners.setItemChecked(i, false);
-//        }
+        Toast.makeText(getApplicationContext(), "Сработало", Toast.LENGTH_SHORT).show();
     }
 
     boolean resultExists(SQLiteDatabase db, String tableName, String selectField){
