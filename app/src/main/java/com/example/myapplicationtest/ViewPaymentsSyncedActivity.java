@@ -111,7 +111,7 @@ public class ViewPaymentsSyncedActivity extends AppCompatActivity {
                 int salesPartnerTmp = c.getColumnIndex("Наименование");
                 do {
                     paymentsNumbers = paymentsNumbers + "----" + c.getString(paymentIDTmp);
-                    String tmp = c.getString(paymentIDTmp) + " " + c.getString(salesPartnerTmp) + " "
+                    String tmp = "№" + c.getString(paymentIDTmp) + ". " + c.getString(salesPartnerTmp) + " --- Сумма: "
                             + c.getString(paymentSumTmp);
                     paymentsInfoList.add(tmp);
                     tmpSum = tmpSum + Double.parseDouble(c.getString(paymentSumTmp));
