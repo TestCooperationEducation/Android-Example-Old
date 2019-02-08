@@ -310,10 +310,23 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
                         }
 //                        if (invoiceNumberFromRequest[jsonArray.length() - 1] == invoiceNumberLast){
 //                            statusSave = "saved";
-                            clearTable("invoiceLocalDB");
+//
+                        // Эксперимент. Пока что таблица эта не будет удаляться.
+                        //
+                        //
+                        //
+//                            clearTable("invoiceLocalDB");
+                        //
+                        //
+                        //
+                        //
+                        //
+
 //                        }
 //                        paymentPrompt();
+
                         invoiceNumbersList.clear();
+
 //                        if (statusSave.equals("saved")){
                             builder.setTitle("Поздравляю")
                                     .setMessage("Синхронизировано успешно")

@@ -91,8 +91,6 @@ public class ViewInvoicesSyncedActivity extends AppCompatActivity {
 //                    }
                 }
                 showMore();
-
-
             }
         });
 
