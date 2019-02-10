@@ -888,7 +888,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                             totalSum[i] = obj.getDouble("Total");
                             exchangeQuantity[i] = obj.getDouble("ExchangeQuantity");
                             returnQuantity[i] = obj.getDouble("ReturnQuantity");
-                            dateTimeDoc[i] = obj.getString("DateTimeDoc");
+                            dateTimeDoc[i] = obj.getString("DateTimeDocLocal");
                             invoiceSum[i] = obj.getDouble("InvoiceSum");
                             comment[i] = obj.getString("Comment");
 
