@@ -407,7 +407,11 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
 //                    tmpSum = finalPrice * Double.parseDouble(editTextQuantity.getText().toString());
 //                }
 //            }
-            tmpSum = Double.parseDouble(textViewTotal.getText().toString());
+            if (textViewTotal.getText().toString().trim().length() > 0){
+                tmpSum = Double.parseDouble(textViewTotal.getText().toString());
+            } else {
+                tmpSum = 0d;
+            }
 
             if (editTextExchange.getText().toString().trim().length() == 0){
                 tmpExchange = 0d;
