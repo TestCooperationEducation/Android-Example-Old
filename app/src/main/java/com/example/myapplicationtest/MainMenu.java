@@ -153,6 +153,9 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
             case R.id.buttonPayments:
                 makePayments();
                 break;
+            case R.id.buttonReceive:
+
+                break;
             case R.id.buttonSalesPartners:
 //                final String[] choice ={};
                 AlertDialog.Builder builder;

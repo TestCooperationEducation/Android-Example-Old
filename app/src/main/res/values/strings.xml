@@ -81,5 +81,6 @@
     <string name="btnChangeNotSynced">Изменить несинхронизированные</string>
     <string name="textViewInvoicesDebtQuantity">Реал:</string>
     <string name="textViewInvoicesCashLabel">Налом сразу:</string>
+    <string name="btnReceive">Загрузка товара</string>
 
 </resources>

@@ -55,6 +55,17 @@
                 app:layout_constraintTop_toBottomOf="@+id/buttonInvoice" />
 
             <Button
+                android:id="@+id/buttonReceive"
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                android:layout_marginTop="2dp"
+                android:text="@string/btnReceive"
+                android:textSize="18sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/buttonInvoice" />
+
+            <Button
                 android:id="@+id/buttonChangePrices"
                 android:layout_width="match_parent"
                 android:layout_height="100dp"
