@@ -82,5 +82,8 @@
     <string name="textViewInvoicesDebtQuantity">Реал:</string>
     <string name="textViewInvoicesCashLabel">Налом сразу:</string>
     <string name="btnReceive">Загрузка товара</string>
+    <string name="btnNewReceive">Новая загрузка</string>
+    <string name="btnAllReceives">Все загрузки</string>
+    <string name="editTextSetQuantity">Введите количество</string>
 
 </resources>

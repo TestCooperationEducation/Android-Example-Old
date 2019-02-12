@@ -105,6 +105,7 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
         textViewTotal = findViewById(R.id.textViewTotal);
 
         editTextQuantity.requestFocus();
+
 //        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 //        imm.showSoftInput(editTextQuantity, InputMethodManager.SHOW_IMPLICIT);
 //        editTextQuantity.dispatchTouchEvent(MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis(), MotionEvent.ACTION_DOWN , 0, 0, 0));

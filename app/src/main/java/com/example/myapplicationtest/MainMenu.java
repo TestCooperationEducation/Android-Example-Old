@@ -33,7 +33,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class MainMenu extends AppCompatActivity implements View.OnClickListener {
 
     Button btnInvoice, btnPayments, btnSalesAgents, btnUpdateLocalDB, btnClearLocalTables,
-            btnReports, btnViewInvoices;
+            btnReports, btnViewInvoices, btnReceive;
     SharedPreferences sPrefArea, sPrefAccountingType, sPrefDayOfTheWeekDefault, sPrefDBName,
             sPrefFreshStatus, sPrefDBPassword, sPrefDBUser, sPrefDayOfTheWeek, sPrefVisited,
             sPrefConnectionStatus, sPrefAreaDefault, sPrefInvoiceNumberLast, sPrefPaymentNumberLast,
@@ -80,6 +80,8 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         btnClearLocalTables = findViewById(R.id.buttonClearLocalDB);
         btnReports = findViewById(R.id.buttonReports);
         btnViewInvoices = findViewById(R.id.buttonViewInvoices);
+        btnReceive = findViewById(R.id.buttonReceive);
+        btnReceive.setOnClickListener(this);
         btnViewInvoices.setOnClickListener(this);
         btnReports.setOnClickListener(this);
         btnClearLocalTables.setOnClickListener(this);
@@ -139,6 +141,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
 //        db.execSQL("DROP TABLE IF EXISTS syncedPayments");
 //        db.execSQL("DROP TABLE IF EXISTS payments");
 //        db.execSQL("DROP TABLE IF EXISTS itemsToInvoiceTmp");
+//        db.execSQL("DROP TABLE IF EXISTS receiveLocal");
     }
 
     @Override
@@ -154,7 +157,8 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                 makePayments();
                 break;
             case R.id.buttonReceive:
-
+                Intent intent = new Intent(getApplicationContext(), ReceiveActivity.class);
+                startActivity(intent);
                 break;
             case R.id.buttonSalesPartners:
 //                final String[] choice ={};
@@ -264,6 +268,9 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                                         }
                                         if (tableExists(db, "itemsToInvoiceTmp")){
                                             clearTable("itemsToInvoiceTmp");
+                                        }
+                                        if (tableExists(db, "receiveLocal")){
+                                            clearTable("receiveLocal");
                                         }
                                         dialog.cancel();
                                     }
@@ -386,6 +393,22 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
             Log.d(LOG_TAG, "<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>" + countt);
         }
 
+        String tmp6 = "No receiveLocal table";
+        if (tableExists(db, "receiveLocal")){
+            Integer countt;
+            String sql = "SELECT COUNT(*) FROM receiveLocal ";
+            Cursor cursor = db.rawQuery(sql, null);
+            if (!cursor.moveToFirst()) {
+                cursor.close();
+                countt = 0;
+            } else {
+                countt = cursor.getInt(0);
+            }
+            cursor.close();
+            tmp6 = countt.toString();
+            Log.d(LOG_TAG, "<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>" + countt);
+        }
+
         String sql = "SELECT invoiceNumber FROM syncedInvoice ";
         Cursor c = db.rawQuery(sql, null);
         String tmpIN = "";
@@ -400,13 +423,13 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         c.close();
 
         Toast.makeText(getApplicationContext(), tmp + "-----" + tmp2 + "-----" + tmp3 + "-----"
-                + tmp4 + "-----" + tmp5 + "-----" + tmpIN, Toast.LENGTH_SHORT).show();
+                + tmp4 + "-----" + tmp5 + "-----" + tmp6 + "-----" + tmpIN, Toast.LENGTH_SHORT).show();
     }
 
     private void updateLocalDB(){
-        final boolean[] listChecked = new boolean[6];
+        final boolean[] listChecked = new boolean[7];
         final String[] listCheckTableName = { "Контрагенты", "Номенклатура", "Индивидуальные скидки",
-                "Тип скидки", "Накладная", "Платежи" };
+                "Тип скидки", "Накладная", "Платежи", "Загрузки" };
         AlertDialog.Builder builder;
         builder = new AlertDialog.Builder(this);
         builder.setTitle("Выберите таблицу(цы) для обновления")
@@ -515,6 +538,19 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                                                         };
                                                         Thread thread6 = new Thread(runnable);
                                                         thread6.start();
+                                                    }
+                                                    if (listCheckTableName[i].equals("Загрузки")){
+                                                        db.execSQL("DROP TABLE IF EXISTS receive");
+                                                        dbHelper.onUpgrade(db, 1, 2);
+                                                        Runnable runnable = new Runnable() {
+                                                            @Override
+                                                            public void run() {
+
+                                                                loadReceivesFromServerDB();
+                                                            }
+                                                        };
+                                                        Thread thread7 = new Thread(runnable);
+                                                        thread7.start();
                                                     }
                                                 } else {
                                                     Toast.makeText(getApplicationContext(), "<<< НЕТ подключения к Серверу >>>" + connStatus, Toast.LENGTH_SHORT).show();
@@ -1062,6 +1098,66 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         VolleySingleton.getInstance(this).getRequestQueue().add(request);
     }
 
+    private void loadReceivesFromServerDB(){
+        StringRequest request = new StringRequest(Request.Method.POST,
+                syncUrl, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                try{
+                    JSONArray jsonArray = new JSONArray(response);
+                    Integer[] itemID = new Integer[jsonArray.length()];
+                    String[] dateTimeDoc = new String[jsonArray.length()];
+                    Double[] quantity = new Double[jsonArray.length()];
+                    Integer[] agentID = new Integer[jsonArray.length()];
+
+                    if (jsonArray.length() > 0){
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            JSONObject obj = jsonArray.getJSONObject(i);
+                            itemID[i] = obj.getInt("itemID");
+                            dateTimeDoc[i] = obj.getString("dateTimeDoc");
+                            quantity[i] = obj.getDouble("quantity");
+                            agentID[i] = obj.getInt("agentID");
+
+                            ContentValues cv = new ContentValues();
+                            Log.d(LOG_TAG, "--- Insert in receive: ---");
+                            cv.put("itemID", itemID[i]);
+                            cv.put("DateTimeDoc", dateTimeDoc[i]);
+                            cv.put("quantity", quantity[i]);
+                            cv.put("agentID", agentID[i]);
+                            long rowID = db.insert("receive", null, cv);
+                            Log.d(LOG_TAG, "row inserted, ID = " + rowID);
+                        }
+                        Toast.makeText(getApplicationContext(), "Загрузки загружены", Toast.LENGTH_SHORT).show();
+                    }else{
+                        Toast.makeText(getApplicationContext(), "Ошибка загрузки. Проверьте Интернет или Учётку", Toast.LENGTH_SHORT).show();
+                    }
+                }
+                catch (JSONException e1) {
+                    e1.printStackTrace();
+                }
+            }
+        }, new Response.ErrorListener(){
+            @Override
+            public void onErrorResponse(VolleyError error){
+                Toast.makeText(getApplicationContext(), "Проблемы с запросом на сервер", Toast.LENGTH_SHORT).show();
+                Log.e("TAG", "Error " + error.getMessage());
+            }
+        }){
+            @Override
+            protected Map<String, String> getParams() {
+                Map<String, String> parameters = new HashMap<>();
+                parameters.put("dbName", dbName);
+                parameters.put("dbUser", dbUser);
+                parameters.put("dbPassword", dbPassword);
+                parameters.put("agentID", areaDefault);
+                parameters.put("tableName", "receive");
+                return parameters;
+            }
+        };
+        VolleySingleton.getInstance(this).getRequestQueue().add(request);
+
+    }
+
 //    private void syncDB(){
 //        ContentValues cv = new ContentValues();
 //        SQLiteDatabase db = dbHelper.getWritableDatabase();
@@ -1218,6 +1314,23 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                         + "agentID integer" + ");");
             }
 
+            if (!tableExists(db, "receive")) {
+                db.execSQL("create table receive ("
+                        + "id integer primary key autoincrement,"
+                        + "itemID integer,"
+                        + "quantity real,"
+                        + "dateTimeDoc text,"
+                        + "agentID integer" + ");");
+            }
+
+            if (!tableExists(db, "receiveLocal")) {
+                db.execSQL("create table receiveLocal ("
+                        + "id integer primary key autoincrement,"
+                        + "itemID integer,"
+                        + "quantity real,"
+                        + "dateTimeDoc text,"
+                        + "agentID integer" + ");");
+            }
         }
 
         @Override
