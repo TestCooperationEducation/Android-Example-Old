@@ -22,6 +22,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -37,7 +38,8 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
     SharedPreferences sPrefArea, sPrefAccountingType, sPrefDayOfTheWeekDefault, sPrefDBName,
             sPrefFreshStatus, sPrefDBPassword, sPrefDBUser, sPrefDayOfTheWeek, sPrefVisited,
             sPrefConnectionStatus, sPrefAreaDefault, sPrefInvoiceNumberLast, sPrefPaymentNumberLast,
-            sPrefChangeInvoiceNumberNotSynced, sPrefChangeInvoiceNotSynced, sPrefAccountingTypeDoc;
+            sPrefChangeInvoiceNumberNotSynced, sPrefChangeInvoiceNotSynced, sPrefAccountingTypeDoc,
+            sPrefLastReceiveDate;
     final String SAVED_AREA = "Area";
     final String SAVED_ACCOUNTINGTYPE = "AccountingType";
     final String SAVED_DAYOFTHEWEEKDEFAULT = "DayOfTheWeekDefault";
@@ -54,10 +56,11 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
     final String SAVED_ChangeInvoiceNotSynced = "changeInvoiceNotSynced";
     final String SAVED_ChangeInvoiceNumberNotSynced = "changeInvoiceNumberNotSynced";
     final String SAVED_AccountingTypeDoc = "accountingTypeDoc";
+    final String SAVED_LastReceiveDate = "lastReceiveDate";
     String loginUrl = "https://caiman.ru.com/php/login.php", dbName, dbUser, dbPassword,
             syncUrl = "https://caiman.ru.com/php/syncDB.php", connStatus, areaDefault, invoiceNumberLast,
-            paymentNumberLast;
-    String[] dayOfTheWeek, salesPartnersName, accountingType, author, itemName, comment, dateTimeDoc;
+            paymentNumberLast, lastReceiveDate;
+    String[] dayOfTheWeek, salesPartnersName, accountingType, author, itemName, comment, dateTimeDoc, receiveList;
     Integer[] itemPrice, discountID, spID, area, serverDB_ID, itemNumber, discountType, discount,
             invoiceNumber, agentID, salesPartnerID;
     Double[] itemQuantity, totalSum, exchangeQuantity, returnQuantity, invoiceSum, paymentAmount;
@@ -65,7 +68,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
     DBHelper dbHelper;
     final String LOG_TAG = "myLogs";
     SQLiteDatabase db;
-    Boolean one, two, three, four, five, six, seven, dropped = false;
+    Boolean one, two, three, four, five, six, seven, agentReportChoice = false, dropped = false;
     Integer countGlobal;
 
     @Override
@@ -113,6 +116,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         sPrefChangeInvoiceNotSynced = getSharedPreferences(SAVED_ChangeInvoiceNotSynced, Context.MODE_PRIVATE);
         sPrefChangeInvoiceNumberNotSynced = getSharedPreferences(SAVED_ChangeInvoiceNumberNotSynced, Context.MODE_PRIVATE);
         sPrefAccountingTypeDoc = getSharedPreferences(SAVED_AccountingTypeDoc, Context.MODE_PRIVATE);
+        sPrefLastReceiveDate = getSharedPreferences(SAVED_LastReceiveDate, Context.MODE_PRIVATE);
 
         dbName = sPrefDBName.getString(SAVED_DBName, "");
         dbUser = sPrefDBUser.getString(SAVED_DBUser, "");
@@ -120,6 +124,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         areaDefault = sPrefAreaDefault.getString(SAVED_AREADEFAULT, "");
         invoiceNumberLast = sPrefInvoiceNumberLast.getString(SAVED_InvoiceNumberLast, "");
         paymentNumberLast = sPrefPaymentNumberLast.getString(SAVED_PaymentNumberLast, "");
+        lastReceiveDate = sPrefLastReceiveDate.getString(SAVED_LastReceiveDate, "");
 
         sPrefArea.edit().clear().apply();
         sPrefAccountingType.edit().clear().apply();
@@ -313,6 +318,122 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
     }
 
     private void testCheck(){
+        AlertDialog.Builder builder;
+        builder = new AlertDialog.Builder(this);
+        builder.setTitle("Отчёты")
+                .setCancelable(true)
+                .setNeutralButton("Системный отчёт",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog,
+                                                int id) {
+                                systemReport();
+                                dialog.cancel();
+                            }
+                        })
+                .setPositiveButton("Агентский отчёт",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                agentReportPrompt();
+                                dialog.cancel();
+                            }
+                        });
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+    private void agentReportPrompt(){
+        AlertDialog.Builder builder;
+        builder = new AlertDialog.Builder(this);
+        builder.setTitle("Агентский отчёт")
+                .setCancelable(true)
+                .setNeutralButton("Просмотреть загрузку",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog,
+                                                int id) {
+                                agentReportChoice = false;
+                                agentReport();
+                                dialog.cancel();
+                            }
+                        })
+                .setPositiveButton("Конец смены",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                agentReportChoice = true;
+                                agentReport();
+                                dialog.cancel();
+                            }
+                        });
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+    private void agentReport(){
+        if(agentReportChoice == false){
+//            if (resultExistsVariant(db, "receive")) {
+                String sql = "SELECT items.Наименование, receive.quantity FROM receive INNER JOIN items " +
+                        "ON receive.itemID LIKE items.Артикул " +
+                        "WHERE receive.dateTimeDoc LIKE ? ";
+                Cursor c = db.rawQuery(sql, new String[]{lastReceiveDate});
+                if (c.moveToFirst()) {
+                    int itemNameTmp = c.getColumnIndex("Наименование");
+                    int quantityTmp = c.getColumnIndex("quantity");
+                    ArrayList<String> itemNameList = new ArrayList<>();
+                    ArrayList<Double> quantityList = new ArrayList<>();
+                    do {
+                        itemNameList.add(c.getString(itemNameTmp));
+                        quantityList.add(c.getDouble(quantityTmp));
+                    } while (c.moveToNext());
+                    receiveList = new String[itemNameList.size()];
+                    for (int i = 0; i < itemNameList.size(); i++) {
+                        receiveList[i] = "Наименование: " + itemNameList.get(i) + System.getProperty("line.separator") +
+                                "Кол-во: " + String.valueOf(quantityList.get(i));
+                    }
+                    showReceiveReport();
+                }
+//            } else {
+//                Toast.makeText(getApplicationContext(), "Забыли обновить базу?", Toast.LENGTH_SHORT).show();
+//            }
+        } else {
+
+        }
+    }
+
+    private void showReceiveReport(){
+        AlertDialog.Builder builder;
+        builder = new AlertDialog.Builder(this);
+        builder.setTitle("Контрагенты")
+                .setCancelable(true)
+                .setNeutralButton("Назад",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog,
+                                                int id) {
+                                agentReportPrompt();
+                                dialog.cancel();
+                            }
+                        })
+                .setNegativeButton("Остатки",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+
+                                dialog.cancel();
+                            }
+                        })
+                .setPositiveButton("Выйти",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialog.cancel();
+                            }
+                        })
+                .setItems(receiveList, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int item) {
+                    }
+                });
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+    private void systemReport(){
         String tmp = "No local invoice table";
         if (tableExists(db, "invoiceLocalDB")){
             Integer countt;
@@ -1121,7 +1242,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                             ContentValues cv = new ContentValues();
                             Log.d(LOG_TAG, "--- Insert in receive: ---");
                             cv.put("itemID", itemID[i]);
-                            cv.put("DateTimeDoc", dateTimeDoc[i]);
+                            cv.put("dateTimeDoc", dateTimeDoc[i]);
                             cv.put("quantity", quantity[i]);
                             cv.put("agentID", agentID[i]);
                             long rowID = db.insert("receive", null, cv);

@@ -61,11 +61,14 @@ public class ReceiveNewActivity extends AppCompatActivity implements View.OnClic
     final String SAVED_DBUser = "dbUser";
     final String SAVED_DBPassword = "dbPassword";
     final String SAVED_AREADEFAULT = "areaDefault";
-    SharedPreferences sPrefAreaDefault, sPrefDBName, sPrefDBPassword, sPrefDBUser;
+    final String SAVED_LastReceiveDate = "lastReceiveDate";
+    SharedPreferences sPrefAreaDefault, sPrefDBName, sPrefDBPassword, sPrefDBUser, sPrefLastReceiveDate;
     EditText editTextSetQuantity;
     Double quantity;
     List<DataReceive> dataReceive;
     Button btnSync;
+    String[] receiveList;
+    SharedPreferences.Editor e;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,7 +78,7 @@ public class ReceiveNewActivity extends AppCompatActivity implements View.OnClic
         Instant instant = Instant.now();
         ZoneId zoneId = ZoneId.of( "Asia/Sakhalin" );
         ZonedDateTime zdt = ZonedDateTime.ofInstant( instant , zoneId );
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern( "yyyy/MM/dd HH:mm:ss" );
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern( "yyyy-MM-dd HH:mm:ss" );
         output = zdt.format( formatter );
 
         itemsList = new ArrayList<>();
@@ -89,6 +92,7 @@ public class ReceiveNewActivity extends AppCompatActivity implements View.OnClic
         sPrefDBUser = getSharedPreferences(SAVED_DBUser, Context.MODE_PRIVATE);
         sPrefDBPassword = getSharedPreferences(SAVED_DBPassword, Context.MODE_PRIVATE);
         sPrefAreaDefault = getSharedPreferences(SAVED_AREADEFAULT, Context.MODE_PRIVATE);
+        sPrefLastReceiveDate = getSharedPreferences(SAVED_LastReceiveDate, Context.MODE_PRIVATE);
         dbName = sPrefDBName.getString(SAVED_DBName, "");
         dbUser = sPrefDBUser.getString(SAVED_DBUser, "");
         dbPassword = sPrefDBPassword.getString(SAVED_DBPassword, "");
@@ -115,6 +119,8 @@ public class ReceiveNewActivity extends AppCompatActivity implements View.OnClic
                 chosen = listViewItems.getCheckedItemPositions();
                 for (int i = 0; i < listViewItems.getCount(); i++) {
                     if (itemsList.get(i).equals(item) && chosen.get(i) == true) {
+//                        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
+//                        editTextSetQuantity.setShowSoftInputOnFocus(false);
                         iTmp = i;
                         createRow();
                     }
@@ -133,7 +139,7 @@ public class ReceiveNewActivity extends AppCompatActivity implements View.OnClic
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.buttonSync:
-                syncReceive();
+                onNextPressed();
                 break;
             default:
                 break;
@@ -141,9 +147,7 @@ public class ReceiveNewActivity extends AppCompatActivity implements View.OnClic
     }
 
     private void receiveItemsListFromLocalDB(){
-        db = dbHelper.getReadableDatabase();
-        String sql;
-        sql = "SELECT Наименование, Артикул FROM items";
+        String sql = "SELECT Наименование, Артикул FROM items";
         Cursor c = db.rawQuery(sql, null);
         if (c.moveToFirst()) {
             int itemNameTmp = c.getColumnIndex("Наименование");
@@ -152,6 +156,7 @@ public class ReceiveNewActivity extends AppCompatActivity implements View.OnClic
                 itemsList.add(c.getString(itemNameTmp));
                 itemIDList.add(c.getInt(itemID));
             } while (c.moveToNext());
+            onLoadActivity();
         } else {
             Log.d(LOG_TAG, "0 rows");
             Toast.makeText(getApplicationContext(), "Ошибка: CreateInvoiceChooseSalesPartner receiveDataFromLocalDB 001",
@@ -243,12 +248,12 @@ public class ReceiveNewActivity extends AppCompatActivity implements View.OnClic
                                 new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialog, int id) {
                                         editTextSetQuantity.requestFocus();
-                                        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+                                        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                                        imm.toggleSoftInput(InputMethodManager.SHOW_FORCED,0);
                                         listViewItems.setItemChecked(iTmp, true);
                                         dialog.cancel();
                                     }
                                 });
-
                 AlertDialog alert = builder.create();
                 alert.show();
             }
@@ -256,6 +261,7 @@ public class ReceiveNewActivity extends AppCompatActivity implements View.OnClic
     }
 
     private void createRow(){
+        editTextSetQuantity.setText("");
         ContentValues cv = new ContentValues();
         Log.d(LOG_TAG, "--- Insert in receiveLocal: ---");
         cv.put("itemID", itemIDList.get(iTmp));
@@ -269,9 +275,13 @@ public class ReceiveNewActivity extends AppCompatActivity implements View.OnClic
 //        editTextSetQuantity.setShowSoftInputOnFocus(true);
         editTextSetQuantity.requestFocus();
 //        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+        e = sPrefLastReceiveDate.edit();
+        e.putString(SAVED_LastReceiveDate, output);
+        e.apply();
     }
 
     private void syncReceive(){
+        dataReceive.clear();
         if (tableExists(db, "receiveLocal")) {
             if (valueExists(db, "receiveLocal", "itemID", String.valueOf(itemIDList.get(iTmp)))) {
                 Cursor c = db.query("receiveLocal", null, null, null, null, null, null);
@@ -313,10 +323,19 @@ public class ReceiveNewActivity extends AppCompatActivity implements View.OnClic
                         for (int i = 0; i < jsonArray.length(); i++) {
                             JSONObject obj = jsonArray.getJSONObject(i);
                             requestMessage[i] = obj.getString("requestMessage");
-                            tmpStatus = "Yes";
+                            if (requestMessage[i].equals("Error")){
+                                tmpStatus = "No";
+                            } else {
+                                tmpStatus = "Yes";
+                            }
                         }
                         if (tmpStatus.equals("Yes")){
-                            Toast.makeText(getApplicationContext(), "<<< Загрузка Синхронизирована >>>", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getApplicationContext(), "<<< Данные Синхронизированы >>>", Toast.LENGTH_SHORT).show();
+                            clearTable("receiveLocal");
+                            editTextSetQuantity.setText("");
+                            finish();
+                        } else {
+                            Toast.makeText(getApplicationContext(), "<<< Сервер нервничает >>>", Toast.LENGTH_SHORT).show();
                         }
                     }else{
                         Toast.makeText(getApplicationContext(), "Ошибка загрузки. Проверьте Интернет или Учётку", Toast.LENGTH_SHORT).show();
@@ -330,6 +349,11 @@ public class ReceiveNewActivity extends AppCompatActivity implements View.OnClic
         }, new Response.ErrorListener(){
             @Override
             public void onErrorResponse(VolleyError error) {
+                for (int i = 0; i < itemIDList.size(); i++) {
+                    if (valueExists(db, "receiveLocal", "itemID", String.valueOf(itemIDList.get(i)))) {
+                        listViewItems.setItemChecked(i, true);
+                    }
+                }
                 Toast.makeText(getApplicationContext(), "Нет ответа от Сервера", Toast.LENGTH_SHORT).show();
                 Log.e("TAG", "Error " + error.getMessage());
             }
@@ -348,6 +372,105 @@ public class ReceiveNewActivity extends AppCompatActivity implements View.OnClic
         VolleySingleton.getInstance(this).getRequestQueue().add(request);
     }
 
+    private void onLoadActivity() {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        if (tableExists(db, "receiveLocal")) {
+            if (resultExists(db, "receiveLocal", "itemID")) {
+                builder.setTitle("Внимание")
+                        .setMessage("У вас остался несинхронизированный список")
+                        .setCancelable(false)
+                        .setNegativeButton("Восстановить",
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        for (int i = 0; i < itemIDList.size(); i++) {
+                                            if (valueExists(db, "receiveLocal", "itemID", String.valueOf(itemIDList.get(i)))) {
+                                                listViewItems.setItemChecked(i, true);
+                                            }
+                                        }
+                                        dialog.cancel();
+                                    }
+                                })
+                        .setPositiveButton("Удалить",
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        clearTable("receiveLocal");
+                                        dialog.cancel();
+                                    }
+                                });
+                AlertDialog alert = builder.create();
+                alert.show();
+            }
+        }
+    }
+
+    private void onNextPressed(){
+        String sql = "SELECT items.Наименование, receiveLocal.quantity FROM receiveLocal INNER JOIN items " +
+                "ON receiveLocal.itemID LIKE items.Артикул ";
+        Cursor c = db.rawQuery(sql, null);
+        if (c.moveToFirst()) {
+            int itemNameTmp = c.getColumnIndex("Наименование");
+            int quantityTmp = c.getColumnIndex("quantity");
+            ArrayList<String> itemNameList = new ArrayList<>();
+            ArrayList<Double> quantityList = new ArrayList<>();
+            do {
+                itemNameList.add(c.getString(itemNameTmp));
+                quantityList.add(c.getDouble(quantityTmp));
+            } while (c.moveToNext());
+            receiveList = new String[itemNameList.size()];
+            for (int i = 0; i < itemNameList.size(); i++){
+                receiveList[i] = "Наименование: " + itemNameList.get(i) + System.getProperty ("line.separator") +
+                        "Кол-во: " + String.valueOf(quantityList.get(i));
+            }
+        } else {
+            Log.d(LOG_TAG, "0 rows");
+            Toast.makeText(getApplicationContext(), "Ошибка: CreateInvoiceChooseSalesPartner receiveDataFromLocalDB 001",
+                    Toast.LENGTH_SHORT).show();
+        }
+        arrayAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_multiple_choice, itemsList);
+        listViewItems.setAdapter(arrayAdapter);
+        c.close();
+
+        AlertDialog.Builder builder;
+        builder = new AlertDialog.Builder(this);
+        builder.setTitle("Контрагенты")
+                .setCancelable(true)
+                .setNeutralButton("Назад",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog,
+                                                int id) {
+                                for (int i = 0; i < itemIDList.size(); i++) {
+                                    if (valueExists(db, "receiveLocal", "itemID", String.valueOf(itemIDList.get(i)))) {
+                                        listViewItems.setItemChecked(i, true);
+                                    }
+                                }
+                                dialog.cancel();
+                            }
+                        })
+                .setNegativeButton("Записать",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                Toast.makeText( getApplicationContext(), "В процессе... ", Toast.LENGTH_SHORT).show();
+                                syncReceive();
+                                dialog.cancel();
+                            }
+                        })
+                .setPositiveButton("Стереть",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                clearTable("receiveLocal");
+                                finish();
+                                dialog.cancel();
+                            }
+                        })
+                .setItems(receiveList, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int item) {
+                            }
+                        });
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
+
     private void onChangeListener() {
         editTextSetQuantity.addTextChangedListener(new TextWatcher() {
 
@@ -358,7 +481,8 @@ public class ReceiveNewActivity extends AppCompatActivity implements View.OnClic
 
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                // текст будет изменен
+//                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+//                imm.toggleSoftInput(InputMethodManager.SHOW_FORCED,0);
             }
 
             @Override
@@ -380,6 +504,8 @@ public class ReceiveNewActivity extends AppCompatActivity implements View.OnClic
                                         Toast.makeText(getApplicationContext(), "<<< Этот товар в пачках >>>", Toast.LENGTH_SHORT).show();
                                         editTextSetQuantity.setText("");
                                     } else {
+                                        quantity = Double.parseDouble(editTextSetQuantity.getText().toString());
+                                        Toast.makeText(getApplicationContext(), quantity.toString(), Toast.LENGTH_SHORT).show();
                                         if (valueExists(db, "receiveLocal", "itemID", String.valueOf(itemIDList.get(iTmp)))) {
                                             Log.d(LOG_TAG, "--- Update receiveLocal: ---");
                                             cv.put("quantity", quantity);
@@ -391,6 +517,8 @@ public class ReceiveNewActivity extends AppCompatActivity implements View.OnClic
                                 }
                             }
                         } else {
+                            quantity = Double.parseDouble(editTextSetQuantity.getText().toString());
+                            Toast.makeText(getApplicationContext(), quantity.toString(), Toast.LENGTH_SHORT).show();
                             if (valueExists(db, "receiveLocal", "itemID", String.valueOf(itemIDList.get(iTmp)))) {
                                 Log.d(LOG_TAG, "--- Update receiveLocal: ---");
                                 cv.put("quantity", quantity);
@@ -438,9 +566,10 @@ public class ReceiveNewActivity extends AppCompatActivity implements View.OnClic
         AlertDialog.Builder quitDialog = new AlertDialog.Builder(this);
         quitDialog.setTitle("Выйти без синхронизации с сервером?");
 
-        quitDialog.setPositiveButton("Выйти", new DialogInterface.OnClickListener() {
+        quitDialog.setPositiveButton("Стереть и Выйти", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
+                clearTable("receiveLocal");
                 finish();
             }
         });
