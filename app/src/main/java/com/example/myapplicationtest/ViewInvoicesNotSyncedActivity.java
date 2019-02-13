@@ -1,6 +1,5 @@
 package com.example.myapplicationtest;
 
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
@@ -25,11 +24,6 @@ import com.google.gson.Gson;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -42,7 +36,6 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
     DBHelper dbHelper;
     SQLiteDatabase db;
     Button btnSaveInvoiceToLocalDB;
-    Integer invoiceNumberServer, invoiceNumberLocalTmp;
     SharedPreferences sPrefDBName, sPrefDBPassword, sPrefDBUser, sPrefLogin, sPrefAccountingTypeDefault,
             sPrefArea, sPrefAreaDefault, sPrefInvoiceNumberLast;
     String paymentStatus, invoiceNumbers = "", dbName, dbUser, dbPassword,
@@ -60,7 +53,7 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
     ArrayList<Double> arrQuantity, arrExchange, arrReturn, arrSum;
     ArrayList<Integer> arrPriceChanged, invoiceNumbersList;
     List<DataInvoice> dataArray;
-    String[] invoiceNumberFromRequest, dateTimeDocServerFromRequest;
+    String[] requestMessage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -291,57 +284,29 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
             public void onResponse(String response) {
                 try{
                     JSONArray jsonArray = new JSONArray(response);
-                    invoiceNumberFromRequest = new String[jsonArray.length()];
-                    dateTimeDocServerFromRequest = new String[jsonArray.length()];
-
-//                    ContentValues cv = new ContentValues();
-//                    Log.d(LOG_TAG, "--- Insert in syncedInvoice: ---");
+                    requestMessage = new String[jsonArray.length()];
 
                     if (jsonArray.length() > 0){
                         for (int i = 0; i < jsonArray.length(); i++) {
                             JSONObject obj = jsonArray.getJSONObject(i);
-                            invoiceNumberFromRequest[i] = obj.getString("invoiceNumber");
-                            dateTimeDocServerFromRequest[i] = obj.getString("dateTimeDoc");
-//                            cv.put("invoiceNumber", Integer.parseInt(invoiceNumberFromRequest[i]));
-//                            cv.put("agentID", areaDefault);
-//                            cv.put("dateTimeDoc", dateTimeDocServerFromRequest[i]);
-//                            long rowID = db.insert("syncedInvoice", null, cv);
-//                            Log.d(LOG_TAG, "row inserted, ID = " + rowID);
+                            requestMessage[i] = obj.getString("requestMessage");
                         }
-//                        if (invoiceNumberFromRequest[jsonArray.length() - 1] == invoiceNumberLast){
-//                            statusSave = "saved";
-//
-                        // Эксперимент. Пока что таблица эта не будет удаляться.
-                        //
-                        //
-                        //
-//                            clearTable("invoiceLocalDB");
-                        //
-                        //
-                        //
-                        //
-                        //
-
-//                        }
-//                        paymentPrompt();
-
-                        invoiceNumbersList.clear();
-
-//                        if (statusSave.equals("saved")){
+                        if (requestMessage[0].equals("New record created successfully")){
                             builder.setTitle("Поздравляю")
                                     .setMessage("Синхронизировано успешно")
                                     .setCancelable(false)
                                     .setNegativeButton("Круто",
                                             new DialogInterface.OnClickListener() {
                                                 public void onClick(DialogInterface dialog, int id) {
+//                                                    invoiceNumbersList.clear();
                                                     finish();
                                                     dialog.cancel();
                                                 }
                                             });
                             AlertDialog alert = builder.create();
                             alert.show();
-//                        }
-                    }else{
+                        }
+                    } else {
                         builder.setTitle("Внимание")
                                 .setMessage("Возможно все синхронизировано, но сервер выкаблучивается. Обратитесь к Создателю и больше не жмите до талого!")
                                 .setCancelable(false)
@@ -360,7 +325,6 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
                 catch (JSONException e1) {
                     e1.printStackTrace();
                 }
-
                 Log.d("response", "result: " + response);
             }
         }, new Response.ErrorListener(){
