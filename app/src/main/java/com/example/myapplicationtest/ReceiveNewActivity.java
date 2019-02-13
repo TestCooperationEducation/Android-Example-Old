@@ -432,7 +432,7 @@ public class ReceiveNewActivity extends AppCompatActivity implements View.OnClic
 
         AlertDialog.Builder builder;
         builder = new AlertDialog.Builder(this);
-        builder.setTitle("Контрагенты")
+        builder.setTitle("Загрузка")
                 .setCancelable(true)
                 .setNeutralButton("Назад",
                         new DialogInterface.OnClickListener() {

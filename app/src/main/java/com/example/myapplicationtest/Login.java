@@ -129,7 +129,11 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
                             agent = obj.getString("Фамилия") + " "
                                     + obj.getString("Имя") + " " + obj.getString("Отчество");
                         }
-                        loadMainMenu();
+                        if (!area[0].equals("accountant")) {
+                            loadMainMenu();
+                        } else {
+                            loadAccounting();
+                        }
                         e = sPrefAgent.edit();
                         e.putString(SAVED_AGENT, agent);
                         e.apply();
@@ -173,6 +177,11 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
         e.apply();
         Toast.makeText(getApplicationContext(), "Успешный вход. Ваш район: " + area[0], Toast.LENGTH_SHORT).show();
         Intent intent = new Intent(getApplicationContext(), MainMenu.class);
+        startActivity(intent);
+    }
+
+    private void loadAccounting(){
+        Intent intent = new Intent(getApplicationContext(), AccountingActivity.class);
         startActivity(intent);
     }
 

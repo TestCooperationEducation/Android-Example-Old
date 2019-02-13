@@ -7,6 +7,7 @@ import android.content.SharedPreferences;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.ArrayMap;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
@@ -22,7 +23,15 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.math.BigDecimal;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -60,7 +69,8 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
     String loginUrl = "https://caiman.ru.com/php/login.php", dbName, dbUser, dbPassword,
             syncUrl = "https://caiman.ru.com/php/syncDB.php", connStatus, areaDefault, invoiceNumberLast,
             paymentNumberLast, lastReceiveDate;
-    String[] dayOfTheWeek, salesPartnersName, accountingType, author, itemName, comment, dateTimeDoc, receiveList;
+    String[] dayOfTheWeek, salesPartnersName, accountingType, author, itemName, comment, dateTimeDoc,
+            reportList;
     Integer[] itemPrice, discountID, spID, area, serverDB_ID, itemNumber, discountType, discount,
             invoiceNumber, agentID, salesPartnerID;
     Double[] itemQuantity, totalSum, exchangeQuantity, returnQuantity, invoiceSum, paymentAmount;
@@ -70,6 +80,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
     SQLiteDatabase db;
     Boolean one, two, three, four, five, six, seven, agentReportChoice = false, dropped = false;
     Integer countGlobal;
+    ArrayMap<String, Double> arrayMapReceive;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -140,6 +151,9 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
 
         dbHelper = new DBHelper(this);
         db = dbHelper.getWritableDatabase();
+
+        arrayMapReceive = new ArrayMap<>();
+
 
 //        db.execSQL("DROP TABLE IF EXISTS invoiceLocalDB");
 //        db.execSQL("DROP TABLE IF EXISTS syncedInvoice");
@@ -367,41 +381,151 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         alert.show();
     }
 
+    private void getReceiveList(){
+        if (agentReportChoice == false) {
+            String sql = "SELECT items.Наименование, receive.quantity FROM receive INNER JOIN items " +
+                    "ON receive.itemID LIKE items.Артикул " +
+                    "WHERE receive.dateTimeDoc LIKE ? ";
+            Cursor c = db.rawQuery(sql, new String[]{lastReceiveDate});
+            if (c.moveToFirst()) {
+                int itemNameTmp = c.getColumnIndex("Наименование");
+                int quantityTmp = c.getColumnIndex("quantity");
+                ArrayList<String> itemNameList = new ArrayList<>();
+                ArrayList<Double> quantityList = new ArrayList<>();
+                do {
+                    itemNameList.add(c.getString(itemNameTmp));
+                    quantityList.add(c.getDouble(quantityTmp));
+                } while (c.moveToNext());
+                reportList = new String[itemNameList.size()];
+                for (int i = 0; i < itemNameList.size(); i++) {
+                    arrayMapReceive.put(itemNameList.get(i), quantityList.get(i));
+                    reportList[i] = "Наименование: " + itemNameList.get(i) + System.getProperty("line.separator") +
+                            "Кол-во: " + String.valueOf(quantityList.get(i));
+                }
+                showReceiveReport("Загрузка");
+            }
+        } else {
+            String sql = "SELECT items.Наименование, receive.quantity FROM receive INNER JOIN items " +
+                    "ON receive.itemID LIKE items.Артикул " +
+                    "WHERE receive.dateTimeDoc LIKE ? ";
+            Cursor c = db.rawQuery(sql, new String[]{lastReceiveDate});
+            if (c.moveToFirst()) {
+                int itemNameTmp = c.getColumnIndex("Наименование");
+                int quantityTmp = c.getColumnIndex("quantity");
+                ArrayList<String> itemNameList = new ArrayList<>();
+                ArrayList<Double> quantityList = new ArrayList<>();
+                do {
+                    itemNameList.add(c.getString(itemNameTmp));
+                    quantityList.add(c.getDouble(quantityTmp));
+                } while (c.moveToNext());
+                reportList = new String[itemNameList.size()];
+                for (int i = 0; i < itemNameList.size(); i++) {
+                    arrayMapReceive.put(itemNameList.get(i), quantityList.get(i));
+                    reportList[i] = "Наименование: " + itemNameList.get(i) + System.getProperty("line.separator") +
+                            "Кол-во: " + String.valueOf(quantityList.get(i));
+                }
+            }
+        }
+    }
+
     private void agentReport(){
         if(agentReportChoice == false){
 //            if (resultExistsVariant(db, "receive")) {
-                String sql = "SELECT items.Наименование, receive.quantity FROM receive INNER JOIN items " +
-                        "ON receive.itemID LIKE items.Артикул " +
-                        "WHERE receive.dateTimeDoc LIKE ? ";
-                Cursor c = db.rawQuery(sql, new String[]{lastReceiveDate});
-                if (c.moveToFirst()) {
-                    int itemNameTmp = c.getColumnIndex("Наименование");
-                    int quantityTmp = c.getColumnIndex("quantity");
-                    ArrayList<String> itemNameList = new ArrayList<>();
-                    ArrayList<Double> quantityList = new ArrayList<>();
-                    do {
-                        itemNameList.add(c.getString(itemNameTmp));
-                        quantityList.add(c.getDouble(quantityTmp));
-                    } while (c.moveToNext());
-                    receiveList = new String[itemNameList.size()];
-                    for (int i = 0; i < itemNameList.size(); i++) {
-                        receiveList[i] = "Наименование: " + itemNameList.get(i) + System.getProperty("line.separator") +
-                                "Кол-во: " + String.valueOf(quantityList.get(i));
-                    }
-                    showReceiveReport();
-                }
+                getReceiveList();
 //            } else {
 //                Toast.makeText(getApplicationContext(), "Забыли обновить базу?", Toast.LENGTH_SHORT).show();
 //            }
         } else {
+            getReceiveList();
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern( "yyyy-MM-dd HH:mm:ss" );
+            LocalDateTime d = LocalDateTime.parse(lastReceiveDate, formatter);
+            final String output = d.with(LocalTime.MIN).format( formatter );
+            Toast.makeText(getApplicationContext(), output, Toast.LENGTH_SHORT).show();
 
+            ArrayList<String> itemNameListDefault = new ArrayList<>();
+            Double quantity = 0d;
+            Double exchange = 0d;
+            Double returnQuantity = 0d;
+            ArrayMap<String, Double> arrayMapQuantity = new ArrayMap<>();
+            ArrayMap<String, Double> arrayMapExchange = new ArrayMap<>();
+            ArrayMap<String, Double> arrayMapReturn = new ArrayMap<>();
+
+            String sql = "SELECT items.Наименование FROM items ";
+            Cursor c = db.rawQuery(sql, null);
+            if (c.moveToFirst()) {
+                int itemNameTmp = c.getColumnIndex("Наименование");
+                itemNameListDefault = new ArrayList<>();
+                do {
+                    itemNameListDefault.add(c.getString(itemNameTmp));
+                } while (c.moveToNext());
+            }
+
+            sql = "SELECT items.Наименование, invoice.Quantity, invoice.ExchangeQuantity," +
+                    "invoice.ReturnQuantity FROM invoice INNER JOIN items " +
+                    "ON invoice.ItemID LIKE items.Артикул " +
+                    "WHERE invoice.DateTimeDoc > ?";
+            c = db.rawQuery(sql, new String[]{output});
+            if (c.moveToFirst()) {
+                int itemNameTmp = c.getColumnIndex("Наименование");
+                int quantityInvoiceTmp = c.getColumnIndex("Quantity");
+                int exchangeQuantityTmp = c.getColumnIndex("ExchangeQuantity");
+                int returnQuantityTmp = c.getColumnIndex("ReturnQuantity");
+                ArrayList<String> itemNameList = new ArrayList<>();
+                ArrayList<Double> quantityReceiveList = new ArrayList<>();
+                ArrayList<Double> quantityInvoiceList = new ArrayList<>();
+                ArrayList<Double> exchangeQuantityList = new ArrayList<>();
+                ArrayList<Double> returnQuantityList = new ArrayList<>();
+                do {
+                    itemNameList.add(c.getString(itemNameTmp));
+                    quantityInvoiceList.add(c.getDouble(quantityInvoiceTmp));
+                    exchangeQuantityList.add(c.getDouble(exchangeQuantityTmp));
+                    returnQuantityList.add(c.getDouble(returnQuantityTmp));
+
+
+//                    for (int i = 0; i < itemNameListDefault.size(); i++){
+//                        if (itemNameListDefault.get(i).equals(c.getString(itemNameTmp))){
+                            if (arrayMapQuantity.containsKey(c.getString(itemNameTmp))) {
+                                quantity = arrayMapQuantity.get(c.getString(itemNameTmp)) + c.getDouble((quantityInvoiceTmp));
+                            } else {
+                                quantity =c.getDouble((quantityInvoiceTmp));
+                            }
+                            if (arrayMapExchange.containsKey(c.getString(itemNameTmp))) {
+                                exchange = arrayMapExchange.get(c.getString(itemNameTmp)) + c.getDouble((exchangeQuantityTmp));
+                            } else {
+                                exchange =c.getDouble((exchangeQuantityTmp));
+                            }
+                            if (arrayMapReturn.containsKey(c.getString(itemNameTmp))) {
+                                returnQuantity = arrayMapReturn.get(c.getString(itemNameTmp)) + c.getDouble((returnQuantityTmp));
+                            } else {
+                                returnQuantity =c.getDouble((returnQuantityTmp));
+                            }
+                            arrayMapQuantity.put(c.getString(itemNameTmp), quantity);
+                            arrayMapExchange.put(c.getString(itemNameTmp), exchange);
+                            arrayMapReturn.put(c.getString(itemNameTmp), returnQuantity);
+//                        }
+//                    }
+                } while (c.moveToNext());
+                Toast.makeText(getApplicationContext(), String.valueOf(arrayMapQuantity.size()), Toast.LENGTH_SHORT).show();
+                reportList = new String[arrayMapQuantity.size()];
+                for (int i = 0; i < arrayMapQuantity.size(); i++) {
+                    Double tmp = arrayMapReceive.valueAt(i) - arrayMapQuantity.valueAt(i) - arrayMapExchange.valueAt(i);
+                    reportList[i] = "Обмен: " + arrayMapExchange.valueAt(i).toString() + System.getProperty("line.separator") +
+                            "Наименование: " + System.getProperty("line.separator") +
+                            arrayMapExchange.keyAt(i) + System.getProperty("line.separator") +
+                            "Остаток: " + roundUp(tmp, 2).toString() + System.getProperty("line.separator") +
+                            "Продажа: " + arrayMapQuantity.valueAt(i).toString() + System.getProperty("line.separator") +
+                            "Загрузка: " + arrayMapReceive.valueAt(i).toString() + System.getProperty("line.separator") +
+                            System.getProperty("line.separator");
+                }
+                showReceiveReport("Конец смены");
+            }
         }
     }
 
-    private void showReceiveReport(){
+    private void showReceiveReport(String reportTitle){
         AlertDialog.Builder builder;
         builder = new AlertDialog.Builder(this);
-        builder.setTitle("Контрагенты")
+        builder.setTitle(reportTitle)
                 .setCancelable(true)
                 .setNeutralButton("Назад",
                         new DialogInterface.OnClickListener() {
@@ -411,10 +535,9 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                                 dialog.cancel();
                             }
                         })
-                .setNegativeButton("Остатки",
+                .setNegativeButton("Печатать",
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
-
                                 dialog.cancel();
                             }
                         })
@@ -424,13 +547,22 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                                 dialog.cancel();
                             }
                         })
-                .setItems(receiveList, new DialogInterface.OnClickListener() {
+                .setItems(reportList, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int item) {
+                        dialog.cancel();
                     }
                 });
         AlertDialog alert = builder.create();
         alert.show();
+        WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
+
+        lp.copyFrom(alert.getWindow().getAttributes());
+        lp.width = 720;
+//        lp.height = 500;
+//        lp.x=-170;
+//        lp.y=100;
+        alert.getWindow().setAttributes(lp);
     }
 
     private void systemReport(){
@@ -1540,5 +1672,9 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         int clearCount = db.delete(tableName, null, null);
         Log.d(LOG_TAG, "deleted rows count = " + clearCount);
         Toast.makeText(getApplicationContext(), "<<< Таблицы очищены >>>", Toast.LENGTH_SHORT).show();
+    }
+
+    public BigDecimal roundUp(double value, int digits){
+        return new BigDecimal(""+value).setScale(digits, BigDecimal.ROUND_HALF_UP);
     }
 }

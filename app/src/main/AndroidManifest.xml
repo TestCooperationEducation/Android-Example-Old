@@ -3,6 +3,7 @@
     package="com.example.myapplicationtest">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
 
     <application
         android:allowBackup="true"
@@ -68,7 +69,8 @@
         <activity android:name=".ViewInvoicesChangeNotSyncedActivity" />
         <activity android:name=".ChangeInvoiceChooseItemsActivity" />
         <activity android:name=".ReceiveActivity" />
-        <activity android:name=".ReceiveNewActivity"></activity>
+        <activity android:name=".ReceiveNewActivity" />
+        <activity android:name=".AccountingActivity"></activity>
     </application>
 
 </manifest>
