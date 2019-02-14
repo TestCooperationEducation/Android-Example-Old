@@ -508,16 +508,17 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                 Toast.makeText(getApplicationContext(), String.valueOf(arrayMapQuantity.size()), Toast.LENGTH_SHORT).show();
                 reportList = new String[arrayMapQuantity.size()];
                 for (int i = 0; i < arrayMapQuantity.size(); i++) {
-                    Double tmp = arrayMapReceive.valueAt(i) - arrayMapQuantity.valueAt(i) - arrayMapExchange.valueAt(i);
-                    reportList[i] = "Обмен: " + arrayMapExchange.valueAt(i).toString() + System.getProperty("line.separator") +
-                            "Наименование: " + System.getProperty("line.separator") +
-                            arrayMapExchange.keyAt(i) + System.getProperty("line.separator") +
-                            "Остаток: " + roundUp(tmp, 2).toString() + System.getProperty("line.separator") +
-                            "Продажа: " + arrayMapQuantity.valueAt(i).toString() + System.getProperty("line.separator") +
-                            "Загрузка: " + arrayMapReceive.valueAt(i).toString() + System.getProperty("line.separator") +
-                            System.getProperty("line.separator");
+
+//                    Double tmp = arrayMapReceive.valueAt(i) - arrayMapQuantity.valueAt(i) - arrayMapExchange.valueAt(i);
+//                    reportList[i] = "Обмен: " + arrayMapExchange.valueAt(i).toString() + System.getProperty("line.separator") +
+//                            "Наименование: " + System.getProperty("line.separator") +
+//                            arrayMapExchange.keyAt(i) + System.getProperty("line.separator") +
+//                            "Остаток: " + roundUp(tmp, 2).toString() + System.getProperty("line.separator") +
+//                            "Продажа: " + arrayMapQuantity.valueAt(i).toString() + System.getProperty("line.separator") +
+//                            "Загрузка: " + arrayMapReceive.valueAt(i).toString() + System.getProperty("line.separator") +
+//                            System.getProperty("line.separator");
                 }
-                showReceiveReport("Конец смены");
+//                showReceiveReport("Конец смены");
             }
         }
     }
