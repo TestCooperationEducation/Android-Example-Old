@@ -255,6 +255,13 @@ public class ViewInvoicesChangeNotSyncedActivity extends AppCompatActivity imple
                                                     new String[]{String.valueOf(invoiceNumbersList.get(itemTmp)),
                                                             sPListTmp[itemTmp]});
                                             Log.d(LOG_TAG, "deleted rows count = " + delCount);
+                                            if (valueExists(db, "payments", "InvoiceNumber", "InvoiceNumber", String.valueOf(invoiceNumbersList.get(itemTmp)))){
+                                                Log.d(LOG_TAG, "--- Clear payments : ---");
+                                                delCount = db.delete("payments",
+                                                        "invoiceNumber = ?",
+                                                        new String[]{String.valueOf(invoiceNumbersList.get(itemTmp))});
+                                                Log.d(LOG_TAG, "deleted rows count = " + delCount);
+                                            }
                                             Toast.makeText(getApplicationContext(), "<<< Запись " +
                                                     sPListTmp[itemTmp] + " удалeна >>>", Toast.LENGTH_SHORT).show();
                                             itemChecked = false;
@@ -396,6 +403,23 @@ public class ViewInvoicesChangeNotSyncedActivity extends AppCompatActivity imple
         // удаляем все записи
         int clearCount = db.delete(tableName, null, null);
         Log.d(LOG_TAG, "deleted rows count = " + clearCount);
+    }
+
+    boolean valueExists(SQLiteDatabase db, String tableName, String selectField, String fieldName, String value){
+        if (tableName == null || db == null || !db.isOpen())
+        {
+            return false;
+        }
+        String sql = "SELECT COUNT(?) FROM " + tableName + " WHERE " + fieldName + " LIKE " + "?";
+        Cursor cursor = db.rawQuery(sql, new String[]{selectField, value});
+        if (!cursor.moveToFirst())
+        {
+            cursor.close();
+            return false;
+        }
+        int count = cursor.getInt(0);
+        cursor.close();
+        return count > 0;
     }
 
 }
