@@ -7,20 +7,60 @@
     tools:context=".AccountingActivity">
 
     <TextView
-        android:id="@+id/textView"
+        android:id="@+id/textViewAgent"
         android:layout_width="0dp"
-        android:layout_height="70dp"
-        android:text="TextView"
-        app:layout_constraintEnd_toStartOf="@+id/button"
+        android:layout_height="30dp"
+        android:text="@string/textViewAgentName"
+        android:textAlignment="textStart"
+        android:textSize="20sp"
+        app:layout_constraintEnd_toStartOf="@+id/textViewAccountingType"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <Button
-        android:id="@+id/button"
-        android:layout_width="70dp"
-        android:layout_height="70dp"
-        android:text="Button"
+    <TextView
+        android:id="@+id/textViewAccountingType"
+        android:layout_width="wrap_content"
+        android:layout_height="30dp"
+        android:text="@string/textViewAccountingTypeLabel"
+        android:textAlignment="textStart"
+        android:textSize="20sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <EditText
+        android:id="@+id/textViewDateStart"
+        android:layout_width="0dp"
+        android:layout_height="70dp"
+        android:hint="@string/editTextDateStart"
+        android:inputType="date"
+        android:textAlignment="textStart"
+        android:textSize="20sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewAgent" />
+
+    <EditText
+        android:id="@+id/textView4DateEnd"
+        android:layout_width="0dp"
+        android:layout_height="70dp"
+        android:hint="@string/editTextDateEnd"
+        android:inputType="date"
+        android:textAlignment="textStart"
+        android:textSize="20sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewDateStart" />
+
+    <Button
+        android:id="@+id/buttonOptions"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:text="@string/btnOptions"
+        android:textSize="24sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView4DateEnd" />
 
 </android.support.constraint.ConstraintLayout>

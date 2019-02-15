@@ -382,6 +382,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
     }
 
     private void getReceiveList(){
+        lastReceiveDate = "2019-02-14 07:49:01";
         if (agentReportChoice == false) {
             String sql = "SELECT items.Наименование, receive.quantity FROM receive INNER JOIN items " +
                     "ON receive.itemID LIKE items.Артикул " +
@@ -442,10 +443,10 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
             final String output = d.with(LocalTime.MIN).format( formatter );
             Toast.makeText(getApplicationContext(), output, Toast.LENGTH_SHORT).show();
 
-            ArrayList<String> itemNameListDefault = new ArrayList<>();
-            Double quantity = 0d;
-            Double exchange = 0d;
-            Double returnQuantity = 0d;
+            ArrayList<String> itemNameListDefault;
+            Double quantity;
+            Double exchange;
+            Double returnQuantity;
             ArrayMap<String, Double> arrayMapQuantity = new ArrayMap<>();
             ArrayMap<String, Double> arrayMapExchange = new ArrayMap<>();
             ArrayMap<String, Double> arrayMapReturn = new ArrayMap<>();
@@ -509,16 +510,16 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                 reportList = new String[arrayMapQuantity.size()];
                 for (int i = 0; i < arrayMapQuantity.size(); i++) {
 
-//                    Double tmp = arrayMapReceive.valueAt(i) - arrayMapQuantity.valueAt(i) - arrayMapExchange.valueAt(i);
-//                    reportList[i] = "Обмен: " + arrayMapExchange.valueAt(i).toString() + System.getProperty("line.separator") +
-//                            "Наименование: " + System.getProperty("line.separator") +
-//                            arrayMapExchange.keyAt(i) + System.getProperty("line.separator") +
-//                            "Остаток: " + roundUp(tmp, 2).toString() + System.getProperty("line.separator") +
-//                            "Продажа: " + arrayMapQuantity.valueAt(i).toString() + System.getProperty("line.separator") +
-//                            "Загрузка: " + arrayMapReceive.valueAt(i).toString() + System.getProperty("line.separator") +
-//                            System.getProperty("line.separator");
+                    Double tmp = arrayMapReceive.valueAt(i) - arrayMapQuantity.valueAt(i) - arrayMapExchange.valueAt(i);
+                    reportList[i] = "Обмен: " + arrayMapExchange.valueAt(i).toString() + System.getProperty("line.separator") +
+                            "Наименование: " + System.getProperty("line.separator") +
+                            arrayMapExchange.keyAt(i) + System.getProperty("line.separator") +
+                            "Остаток: " + roundUp(tmp, 2).toString() + System.getProperty("line.separator") +
+                            "Продажа: " + arrayMapQuantity.valueAt(i).toString() + System.getProperty("line.separator") +
+                            "Загрузка: " + arrayMapReceive.valueAt(i).toString() + System.getProperty("line.separator") +
+                            System.getProperty("line.separator");
                 }
-//                showReceiveReport("Конец смены");
+                showReceiveReport("Конец смены");
             }
         }
     }
@@ -681,9 +682,9 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
     }
 
     private void updateLocalDB(){
-        final boolean[] listChecked = new boolean[7];
+        final boolean[] listChecked = new boolean[8];
         final String[] listCheckTableName = { "Контрагенты", "Номенклатура", "Индивидуальные скидки",
-                "Тип скидки", "Накладная", "Платежи", "Загрузки" };
+                "Тип скидки", "Накладная", "Платежи", "Загрузки", "Агенты" };
         AlertDialog.Builder builder;
         builder = new AlertDialog.Builder(this);
         builder.setTitle("Выберите таблицу(цы) для обновления")
@@ -806,6 +807,19 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                                                         Thread thread7 = new Thread(runnable);
                                                         thread7.start();
                                                     }
+                                                    if (listCheckTableName[i].equals("Агенты")){
+                                                        db.execSQL("DROP TABLE IF EXISTS agents");
+                                                        dbHelper.onUpgrade(db, 1, 2);
+                                                        Runnable runnable = new Runnable() {
+                                                            @Override
+                                                            public void run() {
+
+                                                                loadAgentsFromServerDB();
+                                                            }
+                                                        };
+                                                        Thread thread8 = new Thread(runnable);
+                                                        thread8.start();
+                                                    }
                                                 } else {
                                                     Toast.makeText(getApplicationContext(), "<<< НЕТ подключения к Серверу >>>" + connStatus, Toast.LENGTH_SHORT).show();
                                                 }
@@ -908,20 +922,16 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                             author[i] = obj.getString("Автор");
                             serverDB_ID[i] = obj.getInt("ID");
 
-//                            if (!resultExists(db, "salesPartners","Автор", "Автор", "admin")){
-                                ContentValues cv = new ContentValues();
-                                Log.d(LOG_TAG, "--- Insert in salesPartners: ---");
-                                cv.put("serverDB_ID", serverDB_ID[i]);
-                                cv.put("Наименование", salesPartnersName[i]);
-                                cv.put("Район", area[i]);
-                                cv.put("Учет", accountingType[i]);
-                                cv.put("DayOfTheWeek", dayOfTheWeek[i]);
-                                cv.put("Автор", author[i]);
-                                long rowID = db.insert("salesPartners", null, cv);
-                                Log.d(LOG_TAG, "row inserted, ID = " + rowID);
-//                            } else {
-//                                Toast.makeText(getApplicationContext(), "Ошибка: MainMenu контрагенты loadDB", Toast.LENGTH_SHORT).show();
-//                            }
+                            ContentValues cv = new ContentValues();
+                            Log.d(LOG_TAG, "--- Insert in salesPartners: ---");
+                            cv.put("serverDB_ID", serverDB_ID[i]);
+                            cv.put("Наименование", salesPartnersName[i]);
+                            cv.put("Район", area[i]);
+                            cv.put("Учет", accountingType[i]);
+                            cv.put("DayOfTheWeek", dayOfTheWeek[i]);
+                            cv.put("Автор", author[i]);
+                            long rowID = db.insert("salesPartners", null, cv);
+                            Log.d(LOG_TAG, "row inserted, ID = " + rowID);
                         }
                         Toast.makeText(getApplicationContext(), "Контрагенты загружены", Toast.LENGTH_SHORT).show();
                         two = true;
@@ -970,18 +980,13 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                             itemNumber[i] = obj.getInt("Артикул");
                             itemName[i] = obj.getString("Наименование");
                             itemPrice[i] = obj.getInt("Цена");
-
-//                            if (!resultExists(db, "items","Артикул", "Артикул", "1")){
-                                ContentValues cv = new ContentValues();
-                                Log.d(LOG_TAG, "--- Insert in items: ---");
-                                cv.put("Артикул", itemNumber[i]);
-                                cv.put("Наименование", itemName[i]);
-                                cv.put("Цена", itemPrice[i]);
-                                long rowID = db.insert("items", null, cv);
-                                Log.d(LOG_TAG, "row inserted, ID = " + rowID);
-//                            } else {
-//                                Toast.makeText(getApplicationContext(), "Ошибка: MainMenu items loadDB", Toast.LENGTH_SHORT).show();
-//                            }
+                            ContentValues cv = new ContentValues();
+                            Log.d(LOG_TAG, "--- Insert in items: ---");
+                            cv.put("Артикул", itemNumber[i]);
+                            cv.put("Наименование", itemName[i]);
+                            cv.put("Цена", itemPrice[i]);
+                            long rowID = db.insert("items", null, cv);
+                            Log.d(LOG_TAG, "row inserted, ID = " + rowID);
                         }
                         Toast.makeText(getApplicationContext(), "Номенклатура загружена", Toast.LENGTH_SHORT).show();
                         three = true;
@@ -1409,6 +1414,65 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
             }
         };
         VolleySingleton.getInstance(this).getRequestQueue().add(request);
+    }
+
+    private void loadAgentsFromServerDB(){
+        StringRequest request = new StringRequest(Request.Method.POST,
+                syncUrl, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                try{
+                    JSONArray jsonArray = new JSONArray(response);
+                    Integer[] areaAgent = new Integer[jsonArray.length()];
+                    String[] secondName = new String[jsonArray.length()];
+                    String[] firstName = new String[jsonArray.length()];
+                    String [] middleName = new String[jsonArray.length()];
+
+                    if (jsonArray.length() > 0){
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            JSONObject obj = jsonArray.getJSONObject(i);
+                            areaAgent[i] = obj.getInt("Район");
+                            secondName[i] = obj.getString("Фамилия");
+                            firstName[i] = obj.getString("Имя");
+                            middleName[i] = obj.getString("Отчество");
+
+                            ContentValues cv = new ContentValues();
+                            Log.d(LOG_TAG, "--- Insert in agents: ---");
+                            cv.put("area", areaAgent[i]);
+                            cv.put("secondName", secondName[i]);
+                            cv.put("firstName", firstName[i]);
+                            cv.put("middleName", middleName[i]);
+                            long rowID = db.insert("agents", null, cv);
+                            Log.d(LOG_TAG, "row inserted, ID = " + rowID);
+                        }
+                        Toast.makeText(getApplicationContext(), "Агенты загружены", Toast.LENGTH_SHORT).show();
+                    }else{
+                        Toast.makeText(getApplicationContext(), "Ошибка загрузки. Проверьте Интернет или Учётку", Toast.LENGTH_SHORT).show();
+                    }
+                }
+                catch (JSONException e1) {
+                    e1.printStackTrace();
+                }
+            }
+        }, new Response.ErrorListener(){
+            @Override
+            public void onErrorResponse(VolleyError error){
+                Toast.makeText(getApplicationContext(), "Проблемы с запросом на сервер", Toast.LENGTH_SHORT).show();
+                Log.e("TAG", "Error " + error.getMessage());
+            }
+        }){
+            @Override
+            protected Map<String, String> getParams() {
+                Map<String, String> parameters = new HashMap<>();
+                parameters.put("dbName", dbName);
+                parameters.put("dbUser", dbUser);
+                parameters.put("dbPassword", dbPassword);
+                parameters.put("agentID", areaDefault);
+                parameters.put("tableName", "agents");
+                return parameters;
+            }
+        };
+        VolleySingleton.getInstance(this).getRequestQueue().add(request);
 
     }
 
@@ -1584,6 +1648,15 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                         + "quantity real,"
                         + "dateTimeDoc text,"
                         + "agentID integer" + ");");
+            }
+
+            if (!tableExists(db, "agents")) {
+                db.execSQL("create table agents ("
+                        + "id integer primary key autoincrement,"
+                        + "area integer,"
+                        + "secondName text,"
+                        + "firstName text,"
+                        + "middleName text" + ");");
             }
         }
 

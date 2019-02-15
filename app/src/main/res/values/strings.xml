@@ -85,5 +85,9 @@
     <string name="btnNewReceive">Новая загрузка</string>
     <string name="btnAllReceives">Все загрузки</string>
     <string name="editTextSetQuantity">Введите количество</string>
+    <string name="textViewAgentName">Имя Агента</string>
+    <string name="editTextDateStart">Дата: начало периода</string>
+    <string name="editTextDateEnd">Дата: конец периода</string>
+    <string name="btnOptions">дополнительно</string>
 
 </resources>
