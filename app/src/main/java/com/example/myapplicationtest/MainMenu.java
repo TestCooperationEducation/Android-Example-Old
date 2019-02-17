@@ -382,12 +382,18 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
     }
 
     private void getReceiveList(){
-        lastReceiveDate = "2019-02-14 07:49:01";
+//        lastReceiveDate = "2019-02-14 07:49:01";
+        String sql = "SELECT DISTINCT dateTimeDoc FROM receive ORDER BY id DESC LIMIT 1";
+        Cursor c = db.rawQuery(sql, null);
+        if (c.moveToFirst()) {
+            int dateTimeDocTmp = c.getColumnIndex("dateTimeDoc");
+            lastReceiveDate = c.getString(dateTimeDocTmp);
+        }
         if (agentReportChoice == false) {
-            String sql = "SELECT items.Наименование, receive.quantity FROM receive INNER JOIN items " +
+            sql = "SELECT items.Наименование, receive.quantity FROM receive INNER JOIN items " +
                     "ON receive.itemID LIKE items.Артикул " +
                     "WHERE receive.dateTimeDoc LIKE ? ";
-            Cursor c = db.rawQuery(sql, new String[]{lastReceiveDate});
+            c = db.rawQuery(sql, new String[]{lastReceiveDate});
             if (c.moveToFirst()) {
                 int itemNameTmp = c.getColumnIndex("Наименование");
                 int quantityTmp = c.getColumnIndex("quantity");
@@ -406,10 +412,10 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                 showReceiveReport("Загрузка");
             }
         } else {
-            String sql = "SELECT items.Наименование, receive.quantity FROM receive INNER JOIN items " +
+            sql = "SELECT items.Наименование, receive.quantity FROM receive INNER JOIN items " +
                     "ON receive.itemID LIKE items.Артикул " +
                     "WHERE receive.dateTimeDoc LIKE ? ";
-            Cursor c = db.rawQuery(sql, new String[]{lastReceiveDate});
+            c = db.rawQuery(sql, new String[]{lastReceiveDate});
             if (c.moveToFirst()) {
                 int itemNameTmp = c.getColumnIndex("Наименование");
                 int quantityTmp = c.getColumnIndex("quantity");
@@ -427,6 +433,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                 }
             }
         }
+        c.close();
     }
 
     private void agentReport(){
@@ -450,6 +457,10 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
             ArrayMap<String, Double> arrayMapQuantity = new ArrayMap<>();
             ArrayMap<String, Double> arrayMapExchange = new ArrayMap<>();
             ArrayMap<String, Double> arrayMapReturn = new ArrayMap<>();
+
+            ArrayMap<String, Double> arrayMapQuantityReduced = new ArrayMap<>();
+            ArrayMap<String, Double> arrayMapExchangeReduced = new ArrayMap<>();
+            ArrayMap<String, Double> arrayMapReturnReduced = new ArrayMap<>();
 
             String sql = "SELECT items.Наименование FROM items ";
             Cursor c = db.rawQuery(sql, null);
@@ -506,20 +517,109 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
 //                        }
 //                    }
                 } while (c.moveToNext());
-                Toast.makeText(getApplicationContext(), String.valueOf(arrayMapQuantity.size()), Toast.LENGTH_SHORT).show();
-                reportList = new String[arrayMapQuantity.size()];
-                for (int i = 0; i < arrayMapQuantity.size(); i++) {
+//                Toast.makeText(getApplicationContext(), String.valueOf(arrayMapQuantity.size()), Toast.LENGTH_SHORT).show();
 
-                    Double tmp = arrayMapReceive.valueAt(i) - arrayMapQuantity.valueAt(i) - arrayMapExchange.valueAt(i);
-                    reportList[i] = "Обмен: " + arrayMapExchange.valueAt(i).toString() + System.getProperty("line.separator") +
-                            "Наименование: " + System.getProperty("line.separator") +
-                            arrayMapExchange.keyAt(i) + System.getProperty("line.separator") +
-                            "Остаток: " + roundUp(tmp, 2).toString() + System.getProperty("line.separator") +
-                            "Продажа: " + arrayMapQuantity.valueAt(i).toString() + System.getProperty("line.separator") +
-                            "Загрузка: " + arrayMapReceive.valueAt(i).toString() + System.getProperty("line.separator") +
-                            System.getProperty("line.separator");
-                }
-                showReceiveReport("Конец смены");
+                for (int i = 0; i < arrayMapQuantity.size(); i++){
+                    if (!arrayMapQuantity.keyAt(i).equals("Ким-ча 700 гр особая цена 1") &&
+                            !arrayMapQuantity.keyAt(i).equals("Ким-ча 700 гр особая цена 2") &&
+                            !arrayMapQuantity.keyAt(i).equals("Ким-ча 500 гр особая цена 1") &&
+                            !arrayMapQuantity.keyAt(i).equals("Ким-ча 500 гр особая цена 2") &&
+                            !arrayMapQuantity.keyAt(i).equals("Редька по-восточному 500гр особая цена 1") &&
+                            !arrayMapQuantity.keyAt(i).equals("Редька по-восточному 500гр особая цена 2")){
+                        if (arrayMapQuantity.keyAt(i).equals("Ким-ча весовая")) {
+                            if (arrayMapQuantityReduced.containsKey("Ким-ча весовая") &&
+                                    arrayMapExchangeReduced.containsKey("Ким-ча весовая") &&
+                                    arrayMapReturnReduced.containsKey("Ким-ча весовая")) {
+                                arrayMapQuantityReduced.put("Ким-ча весовая", arrayMapQuantityReduced.get("Ким-ча весовая") + (arrayMapQuantity.valueAt(i)));
+                                arrayMapExchangeReduced.put("Ким-ча весовая", arrayMapExchangeReduced.get("Ким-ча весовая") + (arrayMapExchange.valueAt(i)));
+                                arrayMapReturnReduced.put("Ким-ча весовая", arrayMapReturnReduced.get("Ким-ча весовая") + (arrayMapReturn.valueAt(i)));
+                            } else {
+                                arrayMapQuantityReduced.put("Ким-ча весовая", (arrayMapQuantity.valueAt(i)));
+                                arrayMapExchangeReduced.put("Ким-ча весовая", (arrayMapExchange.valueAt(i)));
+                                arrayMapReturnReduced.put("Ким-ча весовая", (arrayMapReturn.valueAt(i)));
+                            }
+                        } else {
+                            arrayMapQuantityReduced.put(arrayMapQuantity.keyAt(i), arrayMapQuantity.valueAt(i));
+                            arrayMapExchangeReduced.put(arrayMapQuantity.keyAt(i), arrayMapExchange.valueAt(i));
+                            arrayMapReturnReduced.put(arrayMapQuantity.keyAt(i), arrayMapReturn.valueAt(i));
+                        }
+
+                        if (arrayMapQuantity.keyAt(i).equals("Редька по-восточному весовая")){
+                            if (arrayMapQuantityReduced.containsKey("Редька по-восточному весовая") &&
+                                    arrayMapExchangeReduced.containsKey("Редька по-восточному весовая") &&
+                                    arrayMapReturnReduced.containsKey("Редька по-восточному весовая")) {
+                                arrayMapQuantityReduced.put("Редька по-восточному весовая", arrayMapQuantityReduced.get("Редька по-восточному весовая") + (arrayMapQuantity.valueAt(i)));
+                                arrayMapExchangeReduced.put("Редька по-восточному весовая", arrayMapExchangeReduced.get("Редька по-восточному весовая") + (arrayMapExchange.valueAt(i)));
+                                arrayMapReturnReduced.put("Редька по-восточному весовая", arrayMapReturnReduced.get("Редька по-восточному весовая") + (arrayMapReturn.valueAt(i)));
+                            } else {
+                                arrayMapQuantityReduced.put("Редька по-восточному весовая", (arrayMapQuantity.valueAt(i)));
+                                arrayMapExchangeReduced.put("Редька по-восточному весовая", (arrayMapExchange.valueAt(i)));
+                                arrayMapReturnReduced.put("Редька по-восточному весовая", (arrayMapReturn.valueAt(i)));
+                            }
+                        } else {
+                            arrayMapQuantityReduced.put(arrayMapQuantity.keyAt(i), arrayMapQuantity.valueAt(i));
+                            arrayMapExchangeReduced.put(arrayMapQuantity.keyAt(i), arrayMapExchange.valueAt(i));
+                            arrayMapReturnReduced.put(arrayMapQuantity.keyAt(i), arrayMapReturn.valueAt(i));
+                        }
+                    }
+                    if (arrayMapQuantity.keyAt(i).equals("Ким-ча 700 гр особая цена 1")) {
+                        if (arrayMapQuantityReduced.containsKey("Ким-ча весовая") &&
+                                arrayMapExchangeReduced.containsKey("Ким-ча весовая") &&
+                                arrayMapReturnReduced.containsKey("Ким-ча весовая")) {
+                            arrayMapQuantityReduced.put("Ким-ча весовая", arrayMapQuantityReduced.get("Ким-ча весовая") + (arrayMapQuantity.valueAt(i) * 0.7));
+                            arrayMapExchangeReduced.put("Ким-ча весовая", arrayMapExchangeReduced.get("Ким-ча весовая") + (arrayMapExchange.valueAt(i) * 0.7));
+                            arrayMapReturnReduced.put("Ким-ча весовая", arrayMapReturnReduced.get("Ким-ча весовая") + (arrayMapReturn.valueAt(i) * 0.7));
+                        } else {
+                            arrayMapQuantityReduced.put("Ким-ча весовая", (arrayMapQuantity.valueAt(i) * 0.7));
+                            arrayMapExchangeReduced.put("Ким-ча весовая", (arrayMapExchange.valueAt(i) * 0.7));
+                            arrayMapReturnReduced.put("Ким-ча весовая", (arrayMapReturn.valueAt(i) * 0.7));
+                        }
+                    }
+
+//                    if (arrayMapQuantity.keyAt(i).equals("Ким-ча 700 гр особая цена 2")) {
+//                        arrayMapQuantityReduced.put("Ким-ча весовая", arrayMapQuantityReduced.get("Ким-ча весовая") + (arrayMapQuantity.valueAt(i) * 0.7));
+//                        arrayMapExchangeReduced.put("Ким-ча весовая", arrayMapExchangeReduced.get("Ким-ча весовая") + (arrayMapExchange.valueAt(i) * 0.7));
+//                        arrayMapReturnReduced.put("Ким-ча весовая", arrayMapReturnReduced.get("Ким-ча весовая") + (arrayMapReturn.valueAt(i) * 0.7));
+//                    }
+//
+//                    if (arrayMapQuantity.keyAt(i).equals("Ким-ча 500 гр особая цена 1")) {
+//                        arrayMapQuantityReduced.put("Ким-ча весовая", arrayMapQuantityReduced.get("Ким-ча весовая")  + (arrayMapQuantity.valueAt(i) * 0.5));
+//                        arrayMapExchangeReduced.put("Ким-ча весовая", arrayMapExchangeReduced.get("Ким-ча весовая") + (arrayMapExchange.valueAt(i) * 0.5));
+//                        arrayMapReturnReduced.put("Ким-ча весовая", arrayMapReturnReduced.get("Ким-ча весовая") + (arrayMapReturn.valueAt(i) * 0.5));
+//                    }
+//
+//                    if (arrayMapQuantity.keyAt(i).equals("Ким-ча 500 гр особая цена 2")) {
+//                        arrayMapQuantityReduced.put("Ким-ча весовая", arrayMapQuantityReduced.get("Ким-ча весовая") + (arrayMapQuantity.valueAt(i) * 0.5));
+//                        arrayMapExchangeReduced.put("Ким-ча весовая", arrayMapExchangeReduced.get("Ким-ча весовая") + (arrayMapExchange.valueAt(i) * 0.5));
+//                        arrayMapReturnReduced.put("Ким-ча весовая", arrayMapReturnReduced.get("Ким-ча весовая") + (arrayMapReturn.valueAt(i) * 0.5));
+//                    }
+//
+//                    if (arrayMapQuantity.keyAt(i).equals("Редька по-восточному 500гр особая цена 1")) {
+//                        arrayMapQuantityReduced.put("Редька по-восточному весовая", arrayMapQuantityReduced.get("Редька по-восточному весовая") + (arrayMapQuantity.valueAt(i) * 0.5));
+//                        arrayMapExchangeReduced.put("Редька по-восточному весовая", arrayMapExchangeReduced.get("Редька по-восточному весовая") + (arrayMapExchange.valueAt(i) * 0.5));
+//                        arrayMapReturnReduced.put("Редька по-восточному весовая", arrayMapReturnReduced.get("Редька по-восточному весовая") + (arrayMapReturn.valueAt(i) * 0.5));
+//                    }
+//
+//                    if (arrayMapQuantity.keyAt(i).equals("Редька по-восточному 500гр особая цена 2")) {
+//                        arrayMapQuantityReduced.put("Редька по-восточному весовая", arrayMapQuantityReduced.get("Редька по-восточному весовая") + (arrayMapQuantity.valueAt(i) * 0.5));
+//                        arrayMapExchangeReduced.put("Редька по-восточному весовая", arrayMapExchangeReduced.get("Редька по-восточному весовая") + (arrayMapExchange.valueAt(i) * 0.5));
+//                        arrayMapReturnReduced.put("Редька по-восточному весовая", arrayMapReturnReduced.get("Редька по-восточному весовая") + (arrayMapReturn.valueAt(i) * 0.5));
+//                    }
+                }Toast.makeText(getApplicationContext(), String.valueOf(arrayMapQuantityReduced.get("Ким-ча весовая")), Toast.LENGTH_SHORT).show();
+//                Toast.makeText(getApplicationContext(), String.valueOf(arrayMapQuantityReduced.size()), Toast.LENGTH_SHORT).show();
+//                reportList = new String[arrayMapQuantityReduced.size()];
+//                for (int i = 0; i < arrayMapQuantityReduced.size(); i++) {
+//
+//                    Double tmp = arrayMapReceive.valueAt(i) - arrayMapQuantityReduced.valueAt(i) - arrayMapExchangeReduced.valueAt(i);
+//                    reportList[i] = "Обмен: " + arrayMapExchangeReduced.valueAt(i).toString() + System.getProperty("line.separator") +
+//                            "Наименование: " + System.getProperty("line.separator") +
+//                            arrayMapExchangeReduced.keyAt(i) + System.getProperty("line.separator") +
+//                            "Остаток: " + roundUp(tmp, 2).toString() + System.getProperty("line.separator") +
+//                            "Продажа: " + arrayMapQuantityReduced.valueAt(i).toString() + System.getProperty("line.separator") +
+//                            "Загрузка: " + arrayMapReceive.valueAt(i).toString() + System.getProperty("line.separator") +
+//                            System.getProperty("line.separator");
+//                }
+//                showReceiveReport("Конец смены");
             }
         }
     }

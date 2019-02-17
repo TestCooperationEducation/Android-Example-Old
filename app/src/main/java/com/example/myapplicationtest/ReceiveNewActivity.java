@@ -147,7 +147,7 @@ public class ReceiveNewActivity extends AppCompatActivity implements View.OnClic
     }
 
     private void receiveItemsListFromLocalDB(){
-        String sql = "SELECT Наименование, Артикул FROM items";
+        String sql = "SELECT Наименование, Артикул FROM items WHERE Артикул NOT BETWEEN 18 AND 23";
         Cursor c = db.rawQuery(sql, null);
         if (c.moveToFirst()) {
             int itemNameTmp = c.getColumnIndex("Наименование");
@@ -323,10 +323,10 @@ public class ReceiveNewActivity extends AppCompatActivity implements View.OnClic
                         for (int i = 0; i < jsonArray.length(); i++) {
                             JSONObject obj = jsonArray.getJSONObject(i);
                             requestMessage[i] = obj.getString("requestMessage");
-                            if (requestMessage[i].equals("Error")){
-                                tmpStatus = "No";
-                            } else {
+                            if (requestMessage[i].equals("New record created successfully")){
                                 tmpStatus = "Yes";
+                            } else {
+                                tmpStatus = "No";
                             }
                         }
                         if (tmpStatus.equals("Yes")){
