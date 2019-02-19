@@ -245,19 +245,19 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
             @Override
             public void onClick(DialogInterface dialog, int item) {
                 if (choice[item].equals("Район №1")) {
-                    chosenAccountingType = "1";
+                    chosenArea  = "1";
                 }
                 if (choice[item].equals("Район №2")) {
-                    chosenAccountingType = "2";
+                    chosenArea = "2";
                 }
                 if (choice[item].equals("Район №3")) {
-                    chosenAccountingType = "3";
+                    chosenArea = "3";
                 }
                 if (choice[item].equals("Район №4")) {
-                    chosenAccountingType = "4";
+                    chosenArea = "4";
                 }
                 if (choice[item].equals("Район №5")) {
-                    chosenAccountingType = "5";
+                    chosenArea = "5";
                 }
             }
         });
@@ -317,6 +317,34 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
     }
 
     private void salesPartnerChoice(){
+        if (tableExists(db, "salesPartners")) {
+            String sql;
+            Cursor c;
+            if (chosenRoot.equals("любой")){
+                sql = "SELECT serverDB_ID integer, Наименование FROM salesPartners " +
+                        "WHERE Район LIKE ? AND Учет LIKE ? ";
+                c = db.rawQuery(sql, new String[]{chosenArea, chosenAccountingType});
+            } else {
+                sql = "SELECT serverDB_ID integer, Наименование FROM salesPartners " +
+                        "WHERE Район LIKE ? AND Учет LIKE ? AND DayOfTheWeek LIKE ?";
+                c = db.rawQuery(sql, new String[]{chosenArea, chosenAccountingType, chosenRoot});
+            }
+
+            if (c.moveToFirst()) {
+                int salesPartnerIDTmp = c.getColumnIndex("serverDB_ID");
+                int salesPartnerNameTmp = c.getColumnIndex("Наименование");
+                agentAreaList = new ArrayList<>();
+                secondNameList = new ArrayList<>();
+                do {
+                    agentAreaList.add(c.getInt(salesPartnerIDTmp));
+                    secondNameList.add(c.getString(salesPartnerNameTmp));
+                } while (c.moveToNext());
+                agentsList = new String[agentAreaList.size()];
+                for (int i = 0; i < agentAreaList.size(); i++) {
+                    agentsList[i] = secondNameList.get(i) + " " + firstNameList.get(i) + " " + middleNameList.get(i);
+                }
+            }
+        }
         final boolean[] mCheckedItems = new boolean[3];
         final String[] salesPartnersList = { "Васька", "Рыжик", "Мурзик" };
         AlertDialog.Builder builder;
