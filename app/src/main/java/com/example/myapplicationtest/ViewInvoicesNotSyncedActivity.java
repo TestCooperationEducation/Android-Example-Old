@@ -50,7 +50,8 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
     final String SAVED_AREA = "Area";
     final String SAVED_AREADEFAULT = "areaDefault";
     final String SAVED_InvoiceNumberLast = "invoiceNumberLast";
-    ArrayList<String> arrItems, invoiceNumberServerTmp, dateTimeDocServer, summaryListTmp;
+    ArrayList<String> arrItems, invoiceNumberServerTmp, dateTimeDocServer, summaryListTmp, accTypeListTmp,
+            accTypeSPListTmp;
     ArrayList<Double> arrQuantity, arrExchange, arrReturn, arrSum;
     ArrayList<Integer> arrPriceChanged, invoiceNumbersList;
     List<DataInvoice> dataArray;
@@ -76,6 +77,8 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
         invoiceNumberServerTmp = new ArrayList<>();
         dateTimeDocServer = new ArrayList<>();
         summaryListTmp = new ArrayList<>();
+        accTypeSPListTmp = new ArrayList<>();
+        accTypeListTmp = new ArrayList<>();
 
         btnSaveInvoiceToLocalDB = findViewById(R.id.buttonSyncInvoicesWithServer);
         btnSaveInvoiceToLocalDB.setOnClickListener(this);
@@ -274,6 +277,8 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
                 int commentTmp = c.getColumnIndex("comment");
                 int salesPartnerNameTmp = c.getColumnIndex("salesPartnerName");
                 summaryListTmp.add(c.getString(salesPartnerNameTmp));
+                accTypeListTmp.add(c.getString(accountingTypeDocTmp));
+                accTypeSPListTmp.add(c.getString(accountingTypeSPTmp));
                 do {
                     Integer invoiceNumberLocal = Integer.parseInt(c.getString(invoiceNumberLocalTmp));
                     Integer agentID = Integer.parseInt(c.getString(agentIDTmp));
@@ -304,7 +309,7 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
         }
         summaryList = new String[summaryListTmp.size()];
         for (int i = 0; i < summaryListTmp.size(); i++) {
-            summaryList[i] = summaryListTmp.get(i);
+            summaryList[i] = summaryListTmp.get(i) + " accSP: " + accTypeSPListTmp.get(i) + " accDoc: " + accTypeListTmp.get(i);
         }
 
         if (saveMenuTrigger == false) {
