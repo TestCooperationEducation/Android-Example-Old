@@ -250,10 +250,11 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
     private void saveInvoicesToServerDB(){
         for (int i = 0; i < invoiceNumbersList.size(); i++){
 //            dataArray.clear();
-            String sql = "SELECT invoiceLocalDB.*, salesPartners.serverDB_ID FROM invoiceLocalDB " +
-                    "INNER JOIN salesPartners ON invoiceLocalDB.salesPartnerName LIKE salesPartners.Наименование " +
-                    "AND invoiceLocalDB.areaSP LIKE salesPartners.Район AND invoiceLocalDB.accountingTypeSP " +
-                    "LIKE salesPartners.Учет WHERE invoiceLocalDB.invoiceNumber LIKE ? ";
+//            String sql = "SELECT invoiceLocalDB.*, salesPartners.serverDB_ID FROM invoiceLocalDB " +
+//                    "INNER JOIN salesPartners ON invoiceLocalDB.salesPartnerName LIKE salesPartners.Наименование " +
+//                    "AND invoiceLocalDB.areaSP LIKE salesPartners.Район AND invoiceLocalDB.accountingTypeSP " +
+//                    "LIKE salesPartners.Учет WHERE invoiceLocalDB.invoiceNumber LIKE ? ";
+            String sql = "SELECT * FROM invoiceLocalDB WHERE invoiceLocalDB.invoiceNumber LIKE ? ";
             Cursor c = db.rawQuery(sql, new String[]{invoiceNumbersList.get(i).toString()});
             if (c.moveToFirst()) {
                 int invoiceNumberLocalTmp = c.getColumnIndex("invoiceNumber");
@@ -277,7 +278,7 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
                     Integer invoiceNumberLocal = Integer.parseInt(c.getString(invoiceNumberLocalTmp));
                     Integer agentID = Integer.parseInt(c.getString(agentIDTmp));
                     Integer areaSP = c.getInt(areaSPTmp);
-                    Integer salesPartnerID = c.getInt(salesPartnerIDTmp);
+//                    Integer salesPartnerID = c.getInt(salesPartnerIDTmp);
                     String accountingTypeDoc = c.getString(accountingTypeDocTmp);
                     String accountingTypeSP = c.getString(accountingTypeSPTmp);
                     String itemName = c.getString(itemNameTmp);
@@ -292,10 +293,10 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
 
                     Log.d(LOG_TAG, "invoiceNumber: " + invoiceNumberLocal.toString());
 
-                    DataInvoice dt = new DataInvoice(accountingTypeDoc, accountingTypeSP,
-                            itemName, dateTimeDocLocal, comment, salesPartnerID, invoiceNumberLocal, agentID, areaSP, price,
-                            quantity, totalCost, exchangeQuantity, returnQuantity, invoiceSum);
-                    dataArray.add(dt);
+//                    DataInvoice dt = new DataInvoice(accountingTypeDoc, accountingTypeSP,
+//                            itemName, dateTimeDocLocal, comment, salesPartnerID, invoiceNumberLocal, agentID, areaSP, price,
+//                            quantity, totalCost, exchangeQuantity, returnQuantity, invoiceSum);
+//                    dataArray.add(dt);
 
                 } while (c.moveToNext());
             }
