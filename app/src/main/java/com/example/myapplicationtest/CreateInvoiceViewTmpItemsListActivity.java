@@ -298,7 +298,10 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
             e.apply();
 
             Toast.makeText(getApplicationContext(), invoiceNumber.toString(), Toast.LENGTH_SHORT).show();
-
+            sPrefComment.edit().clear().apply();
+            sPrefChangeInvoiceNotSynced.edit().clear().apply();
+            sPrefChangeInvoiceNumberNotSynced.edit().clear().apply();
+            sPrefAccountingType.edit().clear().apply();
             paymentPrompt();
 
         } else {
@@ -354,6 +357,7 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
             sPrefComment.edit().clear().apply();
             sPrefChangeInvoiceNotSynced.edit().clear().apply();
             sPrefChangeInvoiceNumberNotSynced.edit().clear().apply();
+            sPrefAccountingType.edit().clear().apply();
             Toast.makeText(getApplicationContext(), "<<< Обновление записи завершено >>>", Toast.LENGTH_SHORT).show();
             paymentPrompt();
         }
