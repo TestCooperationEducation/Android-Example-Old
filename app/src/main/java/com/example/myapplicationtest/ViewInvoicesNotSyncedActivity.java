@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -40,7 +41,7 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
             sPrefArea, sPrefAreaDefault, sPrefInvoiceNumberLast;
     String paymentStatus, invoiceNumbers = "", dbName, dbUser, dbPassword,
             requestUrlSaveRecord = "https://caiman.ru.com/php/saveNewInvoice_new.php",
-            loginSecurity, statusSave = "", areaDefault, invoiceNumberLast;
+            loginSecurity, statusSave = "", areaDefault, invoiceNumberLast, spChosen;
     final String SAVED_DBName = "dbName";
     final String SAVED_DBUser = "dbUser";
     final String SAVED_DBPassword = "dbPassword";
@@ -49,11 +50,12 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
     final String SAVED_AREA = "Area";
     final String SAVED_AREADEFAULT = "areaDefault";
     final String SAVED_InvoiceNumberLast = "invoiceNumberLast";
-    ArrayList<String> arrItems, invoiceNumberServerTmp, dateTimeDocServer;
+    ArrayList<String> arrItems, invoiceNumberServerTmp, dateTimeDocServer, summaryListTmp;
     ArrayList<Double> arrQuantity, arrExchange, arrReturn, arrSum;
     ArrayList<Integer> arrPriceChanged, invoiceNumbersList;
     List<DataInvoice> dataArray;
-    String[] requestMessage;
+    String[] requestMessage, summaryList;
+    Boolean saveMenuTrigger = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,6 +75,7 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
         invoiceNumbersList = new ArrayList<>();
         invoiceNumberServerTmp = new ArrayList<>();
         dateTimeDocServer = new ArrayList<>();
+        summaryListTmp = new ArrayList<>();
 
         btnSaveInvoiceToLocalDB = findViewById(R.id.buttonSyncInvoicesWithServer);
         btnSaveInvoiceToLocalDB.setOnClickListener(this);
@@ -115,7 +118,7 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
                     AlertDialog alert = builder.create();
                     alert.show();
                 } else {
-                    saveInvoicesToServerDB();
+                    saveMenu();
                 }
                 break;
             default:
@@ -201,6 +204,9 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
         RecyclerView recyclerView = findViewById(R.id.recyclerViewInvoicesLocal);
         DataAdapterViewInvoicesFromLocalDB adapter = new DataAdapterViewInvoicesFromLocalDB(this, listTmp);
         recyclerView.setAdapter(adapter);
+
+        saveMenuTrigger = true;
+        saveInvoicesToServerDB();
     }
 
     private void alreadySyncedPrompt(){
@@ -217,6 +223,28 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
                         });
         AlertDialog alert = builder.create();
         alert.show();
+    }
+
+    private void saveMenu(){
+        AlertDialog.Builder builder;
+        builder = new AlertDialog.Builder(this);
+        builder.setTitle("Синхронизация");
+        builder.setItems(summaryList, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int item) {
+                spChosen = summaryList[item];
+            }
+        });
+        builder.setCancelable(true);
+
+        AlertDialog alert = builder.create();
+        alert.show();
+//        WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
+//        lp.copyFrom(alert.getWindow().getAttributes());
+//        lp.width = 500;
+//        lp.height = 1100;
+//        lp.x = -300;
+//        alert.getWindow().setAttributes(lp);
     }
 
     private void saveInvoicesToServerDB(){
@@ -243,6 +271,8 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
                 int dateTimeDocLocalTmp = c.getColumnIndex("dateTimeDocLocal");
                 int invoiceSumTmp = c.getColumnIndex("invoiceSum");
                 int commentTmp = c.getColumnIndex("comment");
+                int salesPartnerNameTmp = c.getColumnIndex("salesPartnerName");
+                summaryListTmp.add(c.getString(salesPartnerNameTmp));
                 do {
                     Integer invoiceNumberLocal = Integer.parseInt(c.getString(invoiceNumberLocalTmp));
                     Integer agentID = Integer.parseInt(c.getString(agentIDTmp));
@@ -271,7 +301,15 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
             }
             c.close();
         }
-        sendToServer();
+        summaryList = new String[summaryListTmp.size()];
+        for (int i = 0; i < summaryListTmp.size(); i++) {
+            summaryList[i] = summaryListTmp.get(i);
+        }
+
+        if (saveMenuTrigger == false) {
+            sendToServer();
+        }
+        saveMenuTrigger = false;
     }
 
     private void sendToServer(){
