@@ -60,7 +60,7 @@ public class CreateInvoiceChooseSalesPartnerActivity extends AppCompatActivity i
     final String SAVED_ChangeInvoiceNumberNotSynced = "changeInvoiceNumberNotSynced";
     SharedPreferences.Editor e;
     String requestUrl = "https://caiman.ru.com/php/filter_new.php", salesPartner, dbName, dbUser, dbPassword,
-            area, accountingType, dayOfTheWeek, connStatus;
+            area, accountingType, dayOfTheWeek, connStatus, spAccType;
     final String LOG_TAG = "myLogs";
     DBHelper dbHelper;
     SQLiteDatabase db;
@@ -318,6 +318,24 @@ public class CreateInvoiceChooseSalesPartnerActivity extends AppCompatActivity i
         }
     }
 
+    private void setAccountingTypeSP(){
+        String sql = "SELECT * FROM salesPartners WHERE Наименование LIKE ? AND Район LIKE ? AND DayOfTheWeek LIKE ?";
+        Cursor c = db.rawQuery(sql, new String[]{salesPartner, area, dayOfTheWeek});
+        if (c.moveToFirst()) {
+            int spAccTypeTmp = c.getColumnIndex("Учет");
+            do {
+                spAccType = c.getString(spAccTypeTmp);
+                Log.d(LOG_TAG, "spAccType: " + spAccType);
+            } while (c.moveToNext());
+            Toast.makeText(getApplicationContext(), "Восстановлен: " + spAccType,
+                    Toast.LENGTH_SHORT).show();
+        }
+        c.close();
+        e = sPrefAccountingTypeDefault.edit();
+        e.putString(SAVED_ACCOUNTINGTYPEDEFAULT, spAccType);
+        e.apply();
+    }
+
     private void onLoadActivity(){
         String spTmp = "";
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -338,6 +356,7 @@ public class CreateInvoiceChooseSalesPartnerActivity extends AppCompatActivity i
                         .setNegativeButton("Восстановить",
                                 new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialog, int id) {
+                                        setAccountingTypeSP();
                                         createInvoice();
                                         dialog.cancel();
                                     }

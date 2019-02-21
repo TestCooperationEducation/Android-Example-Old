@@ -11,9 +11,9 @@ import android.widget.Button;
 public class CreateInvoiceChooseTypeOfInvoiceActivity extends AppCompatActivity implements View.OnClickListener {
 
     Button btnInvoiceTypeOne, btnInvoiceTypeTwo;
-    final String SAVED_ACCOUNTINGTYPE = "AccountingType";
+    final String SAVED_ACCOUNTINGTYPEDocFilter = "AccountingTypeDocFilter";
     final String SAVED_ItemsListSaveStatus = "itemsListSaveStatus";
-    SharedPreferences sPrefAccountingType, sPrefItemsListSaveStatus;
+    SharedPreferences sPrefAccountingTypeDocFilter, sPrefItemsListSaveStatus;
     SharedPreferences.Editor e;
 
     @Override
@@ -26,22 +26,22 @@ public class CreateInvoiceChooseTypeOfInvoiceActivity extends AppCompatActivity 
         btnInvoiceTypeTwo = findViewById(R.id.buttonInvoiceTypeTwo);
         btnInvoiceTypeTwo.setOnClickListener(this);
 
-        sPrefAccountingType = getSharedPreferences(SAVED_ACCOUNTINGTYPE, Context.MODE_PRIVATE);
+        sPrefAccountingTypeDocFilter = getSharedPreferences(SAVED_ACCOUNTINGTYPEDocFilter, Context.MODE_PRIVATE);
         sPrefItemsListSaveStatus = getSharedPreferences(SAVED_ItemsListSaveStatus, Context.MODE_PRIVATE);
     }
 
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.buttonInvoiceTypeOne:
-                e = sPrefAccountingType.edit();
-                e.putString(SAVED_ACCOUNTINGTYPE, "провод");
+                e = sPrefAccountingTypeDocFilter.edit();
+                e.putString(SAVED_ACCOUNTINGTYPEDocFilter, "провод");
                 e.apply();
                 Intent intentOne = new Intent(getApplicationContext(), CreateInvoiceChooseItemsActivity.class);
                 startActivity(intentOne);
                 break;
             case R.id.buttonInvoiceTypeTwo:
-                e = sPrefAccountingType.edit();
-                e.putString(SAVED_ACCOUNTINGTYPE, "непровод");
+                e = sPrefAccountingTypeDocFilter.edit();
+                e.putString(SAVED_ACCOUNTINGTYPEDocFilter, "непровод");
                 e.apply();
                 Intent intentTwo = new Intent(getApplicationContext(), CreateInvoiceChooseItemsActivity.class);
                 startActivity(intentTwo);

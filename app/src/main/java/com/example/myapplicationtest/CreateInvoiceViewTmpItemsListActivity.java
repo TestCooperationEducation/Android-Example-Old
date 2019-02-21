@@ -48,7 +48,7 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
 
     List<DataItemsListTmp> listTmp = new ArrayList<>();
     SharedPreferences sPrefDBName, sPrefDBPassword, sPrefDBUser, sPrefSalesPartner, sPrefInvoiceNumberTmp,
-            sPrefAccountingType, sPrefAgent, sPrefAreaDefault, sPrefArea, sPrefAccountingTypeDefault,
+            sPrefAccountingTypeDocFilter, sPrefAccountingType, sPrefAgent, sPrefAreaDefault, sPrefArea, sPrefAccountingTypeDefault,
             sPrefItemsListSaveStatus, sPrefComment, sPrefInvoiceNumberLast, sPrefChangeInvoiceNotSynced,
             sPrefChangeInvoiceNumberNotSynced, sPrefAccountingTypeDoc, sPrefAccountingTypeSP, sPrefAreaSP;
     final String LOG_TAG = "myLogs";
@@ -57,13 +57,14 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
     SharedPreferences.Editor e;
     String dbName, dbUser, dbPassword,
             requestUrlSaveRecord = "https://caiman.ru.com/php/saveNewInvoice_new.php", comment = "",
-            salesPartner, accountingType, agent, areaDefault, area, accountingTypeDefault, statusSave,
+            salesPartner, accountingTypeDocFilter, agent, areaDefault, area, accountingTypeDefault, statusSave,
             invoiceNumberLast, invoiceNumberNotSyncedChange;
     TextView textViewSalesPartner, textViewInvoiceTotal, textViewAgent, textViewAccountingType;
     final String SAVED_DBName = "dbName";
     final String SAVED_DBUser = "dbUser";
     final String SAVED_DBPassword = "dbPassword";
     final String SAVED_SALESPARTNER = "SalesPartner";
+    final String SAVED_ACCOUNTINGTYPEDocFilter = "AccountingTypeDocFilter";
     final String SAVED_ACCOUNTINGTYPE = "AccountingType";
     final String SAVED_AGENT = "agent";
     final String SAVED_AREADEFAULT = "areaDefault";
@@ -118,6 +119,7 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
         sPrefDBUser = getSharedPreferences(SAVED_DBUser, Context.MODE_PRIVATE);
         sPrefDBPassword = getSharedPreferences(SAVED_DBPassword, Context.MODE_PRIVATE);
         sPrefSalesPartner = getSharedPreferences(SAVED_SALESPARTNER, Context.MODE_PRIVATE);
+        sPrefAccountingTypeDocFilter = getSharedPreferences(SAVED_ACCOUNTINGTYPEDocFilter, Context.MODE_PRIVATE);
         sPrefAccountingType = getSharedPreferences(SAVED_ACCOUNTINGTYPE, Context.MODE_PRIVATE);
         sPrefAgent = getSharedPreferences(SAVED_AGENT, Context.MODE_PRIVATE);
         sPrefAreaDefault = getSharedPreferences(SAVED_AREADEFAULT, Context.MODE_PRIVATE);
@@ -150,18 +152,18 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
             String sPTmp = sPrefChangeInvoiceNotSynced.getString(SAVED_ChangeInvoiceNotSynced, "");
             String iNTmp = sPrefChangeInvoiceNumberNotSynced.getString(SAVED_ChangeInvoiceNumberNotSynced, "");
             salesPartner = sPTmp;
-            accountingType = sPrefAccountingTypeDoc.getString(SAVED_AccountingTypeDoc, "");
+            accountingTypeDocFilter = sPrefAccountingTypeDoc.getString(SAVED_AccountingTypeDoc, "");
             area = sPrefAreaSP.getString(SAVED_AreaSP, "");
             accountingTypeDefault = sPrefAccountingTypeSP.getString(SAVED_AccountingTypeSP, "");
         } else {
             salesPartner = sPrefSalesPartner.getString(SAVED_SALESPARTNER, "");
-            accountingType = sPrefAccountingType.getString(SAVED_ACCOUNTINGTYPE, "");
+            accountingTypeDocFilter = sPrefAccountingTypeDocFilter.getString(SAVED_ACCOUNTINGTYPEDocFilter, "");
             area = sPrefArea.getString(SAVED_AREA, "");
             accountingTypeDefault = sPrefAccountingTypeDefault.getString(SAVED_ACCOUNTINGTYPEDEFAULT, "");
         }
 
         textViewSalesPartner.setText(salesPartner);
-        textViewAccountingType.setText(accountingType);
+        textViewAccountingType.setText(accountingTypeDocFilter);
         textViewAgent.setText(agent);
 
         setInitialData();
@@ -263,7 +265,7 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
                 cv.put("agentID", areaDefault);
                 cv.put("areaSP", area);
                 cv.put("salesPartnerName", salesPartner);
-                cv.put("accountingTypeDoc", accountingType);
+                cv.put("accountingTypeDoc", accountingTypeDocFilter);
                 cv.put("accountingTypeSP", accountingTypeDefault);
                 cv.put("itemName", arrItems.get(i));
                 cv.put("quantity", arrQuantity.get(i));
@@ -301,6 +303,7 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
             sPrefComment.edit().clear().apply();
             sPrefChangeInvoiceNotSynced.edit().clear().apply();
             sPrefChangeInvoiceNumberNotSynced.edit().clear().apply();
+            sPrefAccountingTypeDocFilter.edit().clear().apply();
             sPrefAccountingType.edit().clear().apply();
             paymentPrompt();
 
@@ -330,7 +333,7 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
                     cv.put("agentID", areaDefault);
                     cv.put("areaSP", area);
                     cv.put("salesPartnerName", salesPartner);
-                    cv.put("accountingTypeDoc", accountingType);
+                    cv.put("accountingTypeDoc", accountingTypeDocFilter);
                     cv.put("accountingTypeSP", accountingTypeDefault);
 
                     cv.put("itemName", arrItems.get(i));
@@ -357,6 +360,7 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
             sPrefComment.edit().clear().apply();
             sPrefChangeInvoiceNotSynced.edit().clear().apply();
             sPrefChangeInvoiceNumberNotSynced.edit().clear().apply();
+            sPrefAccountingTypeDocFilter.edit().clear().apply();
             sPrefAccountingType.edit().clear().apply();
             Toast.makeText(getApplicationContext(), "<<< Обновление записи завершено >>>", Toast.LENGTH_SHORT).show();
             paymentPrompt();
@@ -520,7 +524,6 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
                 .setPositiveButton("Нет",
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
-                                sPrefAccountingType.edit().clear().apply();
                                 finish();
                                 dialog.cancel();
                             }
@@ -576,7 +579,6 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
                 .setPositiveButton("Назад",
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
-                                sPrefAccountingType.edit().clear().apply();
                                 finish();
                                 dialog.cancel();
                             }
@@ -677,7 +679,6 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
         e = sPrefInvoiceNumberTmp.edit();
         e.putString(SAVED_INVOICENUMBERTMP, invoiceNumber.toString());
         e.apply();
-
         Intent intent = new Intent(this, MakePaymentPartialActivity.class);
         intent.putExtra(EXTRA_INVOICESUM, invoiceSum.toString());
         startActivity(intent);
@@ -783,7 +784,7 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
         String itemsListSaveStatus = sPrefItemsListSaveStatus.getString(SAVED_ItemsListSaveStatus, "");
         comment = sPrefComment.getString(SAVED_Comment, "");
         if (itemsListSaveStatus.equals("saved")){
-                sPrefAccountingType.edit().clear().apply();
+                sPrefAccountingTypeDocFilter.edit().clear().apply();
                 finish();
         } else {
             if (!comment.equals("")){
@@ -820,7 +821,7 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
                 .setNegativeButton("Ok",
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
-                                sPrefAccountingType.edit().clear().apply();
+                                sPrefAccountingTypeDocFilter.edit().clear().apply();
                                 finish();
                                 dialog.cancel();
                             }

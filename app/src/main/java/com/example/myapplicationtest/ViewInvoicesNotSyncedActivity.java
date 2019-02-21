@@ -1,5 +1,6 @@
 package com.example.myapplicationtest;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
@@ -41,7 +42,7 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
             sPrefArea, sPrefAreaDefault, sPrefInvoiceNumberLast;
     String paymentStatus, invoiceNumbers = "", dbName, dbUser, dbPassword,
             requestUrlSaveRecord = "https://caiman.ru.com/php/saveNewInvoice_new.php",
-            loginSecurity, statusSave = "", areaDefault, invoiceNumberLast, spChosen;
+            loginSecurity, statusSave = "", areaDefault, invoiceNumberLast, invoiceNumberChosen, accTypeSPChosen;
     final String SAVED_DBName = "dbName";
     final String SAVED_DBUser = "dbUser";
     final String SAVED_DBPassword = "dbPassword";
@@ -51,11 +52,12 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
     final String SAVED_AREADEFAULT = "areaDefault";
     final String SAVED_InvoiceNumberLast = "invoiceNumberLast";
     ArrayList<String> arrItems, invoiceNumberServerTmp, dateTimeDocServer, summaryListTmp, accTypeListTmp,
-            accTypeSPListTmp;
+            accTypeSPListTmp, invoiceNumberListTmp, summaryListTmpSecond, accTypeListTmpSecond,
+            accTypeSPListTmpSecond, invoiceNumberListTmpSecond;
     ArrayList<Double> arrQuantity, arrExchange, arrReturn, arrSum;
     ArrayList<Integer> arrPriceChanged, invoiceNumbersList;
     List<DataInvoice> dataArray;
-    String[] requestMessage, summaryList;
+    String[] requestMessage, summaryList, summaryListSecond;
     Boolean saveMenuTrigger = false;
 
     @Override
@@ -79,6 +81,11 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
         summaryListTmp = new ArrayList<>();
         accTypeSPListTmp = new ArrayList<>();
         accTypeListTmp = new ArrayList<>();
+        invoiceNumberListTmp = new ArrayList<>();
+        summaryListTmpSecond = new ArrayList<>();
+        accTypeSPListTmpSecond = new ArrayList<>();
+        accTypeListTmpSecond = new ArrayList<>();
+        invoiceNumberListTmpSecond = new ArrayList<>();
 
         btnSaveInvoiceToLocalDB = findViewById(R.id.buttonSyncInvoicesWithServer);
         btnSaveInvoiceToLocalDB.setOnClickListener(this);
@@ -232,14 +239,30 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
         AlertDialog.Builder builder;
         builder = new AlertDialog.Builder(this);
         builder.setTitle("Синхронизация");
+        builder.setPositiveButton("Синхронизировать",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        saveInvoicesToServerDB();
+//                        finish();
+                        dialog.cancel();
+                    }
+                });
+        builder.setNegativeButton("Контроль",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        listWithoutIDFilter();
+                        manageMenu();
+                        dialog.cancel();
+                    }
+                });
         builder.setItems(summaryList, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int item) {
-                spChosen = summaryList[item];
+                invoiceNumberChosen = invoiceNumberListTmp.get(item);
+                Toast.makeText(getApplicationContext(), "Накладная №: " + invoiceNumberChosen, Toast.LENGTH_SHORT).show();
             }
         });
         builder.setCancelable(true);
-
         AlertDialog alert = builder.create();
         alert.show();
 //        WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
@@ -250,14 +273,55 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
 //        alert.getWindow().setAttributes(lp);
     }
 
+    private void manageMenu(){
+        AlertDialog.Builder builder;
+        builder = new AlertDialog.Builder(this);
+        builder.setTitle("Сырой список. Несовпадений: " + (summaryListSecond.length - summaryList.length));
+        builder.setNegativeButton("Назад",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        saveMenu();
+                        dialog.cancel();
+                    }
+                });
+        builder.setItems(summaryListSecond, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int item) {
+                invoiceNumberChosen = invoiceNumberListTmpSecond.get(item);
+                accTypeSPChosen = accTypeSPListTmpSecond.get(item);
+                Toast.makeText(getApplicationContext(), "Накладная №: " + invoiceNumberChosen, Toast.LENGTH_SHORT).show();
+                changeInvoice();
+                finish();
+            }
+        });
+        builder.setCancelable(true);
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+    private void changeInvoice(){
+        String accTypeTmp;
+        if (accTypeSPChosen.equals("непровод")){
+            accTypeTmp = "провод";
+        } else {
+            accTypeTmp = "непровод";
+        }
+        ContentValues cv = new ContentValues();
+        Log.d(LOG_TAG, "--- update invoiceLocalDB: ---");
+        cv.put("accountingTypeSP", accTypeTmp);
+        long rowID = db.update("invoiceLocalDB", cv, "invoiceNumber = ?",
+                new String[]{invoiceNumberChosen});
+        Log.d(LOG_TAG, "row updated, ID = " + rowID);
+    }
+
     private void saveInvoicesToServerDB(){
         for (int i = 0; i < invoiceNumbersList.size(); i++){
 //            dataArray.clear();
-//            String sql = "SELECT invoiceLocalDB.*, salesPartners.serverDB_ID FROM invoiceLocalDB " +
-//                    "INNER JOIN salesPartners ON invoiceLocalDB.salesPartnerName LIKE salesPartners.Наименование " +
-//                    "AND invoiceLocalDB.areaSP LIKE salesPartners.Район AND invoiceLocalDB.accountingTypeSP " +
-//                    "LIKE salesPartners.Учет WHERE invoiceLocalDB.invoiceNumber LIKE ? ";
-            String sql = "SELECT * FROM invoiceLocalDB WHERE invoiceLocalDB.invoiceNumber LIKE ? ";
+            String sql = "SELECT invoiceLocalDB.*, salesPartners.serverDB_ID FROM invoiceLocalDB " +
+                    "INNER JOIN salesPartners ON invoiceLocalDB.salesPartnerName LIKE salesPartners.Наименование " +
+                    "AND invoiceLocalDB.areaSP LIKE salesPartners.Район AND invoiceLocalDB.accountingTypeSP " +
+                    "LIKE salesPartners.Учет WHERE invoiceLocalDB.invoiceNumber LIKE ? ";
+//            String sql = "SELECT * FROM invoiceLocalDB WHERE invoiceLocalDB.invoiceNumber LIKE ? ";
             Cursor c = db.rawQuery(sql, new String[]{invoiceNumbersList.get(i).toString()});
             if (c.moveToFirst()) {
                 int invoiceNumberLocalTmp = c.getColumnIndex("invoiceNumber");
@@ -279,11 +343,12 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
                 summaryListTmp.add(c.getString(salesPartnerNameTmp));
                 accTypeListTmp.add(c.getString(accountingTypeDocTmp));
                 accTypeSPListTmp.add(c.getString(accountingTypeSPTmp));
+                invoiceNumberListTmp.add(c.getString(invoiceNumberLocalTmp));
                 do {
                     Integer invoiceNumberLocal = Integer.parseInt(c.getString(invoiceNumberLocalTmp));
                     Integer agentID = Integer.parseInt(c.getString(agentIDTmp));
                     Integer areaSP = c.getInt(areaSPTmp);
-//                    Integer salesPartnerID = c.getInt(salesPartnerIDTmp);
+                    Integer salesPartnerID = c.getInt(salesPartnerIDTmp);
                     String accountingTypeDoc = c.getString(accountingTypeDocTmp);
                     String accountingTypeSP = c.getString(accountingTypeSPTmp);
                     String itemName = c.getString(itemNameTmp);
@@ -298,10 +363,10 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
 
                     Log.d(LOG_TAG, "invoiceNumber: " + invoiceNumberLocal.toString());
 
-//                    DataInvoice dt = new DataInvoice(accountingTypeDoc, accountingTypeSP,
-//                            itemName, dateTimeDocLocal, comment, salesPartnerID, invoiceNumberLocal, agentID, areaSP, price,
-//                            quantity, totalCost, exchangeQuantity, returnQuantity, invoiceSum);
-//                    dataArray.add(dt);
+                    DataInvoice dt = new DataInvoice(accountingTypeDoc, accountingTypeSP,
+                            itemName, dateTimeDocLocal, comment, salesPartnerID, invoiceNumberLocal, agentID, areaSP, price,
+                            quantity, totalCost, exchangeQuantity, returnQuantity, invoiceSum);
+                    dataArray.add(dt);
 
                 } while (c.moveToNext());
             }
@@ -309,13 +374,41 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
         }
         summaryList = new String[summaryListTmp.size()];
         for (int i = 0; i < summaryListTmp.size(); i++) {
-            summaryList[i] = summaryListTmp.get(i) + " accSP: " + accTypeSPListTmp.get(i) + " accDoc: " + accTypeListTmp.get(i);
+            summaryList[i] = "№." + invoiceNumberListTmp.get(i) + " " + summaryListTmp.get(i);
+//                    + " accSP: " + accTypeSPListTmp.get(i) + " accDoc: " + accTypeListTmp.get(i);
         }
 
         if (saveMenuTrigger == false) {
             sendToServer();
         }
         saveMenuTrigger = false;
+    }
+
+    private void listWithoutIDFilter(){
+        for (int i = 0; i < invoiceNumbersList.size(); i++){
+            String sql = "SELECT * FROM invoiceLocalDB WHERE invoiceLocalDB.invoiceNumber LIKE ? ";
+            Cursor c = db.rawQuery(sql, new String[]{invoiceNumbersList.get(i).toString()});
+            if (c.moveToFirst()) {
+                int invoiceNumberLocalTmp = c.getColumnIndex("invoiceNumber");
+                int accountingTypeDocTmp = c.getColumnIndex("accountingTypeDoc");
+                int accountingTypeSPTmp = c.getColumnIndex("accountingTypeSP");
+                int salesPartnerNameTmp = c.getColumnIndex("salesPartnerName");
+                summaryListTmpSecond.add(c.getString(salesPartnerNameTmp));
+                accTypeListTmpSecond.add(c.getString(accountingTypeDocTmp));
+                accTypeSPListTmpSecond.add(c.getString(accountingTypeSPTmp));
+                invoiceNumberListTmpSecond.add(c.getString(invoiceNumberLocalTmp));
+                do {
+
+                } while (c.moveToNext());
+            }
+            c.close();
+        }
+        summaryListSecond = new String[summaryListTmpSecond.size()];
+        for (int i = 0; i < summaryListTmpSecond.size(); i++) {
+            summaryListSecond[i] = "№." + invoiceNumberListTmpSecond.get(i) + " " + summaryListTmpSecond.get(i) +
+                    System.lineSeparator() + "тип Точки: " + accTypeSPListTmpSecond.get(i) + System.lineSeparator() +
+                    "тип документа: " + accTypeListTmpSecond.get(i);
+        }
     }
 
     private void sendToServer(){

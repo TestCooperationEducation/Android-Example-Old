@@ -44,12 +44,13 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
 
     Button btnInvoice, btnPayments, btnSalesAgents, btnUpdateLocalDB, btnClearLocalTables,
             btnReports, btnViewInvoices, btnReceive;
-    SharedPreferences sPrefArea, sPrefAccountingType, sPrefDayOfTheWeekDefault, sPrefDBName,
+    SharedPreferences sPrefArea, sPrefAccountingTypeDocFilter, sPrefDayOfTheWeekDefault, sPrefDBName,
             sPrefFreshStatus, sPrefDBPassword, sPrefDBUser, sPrefDayOfTheWeek, sPrefVisited,
             sPrefConnectionStatus, sPrefAreaDefault, sPrefInvoiceNumberLast, sPrefPaymentNumberLast,
             sPrefChangeInvoiceNumberNotSynced, sPrefChangeInvoiceNotSynced, sPrefAccountingTypeDoc,
-            sPrefLastReceiveDate;
+            sPrefLastReceiveDate, sPrefAccountingType;
     final String SAVED_AREA = "Area";
+    final String SAVED_ACCOUNTINGTYPEDocFilter = "AccountingTypeDocFilter";
     final String SAVED_ACCOUNTINGTYPE = "AccountingType";
     final String SAVED_DAYOFTHEWEEKDEFAULT = "DayOfTheWeekDefault";
     final String SAVED_DayOfTheWeek = "DayOfTheWeek";
@@ -116,6 +117,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         sPrefDBUser = getSharedPreferences(SAVED_DBUser, Context.MODE_PRIVATE);
         sPrefDBPassword = getSharedPreferences(SAVED_DBPassword, Context.MODE_PRIVATE);
         sPrefArea = getSharedPreferences(SAVED_AREA, Context.MODE_PRIVATE);
+        sPrefAccountingTypeDocFilter = getSharedPreferences(SAVED_ACCOUNTINGTYPEDocFilter, Context.MODE_PRIVATE);
         sPrefAccountingType = getSharedPreferences(SAVED_ACCOUNTINGTYPE, Context.MODE_PRIVATE);
         sPrefDayOfTheWeekDefault = getSharedPreferences(SAVED_DAYOFTHEWEEKDEFAULT, Context.MODE_PRIVATE);
         sPrefDayOfTheWeek = getSharedPreferences(SAVED_DayOfTheWeek, Context.MODE_PRIVATE);
@@ -138,6 +140,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         lastReceiveDate = sPrefLastReceiveDate.getString(SAVED_LastReceiveDate, "");
 
         sPrefArea.edit().clear().apply();
+        sPrefAccountingTypeDocFilter.edit().clear().apply();
         sPrefAccountingType.edit().clear().apply();
         sPrefDayOfTheWeek.edit().clear().apply();
         sPrefVisited.edit().clear().apply();
@@ -449,6 +452,8 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
             LocalDateTime d = LocalDateTime.parse(lastReceiveDate, formatter);
             final String output = d.with(LocalTime.MIN).format( formatter );
             Toast.makeText(getApplicationContext(), output, Toast.LENGTH_SHORT).show();
+
+//            String output = "2019-02-19 15:00:00";
 
             ArrayList<String> itemNameListDefault;
             Double quantity;
