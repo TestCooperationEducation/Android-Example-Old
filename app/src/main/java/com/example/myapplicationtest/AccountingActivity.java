@@ -14,6 +14,8 @@ import android.os.Environment;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
@@ -34,6 +36,10 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Array;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
@@ -50,11 +56,12 @@ import jxl.write.biff.RowsExceededException;
 public class AccountingActivity extends AppCompatActivity implements View.OnClickListener {
 
     String csvFile, folder_name;
-    Button btnOptions;
+    Button btnOptions, btnExecute;
     TextView textViewAgentName, textViewAccountingType;
     EditText editTextDateStart, editTextDateEnd;
     String chosenArea = "любой", chosenRoot = "любой", chosenAccountingType = "провод", dbName, dbUser,
-            dbPassword, syncUrl = "https://caiman.ru.com/php/syncDB.php", areaDefault = "accountant";
+            dbPassword, syncUrl = "https://caiman.ru.com/php/syncDB.php", areaDefault = "accountant",
+            agentChosen = "любой", dateStart = "", dateEnd = "", email = "accountant@caiman.ru.com";
     DBHelper dbHelper;
     SQLiteDatabase db;
     final String LOG_TAG = "myLogs";
@@ -62,10 +69,13 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
     final String SAVED_DBUser = "dbUser";
     final String SAVED_DBPassword = "dbPassword";
     SharedPreferences sPrefDBName, sPrefDBPassword, sPrefDBUser;
-    ArrayList<Integer> agentAreaList;
-    ArrayList<String> secondNameList, firstNameList, middleNameList;
-    String[] agentsList;
-    Integer agentChosen;
+    ArrayList<Integer> agentAreaList, salesPartnerIDList, invoiceNumberListTmp, agentIDListTmp,
+            itemIDListTmp, salesPartnerIDListTmp;
+    ArrayList<Double> quantityListTmp, priceListTmp, totalListTmp, invoiceSumListTmp;
+    ArrayList<String> secondNameList, firstNameList, middleNameList, salesPartnerNameList,
+            dateTimeDocListTmp;
+    String[] agentsList, salesPartnersList;
+    boolean[] mCheckedItems;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,12 +95,18 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
         folder_name = File.separator + "Download" + File.separator + "Excel";
         btnOptions = findViewById(R.id.buttonOptions);
         btnOptions.setOnClickListener(this);
+        btnExecute = findViewById(R.id.buttonExecute);
+        btnExecute.setOnClickListener(this);
         textViewAgentName = findViewById(R.id.textViewAgent);
         textViewAccountingType = findViewById(R.id.textViewAccountingType);
         editTextDateStart = findViewById(R.id.editTextDateStart);
         editTextDateEnd = findViewById(R.id.editTextDateEnd);
+        textViewAgentName.setText("Любой Агент");
+        textViewAccountingType.setText("Проводные документы");
 
         setInitialValues();
+        onChangeListener();
+        email = "iamcomputers@mail.ru";
     }
 
     @Override
@@ -99,13 +115,16 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
             case R.id.buttonOptions:
                 mainMenu();
                 break;
+            case R.id.buttonExecute:
+                makeExcel();
+                break;
             default:
                 break;
         }
     }
 
     private void mainMenu(){
-        final String[] choice ={"Настройки", "Контрагент", "Агент", "Учёт", "Просмотр", "Выполнить", "Обновить БД"};
+        final String[] choice ={"Настройки", "Контрагенты", "Агенты", "Учёт", "Просмотр", "Выполнить", "Обновить БД"};
         AlertDialog.Builder builder;
         builder = new AlertDialog.Builder(this);
         builder.setTitle("Меню");
@@ -114,37 +133,44 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
             public void onClick(DialogInterface dialog, int item) {
                 if (choice[item].equals("Настройки")){
                     settingsMenu();
+                    dialog.cancel();
                 }
                 if (choice[item].equals("Контрагенты")){
                     salesPartnerChoiceMenu();
+                    dialog.cancel();
                 }
                 if (choice[item].equals("Агенты")){
                     agentChoice();
+                    dialog.cancel();
                 }
                 if (choice[item].equals("Учёт")){
                     accountingTypeChoice();
+                    dialog.cancel();
                 }
                 if (choice[item].equals("Просмотр")){
                     showChosen();
+                    dialog.cancel();
                 }
                 if (choice[item].equals("Выполнить")){
                     executeChoice();
+                    dialog.cancel();
                 }
                 if (choice[item].equals("Обновить БД")){
                     updateLocalDB();
+                    dialog.cancel();
                 }
             }
         });
-        builder.setCancelable(false);
+        builder.setCancelable(true);
         AlertDialog alert = builder.create();
         alert.show();
-        WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
-        lp.copyFrom(alert.getWindow().getAttributes());
-        lp.width = 500;
-        lp.height = 1100;
-        lp.x=-300;
-//                lp.y=-200;
-        alert.getWindow().setAttributes(lp);
+//        WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
+//        lp.copyFrom(alert.getWindow().getAttributes());
+//        lp.width = 500;
+//        lp.height = 1100;
+//        lp.x=-300;
+//        lp.y=-200;
+//        alert.getWindow().setAttributes(lp);
     }
 
     private void setInitialValues(){
@@ -171,6 +197,7 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
                     agentsList[i] = secondNameList.get(i) + " " + firstNameList.get(i) + " " + middleNameList.get(i);
                 }
             }
+            c.close();
         }
     }
 
@@ -179,177 +206,210 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
     }
 
     private void salesPartnerChoiceMenu(){
-        final String[] choice ={"Использовать фильтр", "Весь список"};
+        final String[] choice ={"Изменить фильтр", "Показать"};
         AlertDialog.Builder builder;
         builder = new AlertDialog.Builder(this);
-        builder.setTitle("Меню/Контрагенты/Фильтр");
+        builder.setTitle("Контрагенты/Меню");
+        builder.setPositiveButton("Назад",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        mainMenu();
+                        dialog.cancel();
+                    }
+                });
         builder.setItems(choice, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int item) {
-                if (choice[item].equals("Использвать фильтр")){
+                if (choice[item].equals("Изменить фильтр")){
                     salesPartnerChoiceFilter();
+                    dialog.cancel();
                 }
-                if (choice[item].equals("Весь список")){
-                    areaDefault = "accountant";
+                if (choice[item].equals("Показать")){
                     salesPartnerChoice();
+                    dialog.cancel();
                 }
             }
         });
         builder.setCancelable(false);
         AlertDialog alert = builder.create();
         alert.show();
-        WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
-        lp.copyFrom(alert.getWindow().getAttributes());
-        lp.width = 500;
-        lp.height = 1100;
-        lp.x=-300;
-        alert.getWindow().setAttributes(lp);
     }
 
     private void salesPartnerChoiceFilter(){
         final String[] choice ={"Район", "Маршрут", "Учёт"};
         AlertDialog.Builder builder;
         builder = new AlertDialog.Builder(this);
-        builder.setTitle("Контрагенты -- Фильтр");
+        builder.setTitle("Контрагенты/Фильтр");
+        builder.setPositiveButton("Назад",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        salesPartnerChoiceMenu();
+                        dialog.cancel();
+                    }
+                });
         builder.setItems(choice, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int item) {
                 if (choice[item].equals("Район")){
                     salesPartnerChoiceArea();
+                    dialog.cancel();
                 }
                 if (choice[item].equals("Маршрут")){
                     salesPartnerChoiceRoot();
+                    dialog.cancel();
                 }
                 if (choice[item].equals("Учёт")){
                     salesPartnerChoiceAccountingType();
+                    dialog.cancel();
                 }
             }
         });
         builder.setCancelable(false);
         AlertDialog alert = builder.create();
         alert.show();
-        WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
-        lp.copyFrom(alert.getWindow().getAttributes());
-        lp.width = 500;
-        lp.height = 1100;
-        lp.x=-300;
-        alert.getWindow().setAttributes(lp);
     }
 
     private void salesPartnerChoiceArea() {
         final String[] choice = {"Район №1", "Район №2", "Район №3", "Район №4", "Район №5"};
         AlertDialog.Builder builder;
         builder = new AlertDialog.Builder(this);
-        builder.setTitle("Контрагенты -- Район");
+        builder.setTitle("Контрагенты/Район");
+        builder.setPositiveButton("Назад",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        salesPartnerChoiceFilter();
+                        dialog.cancel();
+                    }
+                });
         builder.setItems(choice, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int item) {
                 if (choice[item].equals("Район №1")) {
                     chosenArea  = "1";
+                    salesPartnerChoiceFilter();
+                    dialog.cancel();
                 }
                 if (choice[item].equals("Район №2")) {
                     chosenArea = "2";
+                    salesPartnerChoiceFilter();
+                    dialog.cancel();
                 }
                 if (choice[item].equals("Район №3")) {
                     chosenArea = "3";
+                    salesPartnerChoiceFilter();
+                    dialog.cancel();
                 }
                 if (choice[item].equals("Район №4")) {
                     chosenArea = "4";
+                    salesPartnerChoiceFilter();
+                    dialog.cancel();
                 }
                 if (choice[item].equals("Район №5")) {
                     chosenArea = "5";
+                    salesPartnerChoiceFilter();
+                    dialog.cancel();
                 }
             }
         });
         builder.setCancelable(false);
         AlertDialog alert = builder.create();
         alert.show();
-        WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
-        lp.copyFrom(alert.getWindow().getAttributes());
-        lp.width = 500;
-        lp.height = 1100;
-        lp.x = -300;
-        alert.getWindow().setAttributes(lp);
     }
 
     private void salesPartnerChoiceRoot() {
         final String[] choice = {"понедельник-четверг", "среда", "вторник-пятница", "север", "любой"};
         AlertDialog.Builder builder;
         builder = new AlertDialog.Builder(this);
-        builder.setTitle("Контрагенты -- Маршрут");
+        builder.setTitle("Контрагенты/Маршрут");
+        builder.setPositiveButton("Назад",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        salesPartnerChoiceFilter();
+                        dialog.cancel();
+                    }
+                });
         builder.setItems(choice, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int item) {
                 chosenRoot = choice[item];
+                salesPartnerChoiceFilter();
+                dialog.cancel();
             }
         });
         builder.setCancelable(false);
         AlertDialog alert = builder.create();
         alert.show();
-        WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
-        lp.copyFrom(alert.getWindow().getAttributes());
-        lp.width = 500;
-        lp.height = 1100;
-        lp.x = -300;
-        alert.getWindow().setAttributes(lp);
     }
 
     private void salesPartnerChoiceAccountingType() {
         final String[] choice = {"провод", "непровод"};
         AlertDialog.Builder builder;
         builder = new AlertDialog.Builder(this);
-        builder.setTitle("Контрагенты -- Учёт");
+        builder.setTitle("Контрагенты/Учёт");
+        builder.setPositiveButton("Назад",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        salesPartnerChoiceFilter();
+                        dialog.cancel();
+                    }
+                });
         builder.setItems(choice, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int item) {
                 chosenAccountingType = choice[item];
+                textViewAccountingType.setText(chosenAccountingType);
+                salesPartnerChoiceFilter();
+                dialog.cancel();
             }
         });
         builder.setCancelable(false);
         AlertDialog alert = builder.create();
         alert.show();
-        WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
-        lp.copyFrom(alert.getWindow().getAttributes());
-        lp.width = 500;
-        lp.height = 1100;
-        lp.x = -300;
-        alert.getWindow().setAttributes(lp);
     }
 
     private void salesPartnerChoice(){
         if (tableExists(db, "salesPartners")) {
             String sql;
             Cursor c;
-            if (chosenRoot.equals("любой")){
-                sql = "SELECT serverDB_ID integer, Наименование FROM salesPartners " +
+            if (chosenRoot.equals("любой") && !chosenArea.equals("любой")){
+                sql = "SELECT serverDB_ID, Наименование FROM salesPartners " +
                         "WHERE Район LIKE ? AND Учет LIKE ? ";
                 c = db.rawQuery(sql, new String[]{chosenArea, chosenAccountingType});
             } else {
-                sql = "SELECT serverDB_ID integer, Наименование FROM salesPartners " +
+                sql = "SELECT serverDB_ID, Наименование FROM salesPartners " +
+                        "WHERE DayOfTheWeek LIKE ? AND Учет LIKE ? ";
+                c = db.rawQuery(sql, new String[]{chosenRoot, chosenAccountingType});
+            }
+            if (!chosenRoot.equals("любой") && !chosenArea.equals("любой")){
+                sql = "SELECT serverDB_ID, Наименование FROM salesPartners " +
                         "WHERE Район LIKE ? AND Учет LIKE ? AND DayOfTheWeek LIKE ?";
                 c = db.rawQuery(sql, new String[]{chosenArea, chosenAccountingType, chosenRoot});
+            }
+            if (chosenRoot.equals("любой") && chosenArea.equals("любой")){
+                sql = "SELECT serverDB_ID, Наименование FROM salesPartners " +
+                        "WHERE Учет LIKE ? ";
+                c = db.rawQuery(sql, new String[]{chosenAccountingType});
             }
 
             if (c.moveToFirst()) {
                 int salesPartnerIDTmp = c.getColumnIndex("serverDB_ID");
                 int salesPartnerNameTmp = c.getColumnIndex("Наименование");
-                agentAreaList = new ArrayList<>();
-                secondNameList = new ArrayList<>();
+                salesPartnerIDList = new ArrayList<>();
+                salesPartnerNameList = new ArrayList<>();
                 do {
-                    agentAreaList.add(c.getInt(salesPartnerIDTmp));
-                    secondNameList.add(c.getString(salesPartnerNameTmp));
+                    salesPartnerIDList.add(c.getInt(salesPartnerIDTmp));
+                    salesPartnerNameList.add(c.getString(salesPartnerNameTmp));
                 } while (c.moveToNext());
-                agentsList = new String[agentAreaList.size()];
-                for (int i = 0; i < agentAreaList.size(); i++) {
-                    agentsList[i] = secondNameList.get(i) + " " + firstNameList.get(i) + " " + middleNameList.get(i);
+                salesPartnersList = new String[salesPartnerIDList.size()];
+                for (int i = 0; i < salesPartnerIDList.size(); i++) {
+                    salesPartnersList[i] = salesPartnerIDList.get(i) + " " + salesPartnerNameList.get(i);
                 }
             }
         }
-        final boolean[] mCheckedItems = new boolean[3];
-        final String[] salesPartnersList = { "Васька", "Рыжик", "Мурзик" };
+        mCheckedItems = new boolean[salesPartnersList.length];
         AlertDialog.Builder builder;
         builder = new AlertDialog.Builder(this);
-        builder.setTitle("Выберите котов")
+        builder.setTitle("Выберите контрагентов")
                 .setCancelable(true)
                 .setMultiChoiceItems(salesPartnersList, mCheckedItems,
                         new DialogInterface.OnMultiChoiceClickListener() {
@@ -364,13 +424,11 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
                             @Override
                             public void onClick(DialogInterface dialog,
                                                 int id) {
-                                StringBuilder state = new StringBuilder();
                                 for (int i = 0; i < salesPartnersList.length; i++) {
-                                    state.append("" + salesPartnersList[i]);
-                                    if (mCheckedItems[i])
-                                        state.append(" выбран\n");
-                                    else
-                                        state.append(" не выбран\n");
+
+                                    if (mCheckedItems[i]){
+
+                                    }
                                 }
                             }
                         })
@@ -390,34 +448,127 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
     private void agentChoice(){
         AlertDialog.Builder builder;
         builder = new AlertDialog.Builder(this);
-        builder.setTitle("Контрагенты -- Учёт");
+        builder.setTitle("Агенты/выбрать");
         builder.setItems(agentsList, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int item) {
-                agentChosen = agentAreaList.get(item);
+                agentChosen = agentsList[item];
+                chosenArea = agentAreaList.get(item).toString();
+                textViewAgentName.setText(agentChosen);
+                mainMenu();
+            }
+        });
+        builder.setCancelable(true);
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+    private void accountingTypeChoice(){
+        final String[] choice = {"провод", "непровод"};
+        AlertDialog.Builder builder;
+        builder = new AlertDialog.Builder(this);
+        builder.setTitle("Тип учёта");
+        builder.setPositiveButton("Назад",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        mainMenu();
+                        dialog.cancel();
+                    }
+                });
+        builder.setItems(choice, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int item) {
+                chosenAccountingType = choice[item];
+                textViewAccountingType.setText(chosenAccountingType);
+                dialog.cancel();
             }
         });
         builder.setCancelable(false);
         AlertDialog alert = builder.create();
         alert.show();
-        WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
-        lp.copyFrom(alert.getWindow().getAttributes());
-        lp.width = 500;
-        lp.height = 1100;
-        lp.x = -300;
-        alert.getWindow().setAttributes(lp);
-    }
-
-    private void accountingTypeChoice(){
-
     }
 
     private void showChosen(){
-
+        final String[] choice = {"Дата с: " + dateStart, "Дата по: " + dateEnd, "Учёт: " + chosenAccountingType,
+                "Район №" + chosenArea, "Агент: " + agentChosen, "Маршрут: " + chosenRoot};
+        AlertDialog.Builder builder;
+        builder = new AlertDialog.Builder(this);
+        builder.setTitle("Заданные параметры");
+        builder.setPositiveButton("Назад",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        mainMenu();
+                        dialog.cancel();
+                    }
+                });
+        builder.setNegativeButton("По умолчанию",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        chosenArea = "любой";
+                        chosenAccountingType = "провод";
+                        chosenRoot = "любой";
+                        agentChosen = "любой";
+                        chosenArea = "любой";
+                        textViewAccountingType.setText("Проводные документы");
+                        textViewAgentName.setText("Любой агент");
+                        editTextDateStart.setText("");
+                        editTextDateEnd.setText("");
+                        dateStart = "";
+                        dateEnd = "";
+                        mainMenu();
+                        dialog.cancel();
+                    }
+                });
+        builder.setItems(choice, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int item) {
+                chosenAccountingType = choice[item];
+                dialog.cancel();
+            }
+        });
+        builder.setCancelable(false);
+        AlertDialog alert = builder.create();
+        alert.show();
     }
 
     private void executeChoice(){
+        if (tableExists(db, "invoice")) {
+            String sql = "SELECT InvoiceNumber, AgentID, SalesPartnerID, ItemID, Quantity, Price, Total, DateTimeDoc, InvoiceSum FROM invoice";
+            Cursor c = db.rawQuery(sql, null);
+            if (c.moveToFirst()) {
+                int invoiceNumberTmp = c.getColumnIndex("InvoiceNumber");
+                int agentIDTmp = c.getColumnIndex("AgentID");
+                int salesPartnerIDTmp = c.getColumnIndex("SalesPartnerID");
+                int itemIDTmp = c.getColumnIndex("ItemID");
+                int quantityTmp = c.getColumnIndex("Quantity");
+                int priceTmp = c.getColumnIndex("Price");
+                int totalTmp = c.getColumnIndex("Total");
+                int dateTimeDocTmp = c.getColumnIndex("DateTimeDoc");
+                int invoiceSumTmp = c.getColumnIndex("InvoiceSum");
+                invoiceNumberListTmp = new ArrayList<>();
+                agentIDListTmp = new ArrayList<>();
+                salesPartnerIDListTmp = new ArrayList<>();
+                itemIDListTmp = new ArrayList<>();
+                quantityListTmp = new ArrayList<>();
+                priceListTmp = new ArrayList<>();
+                totalListTmp = new ArrayList<>();
+                dateTimeDocListTmp = new ArrayList<>();
+                invoiceSumListTmp = new ArrayList<>();
+                do {
+                    invoiceNumberListTmp.add(c.getInt(invoiceNumberTmp));
+                    agentIDListTmp.add(c.getInt(agentIDTmp));
+                    salesPartnerIDListTmp.add(c.getInt(salesPartnerIDTmp));
+                    itemIDListTmp.add(c.getInt(itemIDTmp));
+                    quantityListTmp.add(c.getDouble(quantityTmp));
+                    priceListTmp.add(c.getDouble(priceTmp));
+                    totalListTmp.add(c.getDouble(totalTmp));
+                    dateTimeDocListTmp.add(c.getString(dateTimeDocTmp));
+                    invoiceSumListTmp.add(c.getDouble(invoiceSumTmp));
 
+                } while (c.moveToNext());
+            }
+            c.close();
+        }
     }
 
     private void updateLocalDB(){
@@ -426,28 +577,28 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
         builder.setTitle("Обновление локальной базы данных")
                 .setMessage("Все таблицы будут перезаписаны!")
                 .setCancelable(true)
-                .setNegativeButton("Да. Обновить базу",
+                .setPositiveButton("Назад",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        mainMenu();
+                        dialog.cancel();
+                    }
+                })
+                .setNegativeButton("Обновить",
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
                                 receiveUpdateFromServerPrompt();
                                 dialog.cancel();
                             }
                         })
-                .setPositiveButton("Нет. Назад",
+                .setPositiveButton("Нет",
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
-
                                 dialog.cancel();
                             }
                         });
         AlertDialog alert = builder.create();
         alert.show();
-        WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
-        lp.copyFrom(alert.getWindow().getAttributes());
-        lp.width = 500;
-        lp.height = 1100;
-        lp.x = -300;
-        alert.getWindow().setAttributes(lp);
     }
 
     private void receiveUpdateFromServerPrompt(){
@@ -578,12 +729,6 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
                         });
         AlertDialog alert = builder.create();
         alert.show();
-        WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
-        lp.copyFrom(alert.getWindow().getAttributes());
-        lp.width = 500;
-        lp.height = 1100;
-        lp.x = -300;
-        alert.getWindow().setAttributes(lp);
     }
 
     private void loadSalesPartnersFromServerDB(){
@@ -1035,8 +1180,14 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
     }
 
     private void makeExcel(){
+        Instant instant = Instant.now();
+        ZoneId zoneId = ZoneId.of( "Asia/Sakhalin" );
+        ZonedDateTime zdt = ZonedDateTime.ofInstant( instant , zoneId );
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern( "yyyy-MM-dd-HH-mm-ss" );
+        String output = zdt.format( formatter );
+
         File sd = Environment.getExternalStorageDirectory();
-        csvFile = "accountant.xls";
+        csvFile = "accountant-" + output + ".xls";
 
         File directory = new File(sd.getAbsolutePath() + File.separator + "Download" + File.separator + "Excel");
         //create directory if not exist
@@ -1063,7 +1214,8 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
             workbook.write();
             workbook.close();
             Toast.makeText(getApplication(),
-                    "Data Exported in a Excel Sheet", Toast.LENGTH_SHORT).show();
+                    "Выбранные данные экспортированы в файл Эксель", Toast.LENGTH_SHORT).show();
+            sendViaEmail("Download" + File.separator + "Excel", csvFile, email);
         } catch (IOException e) {
             e.printStackTrace();
         } catch (RowsExceededException e) {
@@ -1075,12 +1227,12 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
 
     private void sendViaEmail(String folder_name, String file_name, String emailAddress) {
         try {
-            File Root= Environment.getExternalStorageDirectory();
-            String fileLocation = Root.getAbsolutePath() + folder_name + File.separator + file_name;
+            File sd= Environment.getExternalStorageDirectory();
+            String fileLocation = sd.getAbsolutePath() + File.separator + folder_name + File.separator + file_name;
             Intent intent = new Intent(Intent.ACTION_SENDTO);
             intent.setType("text/plain");
-            String message="File to be shared is " + file_name + ".";
-            intent.putExtra(Intent.EXTRA_SUBJECT, "Subject");
+            String message="Файл с накладными за период " + file_name + ".";
+            intent.putExtra(Intent.EXTRA_SUBJECT, "Накладные");
             intent.putExtra(Intent.EXTRA_STREAM, Uri.parse( "file://" + fileLocation));
             intent.putExtra(Intent.EXTRA_TEXT, message);
             intent.setData(Uri.parse("mailto:" + emailAddress));
@@ -1277,5 +1429,43 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
         int count = cursor.getInt(0);
         cursor.close();
         return count > 0;
+    }
+
+    private void onChangeListener() {
+        editTextDateStart.addTextChangedListener(new TextWatcher() {
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                if (editTextDateStart.getText().toString().trim().length() > 0) {
+                    dateStart = editTextDateStart.getText().toString();
+                }
+            }
+        });
+
+        editTextDateEnd.addTextChangedListener(new TextWatcher() {
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                if (editTextDateEnd.getText().toString().trim().length() > 0) {
+                    dateEnd = editTextDateEnd.getText().toString();
+                }
+            }
+        });
     }
 }
