@@ -45,9 +45,15 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
+import jxl.Cell;
+import jxl.CellType;
+import jxl.Sheet;
 import jxl.Workbook;
 import jxl.WorkbookSettings;
+import jxl.format.CellFormat;
+import jxl.read.biff.BiffException;
 import jxl.write.Label;
+import jxl.write.WritableCell;
 import jxl.write.WritableSheet;
 import jxl.write.WritableWorkbook;
 import jxl.write.WriteException;
@@ -76,6 +82,7 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
             dateTimeDocListTmp;
     String[] agentsList, salesPartnersList;
     boolean[] mCheckedItems;
+    private String inputFile;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,7 +113,7 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
 
         setInitialValues();
         onChangeListener();
-        email = "iamcomputers@mail.ru";
+        email = "deadprofessor@hpeprint.com";
     }
 
     @Override
@@ -1179,6 +1186,57 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
 
     }
 
+    public void setInputFile(String inputFile) {
+        this.inputFile = inputFile;
+    }
+
+//    public void read() throws IOException  {
+//        File inputWorkbook = new File(inputFile);
+//        Workbook w;
+//        try {
+//            w = Workbook.getWorkbook(inputWorkbook);
+//            WritableWorkbook copy = Workbook.createWorkbook(new File("temp.xls"), w);
+//            WritableSheet sheet2 = copy.getSheet(1);
+//            WritableCell cell = sheet2.getWritableCell(1, 2);
+//            CellFormat cfm = cell.getCellFormat();
+//            Label l = (Label) cell;
+//            l.setString("modified cell");
+//            cell.setCellFormat(cfm);
+//
+//            if (cell.getType() == CellType.LABEL)
+//            {
+//                l = (Label) cell;
+//                l.setString("modified cell");
+//            }
+//            copy.write();
+//            copy.close();
+//            w.close();
+//            // Get the first sheet
+//            Sheet sheet = w.getSheet(0);
+//            // Loop over first 10 column and lines
+//
+//            for (int j = 0; j < sheet.getColumns(); j++) {
+//                for (int i = 0; i < sheet.getRows(); i++) {
+//                    Cell cell = sheet.getCell(j, i);
+//                    CellType type = cell.getType();
+//                    if (cell.getType() == CellType.LABEL) {
+//                        System.out.println("I got a label "
+//                                + cell.getContents());
+//                    }
+//
+//                    if (cell.getType() == CellType.NUMBER) {
+//                        System.out.println("I got a number "
+//                                + cell.getContents());
+//                    }
+//                }
+//            }
+//        } catch (BiffException e) {
+//            e.printStackTrace();
+//        } catch (WriteException e) {
+//            e.printStackTrace();
+//        }
+//    }
+
     private void makeExcel(){
         Instant instant = Instant.now();
         ZoneId zoneId = ZoneId.of( "Asia/Sakhalin" );
@@ -1198,7 +1256,7 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
         File file = new File(directory, csvFile);
         MediaScannerConnection.scanFile(this, new String[]{file.getAbsolutePath()}, null, null);
         WorkbookSettings wbSettings = new WorkbookSettings();
-        wbSettings.setLocale(new Locale("en", "EN"));
+        wbSettings.setLocale(new Locale("ru", "Ru"));
         WritableWorkbook workbook;
         try {
             workbook = Workbook.createWorkbook(file, wbSettings);
@@ -1211,6 +1269,7 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
             String phoneNumber = "Che";
             sheet.addCell(new Label(0, 1, name));
             sheet.addCell(new Label(1, 1, phoneNumber));
+
             workbook.write();
             workbook.close();
             Toast.makeText(getApplication(),
