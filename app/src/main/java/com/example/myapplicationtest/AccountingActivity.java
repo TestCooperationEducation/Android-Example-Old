@@ -55,6 +55,7 @@ import jxl.format.CellFormat;
 import jxl.read.biff.BiffException;
 import jxl.write.Label;
 import jxl.write.WritableCell;
+import jxl.write.WritableCellFormat;
 import jxl.write.WritableSheet;
 import jxl.write.WritableWorkbook;
 import jxl.write.WriteException;
@@ -1209,10 +1210,17 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
         File file = new File(directory, csvFileCopy);
         File inputWorkbook = new File(inputFile);
         Workbook w;
+        WorkbookSettings wbSettings = new WorkbookSettings();
+        wbSettings.setLocale(new Locale("ru", "Ru"));
+        WritableWorkbook workbook;
         try {
             w = Workbook.getWorkbook(inputWorkbook);
-            WritableWorkbook copy = Workbook.createWorkbook(file, w);
-            WritableSheet sheet = copy.getSheet(0);
+//            WritableWorkbook copy = Workbook.createWorkbook(file, w);
+            Sheet sheet = w.getSheet(0);
+
+            workbook = Workbook.createWorkbook(file, wbSettings);
+            WritableSheet newSheet = workbook.createSheet("testSheet", 0);
+
 //            WritableCell cell = sheet.getWritableCell(1, 2);
 //            CellFormat cfm = cell.getCellFormat();
 //            Label l = (Label) cell;
@@ -1230,22 +1238,37 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
             // Get the first sheet
 //            Sheet sheet = w.getSheet(0);
             // Loop over first 10 column and lines
-
+            Map<CellFormat, WritableCellFormat> definedFormats = new HashMap<CellFormat, WritableCellFormat>();
             for (int j = 0; j < sheet.getColumns(); j++) {
+                newSheet.setColumnView(j, sheet.getColumnView(j));
                 for (int i = 0; i < sheet.getRows(); i++) {
 //                    Cell cell = sheet.getCell(j, i);
-                    WritableCell cell = sheet.getWritableCell(j, i);
-                    CellFormat cfm = cell.getCellFormat();
-                    CellType type = cell.getType();
-                    if (type == CellType.LABEL) {
-                        if (j == 21 && i == 3) {
-                            System.out.println("I got a label "
-                                    + cell.getContents());
-                            Label l = (Label) cell;
-                            l.setString("modified cell");
-                            cell.setCellFormat(cfm);
-                        }
+                    if (j == 0) {
+                        newSheet.setRowView(i, sheet.getRowView(i));
                     }
+                    Cell readCell = sheet.getCell(j, i);
+                    Label label = new Label(j, i, readCell.getContents());
+                    CellFormat readFormat = readCell.getCellFormat();
+                    if (readFormat != null) {
+                        if (!definedFormats.containsKey(readFormat)) {
+                            definedFormats.put(readFormat, new WritableCellFormat(
+                                    readFormat));
+                        }
+                        label.setCellFormat(definedFormats.get(readFormat));
+                    }
+                    newSheet.addCell(label);
+//                    WritableCell cell = sheet.getWritableCell(j, i);
+//                    CellFormat cfm = cell.getCellFormat();
+//                    CellType type = cell.getType();
+//                    if (type == CellType.LABEL) {
+//                        if (j == 21 && i == 3) {
+//                            System.out.println("I got a label "
+//                                    + cell.getContents());
+//                            Label l = (Label) cell;
+//                            l.setString("modified cell");
+//                            cell.setCellFormat(cfm);
+//                        }
+//                    }
 
 //                    if (type == CellType.NUMBER) {
 //                        System.out.println("I got a number "
@@ -1256,8 +1279,8 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
 //                    }
                 }
             }
-            copy.write();
-            copy.close();
+            workbook.write();
+            workbook.close();
             w.close();
         } catch (BiffException e) {
             e.printStackTrace();
