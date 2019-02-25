@@ -47,6 +47,7 @@ import java.util.Map;
 
 import jxl.Cell;
 import jxl.CellType;
+import jxl.CellView;
 import jxl.Sheet;
 import jxl.Workbook;
 import jxl.WorkbookSettings;
@@ -61,7 +62,7 @@ import jxl.write.biff.RowsExceededException;
 
 public class AccountingActivity extends AppCompatActivity implements View.OnClickListener {
 
-    String csvFile, folder_name;
+    String csvFile, folder_name, csvFileCopy;
     Button btnOptions, btnExecute;
     TextView textViewAgentName, textViewAccountingType;
     EditText editTextDateStart, editTextDateEnd;
@@ -124,6 +125,11 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
                 break;
             case R.id.buttonExecute:
                 makeExcel();
+                try {
+                    read();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 break;
             default:
                 break;
@@ -1190,19 +1196,29 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
         this.inputFile = inputFile;
     }
 
-//    public void read() throws IOException  {
-//        File inputWorkbook = new File(inputFile);
-//        Workbook w;
-//        try {
-//            w = Workbook.getWorkbook(inputWorkbook);
-//            WritableWorkbook copy = Workbook.createWorkbook(new File("temp.xls"), w);
-//            WritableSheet sheet2 = copy.getSheet(1);
-//            WritableCell cell = sheet2.getWritableCell(1, 2);
+    public void read() throws IOException  {
+        File sd = Environment.getExternalStorageDirectory();
+        csvFileCopy = "accountant.xls";
+
+        File directory = new File(sd.getAbsolutePath() + File.separator + "Download" + File.separator + "Excel");
+        //create directory if not exist
+        if (!directory.isDirectory()) {
+            directory.mkdirs();
+        }
+        //file path
+        File file = new File(directory, csvFileCopy);
+        File inputWorkbook = new File(inputFile);
+        Workbook w;
+        try {
+            w = Workbook.getWorkbook(inputWorkbook);
+            WritableWorkbook copy = Workbook.createWorkbook(file, w);
+            WritableSheet sheet = copy.getSheet(0);
+//            WritableCell cell = sheet.getWritableCell(1, 2);
 //            CellFormat cfm = cell.getCellFormat();
 //            Label l = (Label) cell;
 //            l.setString("modified cell");
 //            cell.setCellFormat(cfm);
-//
+
 //            if (cell.getType() == CellType.LABEL)
 //            {
 //                l = (Label) cell;
@@ -1211,31 +1227,44 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
 //            copy.write();
 //            copy.close();
 //            w.close();
-//            // Get the first sheet
+            // Get the first sheet
 //            Sheet sheet = w.getSheet(0);
-//            // Loop over first 10 column and lines
-//
-//            for (int j = 0; j < sheet.getColumns(); j++) {
-//                for (int i = 0; i < sheet.getRows(); i++) {
+            // Loop over first 10 column and lines
+
+            for (int j = 0; j < sheet.getColumns(); j++) {
+                for (int i = 0; i < sheet.getRows(); i++) {
 //                    Cell cell = sheet.getCell(j, i);
-//                    CellType type = cell.getType();
-//                    if (cell.getType() == CellType.LABEL) {
-//                        System.out.println("I got a label "
-//                                + cell.getContents());
-//                    }
-//
-//                    if (cell.getType() == CellType.NUMBER) {
+                    WritableCell cell = sheet.getWritableCell(j, i);
+                    CellFormat cfm = cell.getCellFormat();
+                    CellType type = cell.getType();
+                    if (type == CellType.LABEL) {
+                        if (j == 21 && i == 3) {
+                            System.out.println("I got a label "
+                                    + cell.getContents());
+                            Label l = (Label) cell;
+                            l.setString("modified cell");
+                            cell.setCellFormat(cfm);
+                        }
+                    }
+
+//                    if (type == CellType.NUMBER) {
 //                        System.out.println("I got a number "
 //                                + cell.getContents());
+//                        Number l = (Number) cell;
+//                        l.setValue();
+//                        cell.setCellFormat(cfm);
 //                    }
-//                }
-//            }
-//        } catch (BiffException e) {
-//            e.printStackTrace();
-//        } catch (WriteException e) {
-//            e.printStackTrace();
-//        }
-//    }
+                }
+            }
+            copy.write();
+            copy.close();
+            w.close();
+        } catch (BiffException e) {
+            e.printStackTrace();
+        } catch (WriteException e) {
+            e.printStackTrace();
+        }
+    }
 
     private void makeExcel(){
         Instant instant = Instant.now();
@@ -1254,34 +1283,38 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
         }
         //file path
         File file = new File(directory, csvFile);
-        MediaScannerConnection.scanFile(this, new String[]{file.getAbsolutePath()}, null, null);
-        WorkbookSettings wbSettings = new WorkbookSettings();
-        wbSettings.setLocale(new Locale("ru", "Ru"));
-        WritableWorkbook workbook;
-        try {
-            workbook = Workbook.createWorkbook(file, wbSettings);
-            //Excel sheet name. 0 represents first sheet
-            WritableSheet sheet = workbook.createSheet("userList", 0);
-            // column and row
-            sheet.addCell(new Label(0, 0, "UserName"));
-            sheet.addCell(new Label(1, 0, "PhoneNumber"));
-            String name = "Vova";
-            String phoneNumber = "Che";
-            sheet.addCell(new Label(0, 1, name));
-            sheet.addCell(new Label(1, 1, phoneNumber));
 
-            workbook.write();
-            workbook.close();
-            Toast.makeText(getApplication(),
-                    "Выбранные данные экспортированы в файл Эксель", Toast.LENGTH_SHORT).show();
-            sendViaEmail("Download" + File.separator + "Excel", csvFile, email);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (RowsExceededException e) {
-            e.printStackTrace();
-        } catch (WriteException e) {
-            e.printStackTrace();
-        }
+        setInputFile(sd.getAbsolutePath() + File.separator + "Download" + File.separator + "Excel" + File.separator + "УПД ИП ЧЕ ВЕ.xls");
+
+        MediaScannerConnection.scanFile(this, new String[]{file.getAbsolutePath()}, null, null);
+//        WorkbookSettings wbSettings = new WorkbookSettings();
+//        wbSettings.setLocale(new Locale("ru", "Ru"));
+//        WritableWorkbook workbook;
+//        try {
+//            workbook = Workbook.createWorkbook(file, wbSettings);
+//            //Excel sheet name. 0 represents first sheet
+//            WritableSheet sheet = workbook.createSheet("userList", 0);
+//            // column and row
+//            sheet.addCell(new Label(0, 0, "UserName"));
+//            sheet.addCell(new Label(1, 0, "PhoneNumber"));
+//            String name = "Vova";
+//            String phoneNumber = "Che";
+//            sheet.addCell(new Label(0, 1, name));
+//            sheet.addCell(new Label(1, 1, phoneNumber));
+//
+//            workbook.write();
+//            workbook.close();
+//            Toast.makeText(getApplication(),
+//                    "Выбранные данные экспортированы в файл Эксель", Toast.LENGTH_SHORT).show();
+//            sendViaEmail("Download" + File.separator + "Excel", csvFile, email);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        } catch (RowsExceededException e) {
+//            e.printStackTrace();
+//        } catch (WriteException e) {
+//            e.printStackTrace();
+//        }
+
     }
 
     private void sendViaEmail(String folder_name, String file_name, String emailAddress) {
