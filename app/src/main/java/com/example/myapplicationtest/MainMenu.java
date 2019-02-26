@@ -379,6 +379,14 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                                 agentReport();
                                 dialog.cancel();
                             }
+                        })
+                .setNegativeButton("По дате",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                Intent intent = new Intent(getApplicationContext(), AgentReportActivity.class);
+                                startActivity(intent);
+                                dialog.cancel();
+                            }
                         });
         AlertDialog alert = builder.create();
         alert.show();

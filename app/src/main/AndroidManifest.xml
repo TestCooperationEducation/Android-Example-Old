@@ -71,7 +71,8 @@
         <activity android:name=".ChangeInvoiceChooseItemsActivity" />
         <activity android:name=".ReceiveActivity" />
         <activity android:name=".ReceiveNewActivity" />
-        <activity android:name=".AccountingActivity"></activity>
+        <activity android:name=".AccountingActivity" />
+        <activity android:name=".AgentReportActivity"></activity>
     </application>
 
 </manifest>

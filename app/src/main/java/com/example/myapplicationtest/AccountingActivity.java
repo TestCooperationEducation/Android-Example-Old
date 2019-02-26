@@ -1238,7 +1238,7 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
             // Get the first sheet
 //            Sheet sheet = w.getSheet(0);
             // Loop over first 10 column and lines
-            Map<CellFormat, WritableCellFormat> definedFormats = new HashMap<CellFormat, WritableCellFormat>();
+            Map<CellFormat, WritableCellFormat> definedFormats = new HashMap<>();
             for (int j = 0; j < sheet.getColumns(); j++) {
                 newSheet.setColumnView(j, sheet.getColumnView(j));
                 for (int i = 0; i < sheet.getRows(); i++) {
@@ -1307,7 +1307,7 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
         //file path
         File file = new File(directory, csvFile);
 
-        setInputFile(sd.getAbsolutePath() + File.separator + "Download" + File.separator + "Excel" + File.separator + "УПД ИП ЧЕ ВЕ.xls");
+        setInputFile(sd.getAbsolutePath() + File.separator + "Download" + File.separator + "Excel" + File.separator + "ЧЕВЕ.xls");
 
         MediaScannerConnection.scanFile(this, new String[]{file.getAbsolutePath()}, null, null);
 //        WorkbookSettings wbSettings = new WorkbookSettings();
