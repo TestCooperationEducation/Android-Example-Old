@@ -48,7 +48,6 @@ public class AgentReportActivity extends AppCompatActivity implements View.OnCli
         dbHelper = new DBHelper(this);
         db = dbHelper.getWritableDatabase();
 
-        arrayMapReceive = new ArrayMap<>();
         editTextDateEnd = findViewById(R.id.editTextDateEnd);
         editTextDateStart = findViewById(R.id.editTextDateStart);
 
@@ -127,6 +126,7 @@ public class AgentReportActivity extends AppCompatActivity implements View.OnCli
     }
 
     private void getReceiveList(){
+        arrayMapReceive = new ArrayMap<>();
         String sql = "SELECT DISTINCT dateTimeDoc FROM receive ORDER BY id DESC LIMIT 1";
         Cursor c = db.rawQuery(sql, null);
         if (c.moveToFirst()) {
@@ -342,8 +342,6 @@ public class AgentReportActivity extends AppCompatActivity implements View.OnCli
             for (int i = 0; i < arrayMapQuantity.size(); i++){
                 if (!arrayMapQuantity.keyAt(i).equals("Ким-ча 700 гр особая цена 1") &&
                         !arrayMapQuantity.keyAt(i).equals("Ким-ча 700 гр особая цена 2") &&
-                        !arrayMapQuantity.keyAt(i).equals("Ким-ча 500 гр особая цена 1") &&
-                        !arrayMapQuantity.keyAt(i).equals("Ким-ча 500 гр особая цена 2") &&
                         !arrayMapQuantity.keyAt(i).equals("Редька по-восточному 500гр особая цена 1") &&
                         !arrayMapQuantity.keyAt(i).equals("Редька по-восточному 500гр особая цена 2")){
                     if (arrayMapQuantity.keyAt(i).equals("Ким-ча весовая")) {
@@ -406,34 +404,6 @@ public class AgentReportActivity extends AppCompatActivity implements View.OnCli
                         arrayMapQuantityReduced.put("Ким-ча весовая", (arrayMapQuantity.valueAt(i) * 0.7));
                         arrayMapExchangeReduced.put("Ким-ча весовая", (arrayMapExchange.valueAt(i) * 0.7));
                         arrayMapReturnReduced.put("Ким-ча весовая", (arrayMapReturn.valueAt(i) * 0.7));
-                    }
-                }
-
-                if (arrayMapQuantity.keyAt(i).equals("Ким-ча 500 гр особая цена 1")) {
-                    if (arrayMapQuantityReduced.containsKey("Ким-ча весовая") &&
-                            arrayMapExchangeReduced.containsKey("Ким-ча весовая") &&
-                            arrayMapReturnReduced.containsKey("Ким-ча весовая")) {
-                        arrayMapQuantityReduced.put("Ким-ча весовая", arrayMapQuantityReduced.get("Ким-ча весовая") + (arrayMapQuantity.valueAt(i) * 0.5));
-                        arrayMapExchangeReduced.put("Ким-ча весовая", arrayMapExchangeReduced.get("Ким-ча весовая") + (arrayMapExchange.valueAt(i) * 0.5));
-                        arrayMapReturnReduced.put("Ким-ча весовая", arrayMapReturnReduced.get("Ким-ча весовая") + (arrayMapReturn.valueAt(i) * 0.5));
-                    } else {
-                        arrayMapQuantityReduced.put("Ким-ча весовая", (arrayMapQuantity.valueAt(i) * 0.5));
-                        arrayMapExchangeReduced.put("Ким-ча весовая", (arrayMapExchange.valueAt(i) * 0.5));
-                        arrayMapReturnReduced.put("Ким-ча весовая", (arrayMapReturn.valueAt(i) * 0.5));
-                    }
-                }
-
-                if (arrayMapQuantity.keyAt(i).equals("Ким-ча 500 гр особая цена 2")) {
-                    if (arrayMapQuantityReduced.containsKey("Ким-ча весовая") &&
-                            arrayMapExchangeReduced.containsKey("Ким-ча весовая") &&
-                            arrayMapReturnReduced.containsKey("Ким-ча весовая")) {
-                        arrayMapQuantityReduced.put("Ким-ча весовая", arrayMapQuantityReduced.get("Ким-ча весовая") + (arrayMapQuantity.valueAt(i) * 0.5));
-                        arrayMapExchangeReduced.put("Ким-ча весовая", arrayMapExchangeReduced.get("Ким-ча весовая") + (arrayMapExchange.valueAt(i) * 0.5));
-                        arrayMapReturnReduced.put("Ким-ча весовая", arrayMapReturnReduced.get("Ким-ча весовая") + (arrayMapReturn.valueAt(i) * 0.5));
-                    } else {
-                        arrayMapQuantityReduced.put("Ким-ча весовая", (arrayMapQuantity.valueAt(i) * 0.5));
-                        arrayMapExchangeReduced.put("Ким-ча весовая", (arrayMapExchange.valueAt(i) * 0.5));
-                        arrayMapReturnReduced.put("Ким-ча весовая", (arrayMapReturn.valueAt(i) * 0.5));
                     }
                 }
 
