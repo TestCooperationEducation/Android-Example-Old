@@ -55,7 +55,6 @@ public class AgentReportActivity extends AppCompatActivity implements View.OnCli
         getReceiveList();
     }
 
-
     @Override
     public void onClick(View v) {
         switch (v.getId()) {

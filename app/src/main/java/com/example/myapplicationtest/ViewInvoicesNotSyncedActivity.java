@@ -260,6 +260,7 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
             public void onClick(DialogInterface dialog, int item) {
                 invoiceNumberChosen = invoiceNumberListTmp.get(item);
                 Toast.makeText(getApplicationContext(), "Накладная №: " + invoiceNumberChosen, Toast.LENGTH_SHORT).show();
+                printMenu();
             }
         });
         builder.setCancelable(true);
@@ -271,6 +272,10 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
 //        lp.height = 1100;
 //        lp.x = -300;
 //        alert.getWindow().setAttributes(lp);
+    }
+
+    private void printMenu(){
+
     }
 
     private void manageMenu(){

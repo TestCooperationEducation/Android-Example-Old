@@ -1242,12 +1242,19 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
             for (int j = 0; j < sheet.getColumns(); j++) {
                 newSheet.setColumnView(j, sheet.getColumnView(j));
                 for (int i = 0; i < sheet.getRows(); i++) {
+
 //                    Cell cell = sheet.getCell(j, i);
                     if (j == 0) {
                         newSheet.setRowView(i, sheet.getRowView(i));
                     }
                     Cell readCell = sheet.getCell(j, i);
                     Label label = new Label(j, i, readCell.getContents());
+//                    if (i == 18){
+//                        label = new Label(1, i, String.valueOf(j));
+//                        if (j == 3){
+//                            label = new Label(j, i, "test");
+//                        }
+//                    }
                     CellFormat readFormat = readCell.getCellFormat();
                     if (readFormat != null) {
                         if (!definedFormats.containsKey(readFormat)) {
