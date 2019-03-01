@@ -7,6 +7,8 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.media.MediaScannerConnection;
+import android.os.Environment;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -26,10 +28,32 @@ import com.google.gson.Gson;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.File;
+import java.io.IOException;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+
+import jxl.Cell;
+import jxl.CellType;
+import jxl.Sheet;
+import jxl.Workbook;
+import jxl.WorkbookSettings;
+import jxl.format.CellFormat;
+import jxl.read.biff.BiffException;
+import jxl.write.Label;
+import jxl.write.WritableCell;
+import jxl.write.WritableCellFormat;
+import jxl.write.WritableSheet;
+import jxl.write.WritableWorkbook;
+import jxl.write.WriteException;
 
 public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -40,7 +64,9 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
     Button btnSaveInvoiceToLocalDB;
     SharedPreferences sPrefDBName, sPrefDBPassword, sPrefDBUser, sPrefLogin, sPrefAccountingTypeDefault,
             sPrefArea, sPrefAreaDefault, sPrefInvoiceNumberLast;
-    String paymentStatus, invoiceNumbers = "", dbName, dbUser, dbPassword,
+    String paymentStatus, invoiceNumbers = "", dbName, dbUser, dbPassword, csvFileTypeOneReport,
+            csvFileTypeOneFormCopy, csvFileTypeOneForm, csvFileTypeTwoForm, salesPartnerNameChosen,
+            inputFileTypeOne, inputFileTypeTwo, csvFileTypeTwoReport, csvFileTypeTwoFormCopy,
             requestUrlSaveRecord = "https://caiman.ru.com/php/saveNewInvoice_new.php",
             loginSecurity, statusSave = "", areaDefault, invoiceNumberLast, invoiceNumberChosen, accTypeSPChosen;
     final String SAVED_DBName = "dbName";
@@ -53,12 +79,14 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
     final String SAVED_InvoiceNumberLast = "invoiceNumberLast";
     ArrayList<String> arrItems, invoiceNumberServerTmp, dateTimeDocServer, summaryListTmp, accTypeListTmp,
             accTypeSPListTmp, invoiceNumberListTmp, summaryListTmpSecond, accTypeListTmpSecond,
-            accTypeSPListTmpSecond, invoiceNumberListTmpSecond;
-    ArrayList<Double> arrQuantity, arrExchange, arrReturn, arrSum;
-    ArrayList<Integer> arrPriceChanged, invoiceNumbersList;
+            accTypeSPListTmpSecond, invoiceNumberListTmpSecond, salesPartnerNameListTmp, infoItemNameList;
+    ArrayList<Double> arrQuantity, arrExchange, arrReturn, arrSum, infoExchangeList, infoQuantityList,
+            infoTotalList, infoReturnList, infoInvoiceSumList;
+    ArrayList<Integer> arrPriceChanged, invoiceNumbersList, infoPriceList;
     List<DataInvoice> dataArray;
     String[] requestMessage, summaryList, summaryListSecond;
     Boolean saveMenuTrigger = false;
+    File fileTypeOne, fileTypeTwo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,6 +114,7 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
         accTypeSPListTmpSecond = new ArrayList<>();
         accTypeListTmpSecond = new ArrayList<>();
         invoiceNumberListTmpSecond = new ArrayList<>();
+        salesPartnerNameListTmp = new ArrayList<>();
 
         btnSaveInvoiceToLocalDB = findViewById(R.id.buttonSyncInvoicesWithServer);
         btnSaveInvoiceToLocalDB.setOnClickListener(this);
@@ -259,8 +288,15 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
             @Override
             public void onClick(DialogInterface dialog, int item) {
                 invoiceNumberChosen = invoiceNumberListTmp.get(item);
+                salesPartnerNameChosen = salesPartnerNameListTmp.get(item);
+                receiveInvoiceInfo();
                 Toast.makeText(getApplicationContext(), "Накладная №: " + invoiceNumberChosen, Toast.LENGTH_SHORT).show();
-                printMenu();
+                makeExcel();
+                try {
+                    read();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         });
         builder.setCancelable(true);
@@ -274,7 +310,163 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
 //        alert.getWindow().setAttributes(lp);
     }
 
-    private void printMenu(){
+    private void printMenu() throws IOException {
+
+    }
+
+//    public void setInputFile(String inputFile) {
+//        this.inputFile = inputFile;
+//    }
+
+    public void read() throws IOException {
+        Instant instant = Instant.now();
+        ZoneId zoneId = ZoneId.of( "Asia/Sakhalin" );
+        ZonedDateTime zdt = ZonedDateTime.ofInstant( instant , zoneId );
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern( "yyyy-MM-dd-HH-mm-ss" );
+        String output = zdt.format( formatter );
+
+        File sd = Environment.getExternalStorageDirectory();
+//        csvFileTypeOneFormCopy = "inv_typeone_" + invoiceNumberChosen + "_" + output + ".xls";
+        csvFileTypeTwoFormCopy = "inv_typetwo_" + invoiceNumberChosen + "_" + output + ".xls";
+
+//        File directoryTypeOne = new File(sd.getAbsolutePath() + File.separator + "Download"
+//                + File.separator + "Excel" + File.separator + "Накладная_отчет");
+        File directoryTypeTwo = new File(sd.getAbsolutePath() + File.separator + "Download"
+                + File.separator + "Excel" + File.separator + "Фактура_отчет");
+//        if (!directoryTypeOne.isDirectory()) {
+//            directoryTypeOne.mkdirs();
+//        }
+        if (!directoryTypeTwo.isDirectory()) {
+            directoryTypeTwo.mkdirs();
+        }
+//        File fileTypeOneSave = new File(directoryTypeOne, csvFileTypeOneFormCopy);
+        File fileTypeTwoSave = new File(directoryTypeTwo, csvFileTypeTwoFormCopy);
+//        File inputWorkbookTypeOne = fileTypeOne;
+        File inputWorkbookTypeTwo = fileTypeTwo;
+//        Workbook wTypeOne;
+        Workbook wTypeTwo;
+        WorkbookSettings wbSettings = new WorkbookSettings();
+        wbSettings.setLocale(new Locale("ru", "Ru"));
+        try {
+//            wTypeOne = Workbook.getWorkbook(inputWorkbookTypeOne);
+            wTypeTwo = Workbook.getWorkbook(inputWorkbookTypeTwo);
+//            WritableWorkbook copyTypeOne = Workbook.createWorkbook(fileTypeOneSave, wTypeOne);
+//            WritableSheet sheetTypeOne = copyTypeOne.getSheet(0);
+            WritableWorkbook copyTypeTwo = Workbook.createWorkbook(fileTypeTwoSave, wTypeTwo);
+            WritableSheet sheetTypeTwo = copyTypeTwo.getSheet(0);
+
+//            WritableCell cellTypeOne = sheetTypeOne.getWritableCell(3, 29);
+//            CellFormat cfmTypeOne = cellTypeOne.getCellFormat();
+            for (int j = 0; j < sheetTypeTwo.getColumns(); j++) {
+                for (int i = 0; i < sheetTypeTwo.getRows(); i++) {
+                    WritableCell cellTypeTwo = sheetTypeTwo.getWritableCell(j, i);
+                    CellFormat cfmTypeTwo = cellTypeTwo.getCellFormat();
+                    if (j == 3 && i == 18) {
+                        if (cellTypeTwo.getType() == CellType.LABEL) {
+                            Label lTypeTwo = (Label) cellTypeTwo;
+                            lTypeTwo.setString("Шо за бред 2");
+                        }
+                    }
+                    cellTypeTwo.setCellFormat(cfmTypeTwo);
+                    copyTypeTwo.write();
+                }
+            }
+
+//            if (cellTypeOne.getType() == CellType.LABEL)
+//            {
+//                Label lTypeOne = (Label) cellTypeOne;
+//                lTypeOne.setString("Шо за бред");
+//            }
+//            cellTypeOne.setCellFormat(cfmTypeOne);
+//            copyTypeOne.write();
+//            copyTypeOne.close();
+            copyTypeTwo.close();
+//            w.close();
+            // Get the first sheet
+//            Sheet sheet = w.getSheet(0);
+            // Loop over first 10 column and lines
+//            Map<CellFormat, WritableCellFormat> definedFormats = new HashMap<>();
+//            for (int j = 0; j < sheet.getColumns(); j++) {
+//                newSheet.setColumnView(j, sheet.getColumnView(j));
+//                for (int i = 0; i < sheet.getRows(); i++) {
+//
+////                    Cell cell = sheet.getCell(j, i);
+//                    if (j == 0) {
+//                        newSheet.setRowView(i, sheet.getRowView(i));
+//                    }
+//                    Cell readCell = sheet.getCell(j, i);
+//                    Label label = new Label(j, i, readCell.getContents());
+////                    if (i == 18){
+////                        label = new Label(1, i, String.valueOf(j));
+////                        if (j == 3){
+////                            label = new Label(j, i, "test");
+////                        }
+////                    }
+//                    CellFormat readFormat = readCell.getCellFormat();
+//                    if (readFormat != null) {
+//                        if (!definedFormats.containsKey(readFormat)) {
+//                            definedFormats.put(readFormat, new WritableCellFormat(
+//                                    readFormat));
+//                        }
+//                        label.setCellFormat(definedFormats.get(readFormat));
+//                    }
+//                    newSheet.addCell(label);
+//                    WritableCell cell = sheet.getWritableCell(j, i);
+//                    CellFormat cfm = cell.getCellFormat();
+//                    CellType type = cell.getType();
+//                    if (type == CellType.LABEL) {
+//                        if (j == 21 && i == 3) {
+//                            System.out.println("I got a label "
+//                                    + cell.getContents());
+//                            Label l = (Label) cell;
+//                            l.setString("modified cell");
+//                            cell.setCellFormat(cfm);
+//                        }
+//                    }
+
+//                    if (type == CellType.NUMBER) {
+//                        System.out.println("I got a number "
+//                                + cell.getContents());
+//                        Number l = (Number) cell;
+//                        l.setValue();
+//                        cell.setCellFormat(cfm);
+//                    }
+//                }
+//            }
+//            workbook.write();
+//            workbook.close();
+//            wTypeOne.close();
+            wTypeTwo.close();
+        } catch (BiffException e) {
+            e.printStackTrace();
+        } catch (WriteException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void makeExcel(){
+        File sd = Environment.getExternalStorageDirectory();
+
+
+
+//        csvFileTypeOneForm = "Накладная_" + infoItemNameList.size() + ".xls";
+        csvFileTypeTwoForm = "УПД_" + infoItemNameList.size() + ".xls";
+
+//        File directoryTypeOne = new File(sd.getAbsolutePath() + File.separator + "Download"
+//                + File.separator + "Excel" + File.separator + "Накладная_форма");
+        File directoryTypeTwo = new File(sd.getAbsolutePath() + File.separator + "Download"
+                + File.separator + "Excel" + File.separator + "Фактура_форма");
+//        if (!directoryTypeOne.isDirectory()) {
+//            directoryTypeOne.mkdirs();
+//        }
+//        if (!directoryTypeTwo.isDirectory()) {
+//            directoryTypeTwo.mkdirs();
+//        }
+//        fileTypeOne = new File(directoryTypeOne, csvFileTypeOneForm);
+        fileTypeTwo = new File(directoryTypeTwo, csvFileTypeTwoForm);
+
+//        setInputFile(sd.getAbsolutePath() + File.separator + "Download" + File.separator + "Excel" + File.separator + "ЧЕВЕ.xls");
+//        MediaScannerConnection.scanFile(this, new String[]{fileTypeOne.getAbsolutePath()}, null, null);
 
     }
 
@@ -349,6 +541,7 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
                 accTypeListTmp.add(c.getString(accountingTypeDocTmp));
                 accTypeSPListTmp.add(c.getString(accountingTypeSPTmp));
                 invoiceNumberListTmp.add(c.getString(invoiceNumberLocalTmp));
+                salesPartnerNameListTmp.add(c.getString(salesPartnerNameTmp));
                 do {
                     Integer invoiceNumberLocal = Integer.parseInt(c.getString(invoiceNumberLocalTmp));
                     Integer agentID = Integer.parseInt(c.getString(agentIDTmp));
@@ -547,5 +740,33 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
         int clearCount = db.delete(tableName, null, null);
         Log.d(LOG_TAG, "deleted rows count = " + clearCount);
         Toast.makeText(getApplicationContext(), "<<< Таблицы очищены >>>", Toast.LENGTH_SHORT).show();
+    }
+
+    private void receiveInvoiceInfo(){
+        String sql = "SELECT *, items.Наименование FROM invoice " +
+                "INNER JOIN items ON invoice.ItemID LIKE items.Артикул" +
+                " WHERE invoice.InvoiceNumber LIKE ?";
+        Cursor c = db.rawQuery(sql, new String[]{invoiceNumberChosen});
+        if (c.moveToFirst()) {
+            int exchange = c.getColumnIndex("ExchangeQuantity");
+            int itemName = c.getColumnIndex("Наименование");
+            int price = c.getColumnIndex("Price");
+            int quantity = c.getColumnIndex("Quantity");
+            int total = c.getColumnIndex("Total");
+            int returnQuantity = c.getColumnIndex("ReturnQuantity");
+            int accountingTypeDocTmp = c.getColumnIndex("AccountingType");
+            int invoiceSumTmp = c.getColumnIndex("InvoiceSum");
+            infoExchangeList.add(c.getDouble(exchange));
+            infoItemNameList.add(c.getString(itemName));
+            infoPriceList.add(c.getInt(price));
+            infoQuantityList.add(c.getDouble(quantity));
+            infoTotalList.add(c.getDouble(total));
+            infoReturnList.add(c.getDouble(returnQuantity));
+            infoInvoiceSumList.add(c.getDouble(invoiceSumTmp));
+            do {
+
+            } while (c.moveToNext());
+        }
+        c.close();
     }
 }
