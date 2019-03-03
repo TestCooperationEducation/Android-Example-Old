@@ -322,7 +322,7 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
         Instant instant = Instant.now();
         ZoneId zoneId = ZoneId.of( "Asia/Sakhalin" );
         ZonedDateTime zdt = ZonedDateTime.ofInstant( instant , zoneId );
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern( "yyyy-MM-dd-HH-mm-ss" );
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern( "dd MM yyyy" );
         String output = zdt.format( formatter );
 
         File sd = Environment.getExternalStorageDirectory();
@@ -361,10 +361,62 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
                 for (int i = 0; i < sheetTypeTwo.getRows(); i++) {
                     WritableCell cellTypeTwo = sheetTypeTwo.getWritableCell(j, i);
                     CellFormat cfmTypeTwo = cellTypeTwo.getCellFormat();
+                    if (j == 16 && i == 0) {
+                        if (cellTypeTwo.getType() == CellType.LABEL) {
+                            Label lTypeTwo = (Label) cellTypeTwo;
+                            lTypeTwo.setString("Номер документа");
+                        }
+                    }
+                    if (j == 25 && i == 0) {
+                        if (cellTypeTwo.getType() == CellType.LABEL) {
+                            Label lTypeTwo = (Label) cellTypeTwo;
+                            lTypeTwo.setString(output);
+                        }
+                    }
+                    if (j == 21 && i == 7) {
+                        if (cellTypeTwo.getType() == CellType.LABEL) {
+                            Label lTypeTwo = (Label) cellTypeTwo;
+                            lTypeTwo.setString("Грузополучатель и его адрес");
+                        }
+                    }
+                    if (j == 21 && i == 9) {
+                        if (cellTypeTwo.getType() == CellType.LABEL) {
+                            Label lTypeTwo = (Label) cellTypeTwo;
+                            lTypeTwo.setString("Покупатель");
+                        }
+                    }
+                    if (j == 21 && i == 10) {
+                        if (cellTypeTwo.getType() == CellType.LABEL) {
+                            Label lTypeTwo = (Label) cellTypeTwo;
+                            lTypeTwo.setString("Адрес");
+                        }
+                    }
+                    if (j == 21 && i == 11) {
+                        if (cellTypeTwo.getType() == CellType.LABEL) {
+                            Label lTypeTwo = (Label) cellTypeTwo;
+                            lTypeTwo.setString("ИНН покупателя");
+                        }
+                    }
+                    if (infoItemNameList.size() < 17){
+                        if (j == 1 && i == 33) {
+                            if (cellTypeTwo.getType() == CellType.LABEL) {
+                                Label lTypeTwo = (Label) cellTypeTwo;
+                                lTypeTwo.setString("Универсальный передаточный документ № " + " от " + output + " г.");
+                            }
+                        }
+                    }
+
+
                     if (j == 3 && i == 18) {
                         if (cellTypeTwo.getType() == CellType.LABEL) {
                             Label lTypeTwo = (Label) cellTypeTwo;
-                            lTypeTwo.setString("Шо за бред 2");
+                            lTypeTwo.setString("Артикул товара 1");
+                        }
+                    }
+                    if (j == 6 && i == 18) {
+                        if (cellTypeTwo.getType() == CellType.LABEL) {
+                            Label lTypeTwo = (Label) cellTypeTwo;
+                            lTypeTwo.setString("Наименование товара 1");
                         }
                     }
                     cellTypeTwo.setCellFormat(cfmTypeTwo);
