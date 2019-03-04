@@ -406,21 +406,78 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
                         }
                     }
 
-
-                    if (j == 3 && i == 18) {
-                        if (cellTypeTwo.getType() == CellType.LABEL) {
-                            Label lTypeTwo = (Label) cellTypeTwo;
-                            lTypeTwo.setString("Артикул товара 1");
-                        }
-                    }
-                    if (j == 6 && i == 18) {
-                        if (cellTypeTwo.getType() == CellType.LABEL) {
-                            Label lTypeTwo = (Label) cellTypeTwo;
-                            lTypeTwo.setString("Наименование товара 1");
+                    if (i >= 18 && infoItemNameList.size() < 17) {
+                        if (infoItemNameList.size() != 0) {
+                            if (j == 3) {
+                                if (cellTypeTwo.getType() == CellType.LABEL) {
+                                    Label lTypeTwo = (Label) cellTypeTwo;
+                                    lTypeTwo.setString("Артикул товара 1");
+                                }
+                            }
+                            if (j == 6) {
+                                if (cellTypeTwo.getType() == CellType.LABEL) {
+                                    Label lTypeTwo = (Label) cellTypeTwo;
+                                    lTypeTwo.setString("Наименование товара 1");
+                                }
+                            }
+                            if (j == 20) {
+                                if (cellTypeTwo.getType() == CellType.LABEL) {
+                                    Label lTypeTwo = (Label) cellTypeTwo;
+                                    lTypeTwo.setString("Единица измерения. Код 1");
+                                }
+                            }
+                            if (j == 22) {
+                                if (cellTypeTwo.getType() == CellType.LABEL) {
+                                    Label lTypeTwo = (Label) cellTypeTwo;
+                                    lTypeTwo.setString("Единица изерения. Условное обозначение 1");
+                                }
+                            }
+                            if (j == 26) {
+                                if (cellTypeTwo.getType() == CellType.LABEL) {
+                                    Label lTypeTwo = (Label) cellTypeTwo;
+                                    lTypeTwo.setString("Количество 1");
+                                }
+                            }
+                            if (j == 30) {
+                                if (cellTypeTwo.getType() == CellType.LABEL) {
+                                    Label lTypeTwo = (Label) cellTypeTwo;
+                                    lTypeTwo.setString("Цена 1");
+                                }
+                            }
+                            if (j == 39) {
+                                if (cellTypeTwo.getType() == CellType.LABEL) {
+                                    Label lTypeTwo = (Label) cellTypeTwo;
+                                    lTypeTwo.setString("Стоимость 1");
+                                }
+                            }
+                            if (j == 48) {
+                                if (cellTypeTwo.getType() == CellType.LABEL) {
+                                    Label lTypeTwo = (Label) cellTypeTwo;
+                                    lTypeTwo.setString("Акциз 1");
+                                }
+                            }
+                            if (j == 50) {
+                                if (cellTypeTwo.getType() == CellType.LABEL) {
+                                    Label lTypeTwo = (Label) cellTypeTwo;
+                                    lTypeTwo.setString("Налоговая ставка 1");
+                                }
+                            }
+                            if (j == 54) {
+                                if (cellTypeTwo.getType() == CellType.LABEL) {
+                                    Label lTypeTwo = (Label) cellTypeTwo;
+                                    lTypeTwo.setString("Сумма налога 1");
+                                }
+                            }
+                            if (j == 56) {
+                                if (cellTypeTwo.getType() == CellType.LABEL) {
+                                    Label lTypeTwo = (Label) cellTypeTwo;
+                                    lTypeTwo.setString("Стоимость с налогом 1");
+                                }
+                            }
                         }
                     }
                     cellTypeTwo.setCellFormat(cfmTypeTwo);
-                    copyTypeTwo.write();
+
                 }
             }
 
@@ -432,6 +489,7 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
 //            cellTypeOne.setCellFormat(cfmTypeOne);
 //            copyTypeOne.write();
 //            copyTypeOne.close();
+            copyTypeTwo.write();
             copyTypeTwo.close();
 //            w.close();
             // Get the first sheet
@@ -795,30 +853,36 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
     }
 
     private void receiveInvoiceInfo(){
-        String sql = "SELECT *, items.Наименование FROM invoice " +
-                "INNER JOIN items ON invoice.ItemID LIKE items.Артикул" +
-                " WHERE invoice.InvoiceNumber LIKE ?";
+        infoExchangeList = new ArrayList<>();
+        infoItemNameList = new ArrayList<>();
+        infoPriceList = new ArrayList<>();
+        infoQuantityList = new ArrayList<>();
+        infoTotalList = new ArrayList<>();
+        infoReturnList = new ArrayList<>();
+        infoInvoiceSumList = new ArrayList<>();
+        String sql = "SELECT * FROM invoiceLocalDB WHERE invoiceNumber LIKE ?";
         Cursor c = db.rawQuery(sql, new String[]{invoiceNumberChosen});
         if (c.moveToFirst()) {
-            int exchange = c.getColumnIndex("ExchangeQuantity");
-            int itemName = c.getColumnIndex("Наименование");
-            int price = c.getColumnIndex("Price");
-            int quantity = c.getColumnIndex("Quantity");
-            int total = c.getColumnIndex("Total");
-            int returnQuantity = c.getColumnIndex("ReturnQuantity");
-            int accountingTypeDocTmp = c.getColumnIndex("AccountingType");
-            int invoiceSumTmp = c.getColumnIndex("InvoiceSum");
-            infoExchangeList.add(c.getDouble(exchange));
-            infoItemNameList.add(c.getString(itemName));
-            infoPriceList.add(c.getInt(price));
-            infoQuantityList.add(c.getDouble(quantity));
-            infoTotalList.add(c.getDouble(total));
-            infoReturnList.add(c.getDouble(returnQuantity));
-            infoInvoiceSumList.add(c.getDouble(invoiceSumTmp));
-            do {
+            int exchange = c.getColumnIndex("exchangeQuantity");
+            int itemName = c.getColumnIndex("itemName");
+            int price = c.getColumnIndex("price");
+            int quantity = c.getColumnIndex("quantity");
+            int total = c.getColumnIndex("totalCost");
+            int returnQuantity = c.getColumnIndex("returnQuantity");
+            int accountingTypeDocTmp = c.getColumnIndex("accountingTypeDoc");
+            int invoiceSumTmp = c.getColumnIndex("invoiceSum");
 
+            do {
+                infoExchangeList.add(c.getDouble(exchange));
+                infoItemNameList.add(c.getString(itemName));
+                infoPriceList.add(c.getInt(price));
+                infoQuantityList.add(c.getDouble(quantity));
+                infoTotalList.add(c.getDouble(total));
+                infoReturnList.add(c.getDouble(returnQuantity));
+                infoInvoiceSumList.add(c.getDouble(invoiceSumTmp));
             } while (c.moveToNext());
         }
+        Toast.makeText(getApplicationContext(), String.valueOf(infoItemNameList.size()), Toast.LENGTH_SHORT).show();
         c.close();
     }
 }
