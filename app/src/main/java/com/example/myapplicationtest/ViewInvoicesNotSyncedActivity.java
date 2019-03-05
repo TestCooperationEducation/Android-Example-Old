@@ -31,6 +31,8 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.ParsePosition;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -38,6 +40,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -332,37 +335,178 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
         String output = zdt.format( formatter );
 
         File sd = Environment.getExternalStorageDirectory();
-//        csvFileTypeOneFormCopy = "inv_typeone_" + invoiceNumberChosen + "_" + output + ".xls";
+        csvFileTypeOneFormCopy = "inv_typeone_" + invoiceNumberChosen + "_" + output + ".xls";
         csvFileTypeTwoFormCopy = "inv_typetwo_" + invoiceNumberChosen + "_" + output + ".xls";
 
-//        File directoryTypeOne = new File(sd.getAbsolutePath() + File.separator + "Download"
-//                + File.separator + "Excel" + File.separator + "Накладная_отчет");
+        File directoryTypeOne = new File(sd.getAbsolutePath() + File.separator + "Download"
+                + File.separator + "Excel" + File.separator + "Накладная_отчет");
         File directoryTypeTwo = new File(sd.getAbsolutePath() + File.separator + "Download"
                 + File.separator + "Excel" + File.separator + "Фактура_отчет");
-//        if (!directoryTypeOne.isDirectory()) {
-//            directoryTypeOne.mkdirs();
-//        }
+        if (!directoryTypeOne.isDirectory()) {
+            directoryTypeOne.mkdirs();
+        }
         if (!directoryTypeTwo.isDirectory()) {
             directoryTypeTwo.mkdirs();
         }
-//        File fileTypeOneSave = new File(directoryTypeOne, csvFileTypeOneFormCopy);
+        File fileTypeOneSave = new File(directoryTypeOne, csvFileTypeOneFormCopy);
         File fileTypeTwoSave = new File(directoryTypeTwo, csvFileTypeTwoFormCopy);
-//        File inputWorkbookTypeOne = fileTypeOne;
+        File inputWorkbookTypeOne = fileTypeOne;
         File inputWorkbookTypeTwo = fileTypeTwo;
-//        Workbook wTypeOne;
+        Workbook wTypeOne;
         Workbook wTypeTwo;
         WorkbookSettings wbSettings = new WorkbookSettings();
         wbSettings.setLocale(new Locale("ru", "Ru"));
         try {
-//            wTypeOne = Workbook.getWorkbook(inputWorkbookTypeOne);
+            wTypeOne = Workbook.getWorkbook(inputWorkbookTypeOne);
             wTypeTwo = Workbook.getWorkbook(inputWorkbookTypeTwo);
-//            WritableWorkbook copyTypeOne = Workbook.createWorkbook(fileTypeOneSave, wTypeOne);
-//            WritableSheet sheetTypeOne = copyTypeOne.getSheet(0);
+            WritableWorkbook copyTypeOne = Workbook.createWorkbook(fileTypeOneSave, wTypeOne);
+            WritableSheet sheetTypeOne = copyTypeOne.getSheet(0);
             WritableWorkbook copyTypeTwo = Workbook.createWorkbook(fileTypeTwoSave, wTypeTwo);
             WritableSheet sheetTypeTwo = copyTypeTwo.getSheet(0);
 
 //            WritableCell cellTypeOne = sheetTypeOne.getWritableCell(3, 29);
 //            CellFormat cfmTypeOne = cellTypeOne.getCellFormat();
+
+            String dateTimeDoc = infoDateTimeDocLocalList.get(0);
+            DateTimeFormatter formatter2 = DateTimeFormatter.ofPattern( "yyyy/MM/dd HH:mm:ss" );
+            LocalDateTime d2 = LocalDateTime.parse(dateTimeDoc, formatter2);
+            final String output2 = d2.with(LocalTime.MIN).format( formatter2 );
+
+//            Date outputDate = stringToDate(dateTimeDoc, "yyyy/MM/dd HH:mm:ss");
+//            String output3 = outputDate.toString();
+//            DateTimeFormatter formatter3 = DateTimeFormatter.ofPattern( "dd.MM.yyyy HH:mm:ss" );
+//            LocalDateTime d3 = LocalDateTime.parse(dateTimeDoc, formatter3);
+//            final String output4 = d3.with(LocalTime.MIN).format( formatter3 );
+//            Toast.makeText(getApplicationContext(), output4, Toast.LENGTH_SHORT).show();
+
+            String ceo;
+            String license;
+            String address;
+            String ceoFull;
+            String ceoTaxNumber;
+            String ceoFullTaxNumber;
+            String code = "--", codeValue = "--";
+            String phoneNumber;
+            String ceoCompanyTaxNumber, eaes;
+            if (salesPartnerDB_IDChosen == 66 || salesPartnerDB_IDChosen == 1059 ||
+                    (salesPartnerDB_IDChosen >= 100 && salesPartnerDB_IDChosen <=105) ||
+                    salesPartnerDB_IDChosen == 1057 || salesPartnerDB_IDChosen == 1080){
+                ceo = "Ли Г.С.";
+                ceoFull = "ИП Ли Ген Сун";
+                license = "";
+                ceoTaxNumber = "651600222647";
+                ceoFullTaxNumber = "ИП Ли Ген Сун, ИНН 651600222647";
+                address = "694820, Сахалинская обл, Томаринский р-н, Томари г, Подгорная ул, дом №21";
+                phoneNumber = "25-02-62";
+                ceoCompanyTaxNumber = "";
+                eaes = "№ RU Д RU.АЯ23.В.00129/18";
+            } else {
+                ceo = "Че В.Е.";
+                ceoFull = "Индивидуальный предприниматель Че Владимир Енгунович";
+                ceoFullTaxNumber = "Индивидуальный предприниматель Че Владимир Енгунович, ИНН 651600635813";
+                license = "свидетельство 65 №000878852 от 10.12.2010";
+                ceoTaxNumber = "651600635813";
+                ceoCompanyTaxNumber = "310650134400052";
+                address = "Сахалинская обл, Южно-Сахалинск г п/р Ново-Александровск, 2-я Комсомольская, дом № 10а, квартира 15";
+                phoneNumber = "25-02-62";
+                eaes = "№ RU Д RU.АЯ23.В.00129/18";
+            }
+
+            for (int j = 0; j < sheetTypeOne.getColumns(); j++){
+                for (int i = 0; i < sheetTypeOne.getRows(); i++){
+                    WritableCell cellTypeOne = sheetTypeOne.getWritableCell(j, i);
+                    CellFormat cfmTypeOne = cellTypeOne.getCellFormat();
+                    if (j == 5 && i == 0) {
+                        if (cellTypeOne.getType() == CellType.LABEL) {
+                            Label lTypeOne = (Label) cellTypeOne;
+                            lTypeOne.setString("Дата: " + output2); //Дата
+                        }
+                    }
+                    if (j == 0 && i == 1) {
+                        if (cellTypeOne.getType() == CellType.LABEL) {
+                            Label lTypeOne = (Label) cellTypeOne;
+                            lTypeOne.setString("Продавец: " + ceoFull); //Продавец
+                        }
+                    }
+                    if (j == 0 && i == 2) {
+                        if (cellTypeOne.getType() == CellType.LABEL) {
+                            Label lTypeOne = (Label) cellTypeOne;
+                            lTypeOne.setString("Адрес: " + address); //Адрес
+                        }
+                    }
+                    if (j == 0 && i == 3) {
+                        if (cellTypeOne.getType() == CellType.LABEL) {
+                            Label lTypeOne = (Label) cellTypeOne;
+                            lTypeOne.setString("ИНН: " + ceoTaxNumber + ", тел. " + phoneNumber); //ИНН, тел.
+                        }
+                    }
+                    if (j == 0 && i == 4) {
+                        if (cellTypeOne.getType() == CellType.LABEL) {
+                            Label lTypeOne = (Label) cellTypeOne;
+                            lTypeOne.setString("ОГРНИП: " + ceoCompanyTaxNumber); //ОГРНИП
+                        }
+                    }
+                    if (j == 0 && i == 5) {
+                        if (cellTypeOne.getType() == CellType.LABEL) {
+                            Label lTypeOne = (Label) cellTypeOne;
+                            lTypeOne.setString("ЕАЭС: " + eaes); //ЕАЭС
+                        }
+                    }
+                    if (j == 0 && i == 6) {
+                        if (cellTypeOne.getType() == CellType.LABEL) {
+                            Label lTypeOne = (Label) cellTypeOne;
+                            lTypeOne.setString("НАКЛАДНАЯ № " + areaDefault + " - " + invoiceNumberChosen); //Номер накладной
+                        }
+                    }
+                    if (j == 3 && i == 36) {
+//                        if (cellTypeOne.getType() == CellType.LABEL) {
+                            Label lTypeOne = (Label) cellTypeOne;
+                            lTypeOne.setString(String.valueOf(infoInvoiceSumList.get(0))); //Итого
+//                        }
+                    }
+                    if (i > 8 && i < 30 && i < (infoItemNameList.size() + 9)) {
+                        if (j == 0) {
+//                            if (cellTypeOne.getType() == CellType.LABEL) {
+//                                Label lTypeOne = (Label) cellTypeOne;
+//                                lTypeOne.setString(String.valueOf(i - 8)); //Порядковый номер
+//                            }
+                            sheetTypeOne.addCell(new Label(j, i, String.valueOf(i - 8)));
+                        }
+                        if (j == 1) {
+                            if (cellTypeOne.getType() == CellType.LABEL) {
+                                Label lTypeOne = (Label) cellTypeOne;
+                                lTypeOne.setString(String.valueOf(infoExchangeList.get(i - 9))); //Обмен
+                            }
+                        }
+                        if (j == 2) {
+                            if (cellTypeOne.getType() == CellType.LABEL) {
+                                Label lTypeOne = (Label) cellTypeOne;
+                                lTypeOne.setString(infoItemNameList.get(i - 9)); //Наименование
+                            }
+                        }
+                        if (j == 6) {
+                            if (cellTypeOne.getType() == CellType.LABEL) {
+                                Label lTypeOne = (Label) cellTypeOne;
+                                lTypeOne.setString(String.valueOf(infoQuantityList.get(i - 9))); //Кол-во
+                            }
+                        }
+                        if (j == 7) {
+                            if (cellTypeOne.getType() == CellType.LABEL) {
+                                Label lTypeOne = (Label) cellTypeOne;
+                                lTypeOne.setString(String.valueOf(infoPriceList.get(i - 9))); //Цена
+                            }
+                        }
+                        if (j == 8) {
+                            if (cellTypeOne.getType() == CellType.LABEL) {
+                                Label lTypeOne = (Label) cellTypeOne;
+                                lTypeOne.setString(String.valueOf(infoTotalList.get(i - 9))); //Сумма
+                            }
+                        }
+                    }
+                    cellTypeOne.setCellFormat(cfmTypeOne);
+                }
+            }
+
             Integer b = 0, c = 0, d = 0, f = 0, g = 0, h = 0, k = 0, l = 0, m = 0, n = 0, o = 0;
             for (int j = 0; j < sheetTypeTwo.getColumns(); j++) {
                 for (int i = 0; i < sheetTypeTwo.getRows(); i++) {
@@ -387,30 +531,7 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
                             lTypeTwo.setString("1"); //Статус документа: 2 или 1. Не понятно что должно быть!!!
                         }
                     }
-                    String ceo;
-                    String license;
-                    String address;
-                    String ceoFull;
-                    String ceoTaxNumber;
-                    String ceoFullTaxNumber;
-                    String code = "--", codeValue = "--";
-                    if (salesPartnerDB_IDChosen == 66 || salesPartnerDB_IDChosen == 1059 ||
-                            (salesPartnerDB_IDChosen >= 100 && salesPartnerDB_IDChosen <=105) ||
-                            salesPartnerDB_IDChosen == 1057 || salesPartnerDB_IDChosen == 1080){
-                        ceo = "Ли Г.С.";
-                        ceoFull = "ИП Ли Ген Сун";
-                        license = "";
-                        ceoTaxNumber = "651600222647";
-                        ceoFullTaxNumber = "ИП Ли Ген Сун, ИНН 651600222647";
-                        address = "694820, Сахалинская обл, Томаринский р-н, Томари г, Подгорная ул, дом №21";
-                    } else {
-                        ceo = "Че В.Е.";
-                        ceoFull = "Индивидуальный предприниматель Че Владимир Енгунович";
-                        ceoFullTaxNumber = "Индивидуальный предприниматель Че Владимир Енгунович, ИНН 651600635813";
-                        license = "свидетельство 65 №000878852 от 10.12.2010";
-                        ceoTaxNumber = "651600635813";
-                        address = "Сахалинская обл, Южно-Сахалинск г п/р Ново-Александровск, 2-я Комсомольская, дом № 10а, квартира 15";
-                    }
+
                     if (!infoItemNameList.equals("Ким-ча весовая") && !infoItemNameList.equals("Редька по-восточному весовая")){
                         code = "796";
                         codeValue = "шт";
@@ -494,10 +615,6 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
 
                         }
                     }
-                    String dateTimeDoc = infoDateTimeDocLocalList.get(0);
-                    DateTimeFormatter formatter2 = DateTimeFormatter.ofPattern( "yyyy/MM/dd HH:mm:ss" );
-                    LocalDateTime d2 = LocalDateTime.parse(dateTimeDoc, formatter2);
-                    final String output2 = d2.with(LocalTime.MIN).format( formatter2 );
 
                     if (j == 18 && i == 96 - a) {
                         if (cellTypeTwo.getType() == CellType.LABEL) {
@@ -627,7 +744,6 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
                         }
                     }
                     cellTypeTwo.setCellFormat(cfmTypeTwo);
-
                 }
             }
 
@@ -636,9 +752,9 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
 //                Label lTypeOne = (Label) cellTypeOne;
 //                lTypeOne.setString("Шо за бред");
 //            }
-//            cellTypeOne.setCellFormat(cfmTypeOne);
-//            copyTypeOne.write();
-//            copyTypeOne.close();
+
+            copyTypeOne.write();
+            copyTypeOne.close();
             copyTypeTwo.write();
             copyTypeTwo.close();
 //            w.close();
@@ -696,6 +812,7 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
 //            workbook.write();
 //            workbook.close();
 //            wTypeOne.close();
+            wTypeOne.close();
             wTypeTwo.close();
         } catch (BiffException e) {
             e.printStackTrace();
@@ -707,13 +824,11 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
     private void makeExcel(){
         File sd = Environment.getExternalStorageDirectory();
 
-
-
-//        csvFileTypeOneForm = "Накладная_" + infoItemNameList.size() + ".xls";
+        csvFileTypeOneForm = "invoice_form.xls";
         csvFileTypeTwoForm = "УПД_" + infoItemNameList.size() + ".xls";
 
-//        File directoryTypeOne = new File(sd.getAbsolutePath() + File.separator + "Download"
-//                + File.separator + "Excel" + File.separator + "Накладная_форма");
+        File directoryTypeOne = new File(sd.getAbsolutePath() + File.separator + "Download"
+                + File.separator + "Excel" + File.separator + "Накладная_форма");
         File directoryTypeTwo = new File(sd.getAbsolutePath() + File.separator + "Download"
                 + File.separator + "Excel" + File.separator + "Фактура_форма");
 //        if (!directoryTypeOne.isDirectory()) {
@@ -722,7 +837,7 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
 //        if (!directoryTypeTwo.isDirectory()) {
 //            directoryTypeTwo.mkdirs();
 //        }
-//        fileTypeOne = new File(directoryTypeOne, csvFileTypeOneForm);
+        fileTypeOne = new File(directoryTypeOne, csvFileTypeOneForm);
         fileTypeTwo = new File(directoryTypeTwo, csvFileTypeTwoForm);
 
 //        setInputFile(sd.getAbsolutePath() + File.separator + "Download" + File.separator + "Excel" + File.separator + "ЧЕВЕ.xls");
@@ -1043,5 +1158,15 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
         }
         Toast.makeText(getApplicationContext(), String.valueOf(infoItemNameList.size()), Toast.LENGTH_SHORT).show();
         c.close();
+    }
+
+    private Date stringToDate(String aDate, String aFormat) {
+
+        if(aDate==null) return null;
+        ParsePosition pos = new ParsePosition(0);
+        SimpleDateFormat simpledateformat = new SimpleDateFormat(aFormat);
+        Date stringDate = simpledateformat.parse(aDate, pos);
+        return stringDate;
+
     }
 }
