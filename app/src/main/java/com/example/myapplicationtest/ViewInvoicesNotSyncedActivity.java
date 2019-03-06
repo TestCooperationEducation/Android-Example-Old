@@ -455,7 +455,8 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
                     if (j == 0 && i == 6) {
                         if (cellTypeOne.getType() == CellType.LABEL) {
                             Label lTypeOne = (Label) cellTypeOne;
-                            lTypeOne.setString("НАКЛАДНАЯ № " + areaDefault + " - " + invoiceNumberChosen); //Номер накладной
+                            lTypeOne.setString("НАКЛАДНАЯ № " + areaDefault + " - " + invoiceNumberChosen
+                                    + " - " + salesPartnerNameChosen); //Номер накладной
                         }
                     }
                     if (j == 3 && i == 36) {
