@@ -85,7 +85,7 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
     ArrayList<String> arrItems, invoiceNumberServerTmp, dateTimeDocServer, summaryListTmp, accTypeListTmp,
             accTypeSPListTmp, invoiceNumberListTmp, summaryListTmpSecond, accTypeListTmpSecond,
             accTypeSPListTmpSecond, invoiceNumberListTmpSecond, salesPartnerNameListTmp, infoItemNameList,
-            infoDateTimeDocLocalList;
+            infoDateTimeDocLocalList, infoItemDescriptionList;
     ArrayList<Double> arrQuantity, arrExchange, arrReturn, arrSum, infoExchangeList, infoQuantityList,
             infoTotalList, infoReturnList, infoInvoiceSumList;
     ArrayList<Integer> arrPriceChanged, invoiceNumbersList, infoPriceList, salesPartnerDB_IDList;
@@ -370,7 +370,7 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
             String dateTimeDoc = infoDateTimeDocLocalList.get(0);
             DateTimeFormatter formatter2 = DateTimeFormatter.ofPattern( "yyyy/MM/dd HH:mm:ss" );
             LocalDateTime d2 = LocalDateTime.parse(dateTimeDoc, formatter2);
-            final String output2 = d2.with(LocalTime.MIN).format( formatter2 );
+            final String output2 = d2.format( formatter2 );
 
 //            Date outputDate = stringToDate(dateTimeDoc, "yyyy/MM/dd HH:mm:ss");
 //            String output3 = outputDate.toString();
@@ -396,9 +396,9 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
                 license = "";
                 ceoTaxNumber = "651600222647";
                 ceoFullTaxNumber = "ИП Ли Ген Сун, ИНН 651600222647";
-                address = "694820, Сахалинская обл, Томаринский р-н, Томари г, Подгорная ул, дом №21";
+                address = "693005, Сахалинская обл, Южно-Сахалинск г, Колодезная ул, дом №8";
                 phoneNumber = "25-02-62";
-                ceoCompanyTaxNumber = "";
+                ceoCompanyTaxNumber = "318650100014220";
                 eaes = "№ RU Д RU.АЯ23.В.00129/18";
             } else {
                 ceo = "Че В.Е.";
@@ -407,7 +407,7 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
                 license = "свидетельство 65 №000878852 от 10.12.2010";
                 ceoTaxNumber = "651600635813";
                 ceoCompanyTaxNumber = "310650134400052";
-                address = "Сахалинская обл, Южно-Сахалинск г п/р Ново-Александровск, 2-я Комсомольская, дом № 10а, квартира 15";
+                address = "693005, Сахалинская обл, Южно-Сахалинск г, Колодезная ул, дом №8";
                 phoneNumber = "25-02-62";
                 eaes = "№ RU Д RU.АЯ23.В.00129/18";
             }
@@ -459,29 +459,38 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
                         }
                     }
                     if (j == 3 && i == 36) {
-//                        if (cellTypeOne.getType() == CellType.LABEL) {
+                        if (cellTypeOne.getType() == CellType.LABEL) {
                             Label lTypeOne = (Label) cellTypeOne;
                             lTypeOne.setString(String.valueOf(infoInvoiceSumList.get(0))); //Итого
-//                        }
+                        }
+//                        sheetTypeOne.addCell(new Label(j, i, String.valueOf(infoInvoiceSumList.get(0))));
                     }
                     if (i > 8 && i < 30 && i < (infoItemNameList.size() + 9)) {
                         if (j == 0) {
-//                            if (cellTypeOne.getType() == CellType.LABEL) {
-//                                Label lTypeOne = (Label) cellTypeOne;
-//                                lTypeOne.setString(String.valueOf(i - 8)); //Порядковый номер
-//                            }
-                            sheetTypeOne.addCell(new Label(j, i, String.valueOf(i - 8)));
+                            if (cellTypeOne.getType() == CellType.LABEL) {
+                                Label lTypeOne = (Label) cellTypeOne;
+                                lTypeOne.setString(String.valueOf(i - 8)); //Порядковый номер
+                            }
+//                            sheetTypeOne.addCell(new Label(j, i, String.valueOf(i - 8)));
                         }
                         if (j == 1) {
                             if (cellTypeOne.getType() == CellType.LABEL) {
                                 Label lTypeOne = (Label) cellTypeOne;
                                 lTypeOne.setString(String.valueOf(infoExchangeList.get(i - 9))); //Обмен
                             }
+//                            sheetTypeOne.addCell(new Label(j, i, String.valueOf(infoExchangeList.get(i - 9))));
                         }
                         if (j == 2) {
                             if (cellTypeOne.getType() == CellType.LABEL) {
                                 Label lTypeOne = (Label) cellTypeOne;
                                 lTypeOne.setString(infoItemNameList.get(i - 9)); //Наименование
+                            }
+//                            sheetTypeOne.addCell(new Label(j, i, infoItemNameList.get(i - 9)));
+                        }
+                        if (j == 5) {
+                            if (cellTypeOne.getType() == CellType.LABEL) {
+                                Label lTypeOne = (Label) cellTypeOne;
+                                lTypeOne.setString(infoItemDescriptionList.get(i - 9)); //Описание товара (масса)
                             }
                         }
                         if (j == 6) {
@@ -489,18 +498,21 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
                                 Label lTypeOne = (Label) cellTypeOne;
                                 lTypeOne.setString(String.valueOf(infoQuantityList.get(i - 9))); //Кол-во
                             }
+//                            sheetTypeOne.addCell(new Label(j, i, String.valueOf(infoQuantityList.get(i - 9))));
                         }
                         if (j == 7) {
                             if (cellTypeOne.getType() == CellType.LABEL) {
                                 Label lTypeOne = (Label) cellTypeOne;
                                 lTypeOne.setString(String.valueOf(infoPriceList.get(i - 9))); //Цена
                             }
+//                            sheetTypeOne.addCell(new Label(j, i, String.valueOf(infoPriceList.get(i - 9))));
                         }
                         if (j == 8) {
                             if (cellTypeOne.getType() == CellType.LABEL) {
                                 Label lTypeOne = (Label) cellTypeOne;
                                 lTypeOne.setString(String.valueOf(infoTotalList.get(i - 9))); //Сумма
                             }
+//                            sheetTypeOne.addCell(new Label(j, i, String.valueOf(infoTotalList.get(i - 9))));
                         }
                     }
                     cellTypeOne.setCellFormat(cfmTypeOne);
@@ -1127,12 +1139,14 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
         infoReturnList = new ArrayList<>();
         infoInvoiceSumList = new ArrayList<>();
         infoDateTimeDocLocalList = new ArrayList<>();
+        infoItemDescriptionList = new ArrayList<>();
 //        String sql = "SELECT salesPartners.serverDB_ID FROM salesPartners " +
 //                "INNER JOIN invoiceLocalDB On salesPartners.Наименование LIKE invoiceLocalDB.salesPartnerName " +
 //                "AND invoiceLocalDB.areaSP = salesPartners.Район AND invoiceLocalDB.accountingTypeSP LIKE salesPartners.Учет " +
 //                "WHERE invoiceNumber LIKE ?";
 //        Cursor c = db.rawQuery(sql, new String[]{invoiceNumberChosen});
-        String sql = "SELECT * FROM invoiceLocalDB WHERE invoiceNumber LIKE ?";
+        String sql = "SELECT invoiceLocalDB.*, items.Описание FROM invoiceLocalDB INNER JOIN items " +
+                "ON invoiceLocalDB.itemName LIKE items.Наименование WHERE invoiceNumber LIKE ?";
         Cursor c = db.rawQuery(sql, new String[]{invoiceNumberChosen});
         if (c.moveToFirst()) {
             int exchange = c.getColumnIndex("exchangeQuantity");
@@ -1141,6 +1155,7 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
             int quantity = c.getColumnIndex("quantity");
             int total = c.getColumnIndex("totalCost");
             int returnQuantity = c.getColumnIndex("returnQuantity");
+            int itemDescription = c.getColumnIndex("Описание");
             int accountingTypeDocTmp = c.getColumnIndex("accountingTypeDoc");
             int invoiceSumTmp = c.getColumnIndex("invoiceSum");
             int dateTimeDoc = c.getColumnIndex("dateTimeDocLocal");
@@ -1154,9 +1169,11 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
                 infoReturnList.add(c.getDouble(returnQuantity));
                 infoInvoiceSumList.add(c.getDouble(invoiceSumTmp));
                 infoDateTimeDocLocalList.add(c.getString(dateTimeDoc));
+                infoItemDescriptionList.add(c.getString(itemDescription));
             } while (c.moveToNext());
         }
-        Toast.makeText(getApplicationContext(), String.valueOf(infoItemNameList.size()), Toast.LENGTH_SHORT).show();
+//        Toast.makeText(getApplicationContext(), "Позиций продано: " + String.valueOf(infoItemNameList.size()), Toast.LENGTH_SHORT).show();
+        Toast.makeText(getApplicationContext(), infoItemDescriptionList.get(4), Toast.LENGTH_SHORT).show();
         c.close();
     }
 

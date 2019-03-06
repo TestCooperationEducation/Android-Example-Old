@@ -817,19 +817,22 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
                 try{
                     JSONArray jsonArray = new JSONArray(response);
                     Integer[] itemNumber = new Integer[jsonArray.length()];
-                    String[] itemName= new String[jsonArray.length()];
-                    Integer[] itemPrice= new Integer[jsonArray.length()];
+                    String[] itemName = new String[jsonArray.length()];
+                    Integer[] itemPrice = new Integer[jsonArray.length()];
+                    String[] itemDescription = new String[jsonArray.length()];
 
                     if (jsonArray.length() > 0){
                         for (int i = 0; i < jsonArray.length(); i++) {
                             JSONObject obj = jsonArray.getJSONObject(i);
                             itemNumber[i] = obj.getInt("Артикул");
                             itemName[i] = obj.getString("Наименование");
+                            itemDescription[i] = obj.getString("Описание");
                             itemPrice[i] = obj.getInt("Цена");
                             ContentValues cv = new ContentValues();
                             Log.d(LOG_TAG, "--- Insert in items: ---");
                             cv.put("Артикул", itemNumber[i]);
                             cv.put("Наименование", itemName[i]);
+                            cv.put("Описание", itemName[i]);
                             cv.put("Цена", itemPrice[i]);
                             long rowID = db.insert("items", null, cv);
                             Log.d(LOG_TAG, "row inserted, ID = " + rowID);
@@ -1393,6 +1396,7 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
                         + "id integer primary key autoincrement,"
                         + "Артикул integer UNIQUE ON CONFLICT REPLACE,"
                         + "Наименование text,"
+                        + "Описание text,"
                         + "Цена integer" + ");");
             }
 

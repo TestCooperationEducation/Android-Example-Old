@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Environment;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -23,22 +24,38 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+
+import jxl.CellType;
+import jxl.Workbook;
+import jxl.WorkbookSettings;
+import jxl.format.CellFormat;
+import jxl.read.biff.BiffException;
+import jxl.write.Label;
+import jxl.write.WritableCell;
+import jxl.write.WritableSheet;
+import jxl.write.WritableWorkbook;
+import jxl.write.WriteException;
 
 public class MainMenu extends AppCompatActivity implements View.OnClickListener {
 
@@ -69,7 +86,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
     final String SAVED_LastReceiveDate = "lastReceiveDate";
     String loginUrl = "https://caiman.ru.com/php/login.php", dbName, dbUser, dbPassword,
             syncUrl = "https://caiman.ru.com/php/syncDB.php", connStatus, areaDefault, invoiceNumberLast,
-            paymentNumberLast, lastReceiveDate;
+            paymentNumberLast, lastReceiveDate, csvFileForm, csvFileFormCopy;
     String[] dayOfTheWeek, salesPartnersName, accountingType, author, itemName, comment, dateTimeDoc,
             reportList;
     Integer[] itemPrice, discountID, spID, area, serverDB_ID, itemNumber, discountType, discount,
@@ -81,7 +98,9 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
     SQLiteDatabase db;
     Boolean one, two, three, four, five, six, seven, agentReportChoice = false, dropped = false;
     Integer countGlobal;
-    ArrayMap<String, Double> arrayMapReceive;
+    ArrayMap<String, Double> arrayMapReceive, arrayMapQuantity, arrayMapExchange, arrayMapReturn,
+            arrayMapQuantityReduced, arrayMapExchangeReduced, arrayMapReturnReduced;
+    File file;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -467,13 +486,12 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
             Double quantity;
             Double exchange;
             Double returnQuantity;
-            ArrayMap<String, Double> arrayMapQuantity = new ArrayMap<>();
-            ArrayMap<String, Double> arrayMapExchange = new ArrayMap<>();
-            ArrayMap<String, Double> arrayMapReturn = new ArrayMap<>();
-
-            ArrayMap<String, Double> arrayMapQuantityReduced = new ArrayMap<>();
-            ArrayMap<String, Double> arrayMapExchangeReduced = new ArrayMap<>();
-            ArrayMap<String, Double> arrayMapReturnReduced = new ArrayMap<>();
+            arrayMapQuantity = new ArrayMap<>();
+            arrayMapExchange = new ArrayMap<>();
+            arrayMapReturn = new ArrayMap<>();
+            arrayMapQuantityReduced = new ArrayMap<>();
+            arrayMapExchangeReduced = new ArrayMap<>();
+            arrayMapReturnReduced = new ArrayMap<>();
 
             String sql = "SELECT items.Наименование FROM items ";
             Cursor c = db.rawQuery(sql, null);
@@ -677,7 +695,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         }
     }
 
-    private void showReceiveReport(String reportTitle){
+    private void showReceiveReport(final String reportTitle){
         AlertDialog.Builder builder;
         builder = new AlertDialog.Builder(this);
         builder.setTitle(reportTitle)
@@ -693,6 +711,13 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                 .setNegativeButton("Печатать",
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
+                                if (reportTitle.equals("Конец смены"));
+                                makeExcel();
+                                try {
+                                    printReport();
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
                                 dialog.cancel();
                             }
                         })
@@ -713,7 +738,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
 
         lp.copyFrom(alert.getWindow().getAttributes());
-        lp.width = 720;
+//        lp.width = 720;
 //        lp.height = 500;
 //        lp.x=-170;
 //        lp.y=100;
@@ -1124,19 +1149,22 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                 try{
                     JSONArray jsonArray = new JSONArray(response);
                     Integer[] itemNumber = new Integer[jsonArray.length()];
-                    String[] itemName= new String[jsonArray.length()];
-                    Integer[] itemPrice= new Integer[jsonArray.length()];
+                    String[] itemName = new String[jsonArray.length()];
+                    Integer[] itemPrice = new Integer[jsonArray.length()];
+                    String[] itemDescription = new String[jsonArray.length()];
 
                     if (jsonArray.length() > 0){
                         for (int i = 0; i < jsonArray.length(); i++) {
                             JSONObject obj = jsonArray.getJSONObject(i);
                             itemNumber[i] = obj.getInt("Артикул");
                             itemName[i] = obj.getString("Наименование");
+                            itemDescription[i] = obj.getString("Описание");
                             itemPrice[i] = obj.getInt("Цена");
                             ContentValues cv = new ContentValues();
                             Log.d(LOG_TAG, "--- Insert in items: ---");
                             cv.put("Артикул", itemNumber[i]);
                             cv.put("Наименование", itemName[i]);
+                            cv.put("Описание", itemDescription[i]);
                             cv.put("Цена", itemPrice[i]);
                             long rowID = db.insert("items", null, cv);
                             Log.d(LOG_TAG, "row inserted, ID = " + rowID);
@@ -1675,6 +1703,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                         + "id integer primary key autoincrement,"
                         + "Артикул integer UNIQUE ON CONFLICT REPLACE,"
                         + "Наименование text,"
+                        + "Описание text,"
                         + "Цена integer" + ");");
             }
 
@@ -1903,5 +1932,108 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
 
     public BigDecimal roundUp(double value, int digits){
         return new BigDecimal(""+value).setScale(digits, BigDecimal.ROUND_HALF_UP);
+    }
+
+    private void printReport()  throws IOException {
+        Instant instant = Instant.now();
+        ZoneId zoneId = ZoneId.of( "Asia/Sakhalin" );
+        ZonedDateTime zdt = ZonedDateTime.ofInstant( instant , zoneId );
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern( "dd.MM.yyyy" );
+        String output = zdt.format( formatter );
+
+        File sd = Environment.getExternalStorageDirectory();
+        csvFileFormCopy = "агент_отчет_" + output + ".xls";
+        File directorySave = new File(sd.getAbsolutePath() + File.separator + "Download"
+                + File.separator + "Excel" + File.separator + "Агент_отчет");
+        if (!directorySave.isDirectory()) {
+            directorySave.mkdirs();
+        }
+        File fileSave = new File(directorySave, csvFileFormCopy);
+        File inputWorkbook = file;
+        Workbook w;
+        WorkbookSettings wbSettings = new WorkbookSettings();
+        wbSettings.setLocale(new Locale("ru", "Ru"));
+        try {
+            w = Workbook.getWorkbook(inputWorkbook);
+            WritableWorkbook copy = Workbook.createWorkbook(fileSave, w);
+            WritableSheet sheet = copy.getSheet(0);
+
+            for (int j = 0; j < sheet.getColumns(); j++){
+                for (int i = 0; i < sheet.getRows(); i++){
+                    WritableCell cell = sheet.getWritableCell(j, i);
+                    CellFormat cfm = cell.getCellFormat();
+                    if (j == 2 && i == 2) {
+                        if (cell.getType() == CellType.LABEL) {
+                            Label l = (Label) cell;
+                            l.setString("Дата: " + output); //Дата
+                        }
+                    }
+                    if (j == 0 && i == 4) {
+                        if (cell.getType() == CellType.LABEL) {
+                            Label l = (Label) cell;
+                            l.setString("Район № " + areaDefault); //Дата
+                        }
+                    }
+                    if (i > 6 && i < 28 && i < (arrayMapExchangeReduced.size() + 7)) {
+                        if (j == 0) {
+                            if (cell.getType() == CellType.LABEL) {
+                                Label l = (Label) cell;
+                                l.setString(String.valueOf(arrayMapExchangeReduced.valueAt(i - 7))); //Обмен
+                            }
+                        }
+                        if (j == 1) {
+                            if (cell.getType() == CellType.LABEL) {
+                                Label l = (Label) cell;
+                                l.setString(String.valueOf(arrayMapExchangeReduced.keyAt(i - 7))); //Наименование
+                            }
+                        }
+                        if (j == 2) {
+                            Double tmp = arrayMapReceive.valueAt(i - 7) - arrayMapQuantityReduced.valueAt(i - 7)
+                                    - arrayMapExchangeReduced.valueAt(i - 7);
+                            if (cell.getType() == CellType.LABEL) {
+                                Label l = (Label) cell;
+                                l.setString(String.valueOf(roundUp(tmp, 2))); //Остаток
+                            }
+                        }
+                        if (j == 3) {
+                            if (cell.getType() == CellType.LABEL) {
+                                Label l = (Label) cell;
+                                l.setString(String.valueOf(arrayMapQuantityReduced.valueAt(i - 7))); //Продажа
+                            }
+                        }
+                        if (j == 4) {
+                            if (cell.getType() == CellType.LABEL) {
+                                Label l = (Label) cell;
+                                l.setString(String.valueOf(arrayMapReceive.valueAt(i - 7))); //Загрузка
+                            }
+                        }
+                        if (j == 5) {
+                            if (cell.getType() == CellType.LABEL) {
+                                Label l = (Label) cell;
+                                l.setString(String.valueOf(0)); //Сумма
+                            }
+                        }
+                    }
+                    cell.setCellFormat(cfm);
+                }
+            }
+
+            copy.write();
+            copy.close();
+            w.close();
+        } catch (BiffException e) {
+            e.printStackTrace();
+        } catch (WriteException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void makeExcel(){
+        File sd = Environment.getExternalStorageDirectory();
+        csvFileForm = "agentReport.xls";
+        File directory = new File(sd.getAbsolutePath() + File.separator + "Download"
+                + File.separator + "Excel" + File.separator + "Агент_отчет_форма");
+        file = new File(directory, csvFileForm);
+
     }
 }
