@@ -72,7 +72,8 @@
         <activity android:name=".ReceiveActivity" />
         <activity android:name=".ReceiveNewActivity" />
         <activity android:name=".AccountingActivity" />
-        <activity android:name=".AgentReportActivity"></activity>
+        <activity android:name=".AgentReportActivity" />
+        <activity android:name=".StatsAnalyticsActivity"></activity>
     </application>
 
 </manifest>

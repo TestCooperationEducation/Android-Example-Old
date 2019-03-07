@@ -2,7 +2,6 @@ package com.example.myapplicationtest;
 
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -16,7 +15,6 @@ import android.text.TextWatcher;
 import android.util.ArrayMap;
 import android.util.Log;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -44,19 +42,17 @@ import jxl.write.WritableSheet;
 import jxl.write.WritableWorkbook;
 import jxl.write.WriteException;
 
-public class AgentReportActivity extends AppCompatActivity implements View.OnClickListener {
-
+public class StatsAnalyticsActivity extends AppCompatActivity implements View.OnClickListener {
     Button btnOptions;
-    String lastReceiveDate = "", dateStart = "", dateEnd = "", receiveDate = "", csvFileFormCopy,
-            csvFileForm, areaDefault;
+    String dateStart = "", dateEnd = "", csvFileFormCopy, csvFileForm, areaDefault;
     DBHelper dbHelper;
     final String LOG_TAG = "myLogs";
     SQLiteDatabase db;
-    String[] reportList, receiveDateList;
+    String[] reportList;
     ArrayMap<String, Double> arrayMapReceive, arrayMapQuantity, arrayMapExchange, arrayMapReturn,
             arrayMapQuantityReduced, arrayMapExchangeReduced, arrayMapReturnReduced;
     EditText editTextDateStart, editTextDateEnd;
-    ArrayList<String> receiveDateListTmp, accountingTypeList, accountingTypePaymentsList;
+    ArrayList<String> accountingTypeList, accountingTypePaymentsList;
     ArrayList<Integer> invoiceNumberList;
     ArrayList<Double> invoiceSumList, invoiceSumPaymentsList;
     File file;
@@ -68,7 +64,7 @@ public class AgentReportActivity extends AppCompatActivity implements View.OnCli
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_agent_report);
+        setContentView(R.layout.activity_stats_analytics);
 
         btnOptions = findViewById(R.id.buttonOptions);
         btnOptions.setOnClickListener(this);
@@ -83,7 +79,6 @@ public class AgentReportActivity extends AppCompatActivity implements View.OnCli
         areaDefault = sPrefAreaDefault.getString(SAVED_AREADEFAULT, "");
 
         onChangeListener();
-        getReceiveList();
     }
 
     @Override
@@ -118,31 +113,27 @@ public class AgentReportActivity extends AppCompatActivity implements View.OnCli
     }
 
     private void mainMenu(){
-        final String[] choice ={"Выбрать загрузку", "Показать загрузку", "Продажи", "Сформировать", "По умолчанию"};
+        final String[] choice ={"Посмотреть продажи", "Сформировать", "По умолчанию"};
         AlertDialog.Builder builder;
         builder = new AlertDialog.Builder(this);
         builder.setTitle("Меню");
         builder.setItems(choice, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int item) {
-                if (choice[item].equals("Выбрать загрузку")){
-                    chooseReceive();
-                    dialog.cancel();
-                }
-                if (choice[item].equals("Показать загрузку")){
-                    showReceiveReport("Загрузка");
-                    dialog.cancel();
-                }
                 if (choice[item].equals("Посмотреть продажи")){
-                    watchSales();
+
                     dialog.cancel();
                 }
                 if (choice[item].equals("Сформировать")){
-                    executeChoice();
+                    makeExcel();
+                    try {
+                        printReport();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                     dialog.cancel();
                 }
                 if (choice[item].equals("По умолчанию")){
-                    receiveDate = "";
                     dateEnd = "";
                     dateStart = "";
                     Toast.makeText(getApplicationContext(), "Сброшено по умолчанию", Toast.LENGTH_SHORT).show();
@@ -153,148 +144,6 @@ public class AgentReportActivity extends AppCompatActivity implements View.OnCli
         builder.setCancelable(true);
         AlertDialog alert = builder.create();
         alert.show();
-    }
-
-    private void getReceiveList(){
-        arrayMapReceive = new ArrayMap<>();
-        String sql = "SELECT DISTINCT dateTimeDoc FROM receive ORDER BY id DESC LIMIT 1";
-        Cursor c = db.rawQuery(sql, null);
-        if (c.moveToFirst()) {
-            int dateTimeDocTmp = c.getColumnIndex("dateTimeDoc");
-            lastReceiveDate = c.getString(dateTimeDocTmp);
-        }
-
-        sql = "SELECT items.Наименование, receive.quantity FROM receive INNER JOIN items " +
-                "ON receive.itemID LIKE items.Артикул " +
-                "WHERE receive.dateTimeDoc LIKE ? ";
-        if (receiveDate.length() > 0){
-            c = db.rawQuery(sql, new String[]{receiveDate});
-        } else {
-            c = db.rawQuery(sql, new String[]{lastReceiveDate});
-        }
-        if (c.moveToFirst()) {
-            int itemNameTmp = c.getColumnIndex("Наименование");
-            int quantityTmp = c.getColumnIndex("quantity");
-            ArrayList<String> itemNameList = new ArrayList<>();
-            ArrayList<Double> quantityList = new ArrayList<>();
-            do {
-                itemNameList.add(c.getString(itemNameTmp));
-                quantityList.add(c.getDouble(quantityTmp));
-            } while (c.moveToNext());
-            reportList = new String[itemNameList.size()];
-            for (int i = 0; i < itemNameList.size(); i++) {
-                arrayMapReceive.put(itemNameList.get(i), quantityList.get(i));
-                reportList[i] = "Наименование: " + itemNameList.get(i) + System.lineSeparator() +
-                        "Кол-во: " + String.valueOf(quantityList.get(i)) + System.lineSeparator();
-            }
-        }
-        c.close();
-    }
-
-    private void showReceiveReport(String reportTitle){
-        AlertDialog.Builder builder;
-        builder = new AlertDialog.Builder(this);
-        builder.setTitle(reportTitle)
-                .setCancelable(true)
-                .setNeutralButton("Назад",
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog,
-                                                int id) {
-                                mainMenu();
-                                dialog.cancel();
-                            }
-                        })
-                .setNegativeButton("Печатать",
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                                makeExcel();
-                                try {
-                                    printReport();
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
-                                dialog.cancel();
-                            }
-                        })
-                .setPositiveButton("Выйти",
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                                dialog.cancel();
-                            }
-                        })
-                .setItems(reportList, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int item) {
-                        dialog.cancel();
-                    }
-                });
-        AlertDialog alert = builder.create();
-        alert.show();
-    }
-
-    private void chooseReceive(){
-        receiveDateListTmp = new ArrayList<>();
-        String receiveDateTmp;
-        String receiveMenuTitle;
-        if (dateStart.length() > 0 && dateEnd.length() > 0) {
-            String sql = "SELECT DISTINCT dateTimeDoc FROM receive WHERE dateTimeDoc BETWEEN ? AND ?";
-            Cursor c = db.rawQuery(sql, new String[]{dateStart, dateEnd});
-            if (c.moveToFirst()) {
-                int dateTimeDocTmp = c.getColumnIndex("dateTimeDoc");
-                receiveDateTmp = c.getString(dateTimeDocTmp);
-                do {
-                    receiveDateListTmp.add(receiveDateTmp);
-                } while (c.moveToNext());
-                receiveDateList = new String[receiveDateListTmp.size()];
-                for (int i = 0; i < receiveDateListTmp.size(); i++){
-                    receiveDateList[i] = receiveDateListTmp.get(i);
-                }
-            }
-        }
-        if (receiveDateListTmp.size() > 1){
-            receiveMenuTitle = "Выберите загрузку:";
-        } else {
-            receiveMenuTitle = "Загрузка от:";
-        }
-        AlertDialog.Builder builder;
-        builder = new AlertDialog.Builder(this);
-        builder.setTitle(receiveMenuTitle)
-                .setCancelable(true)
-                .setNeutralButton("Назад",
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog,
-                                                int id) {
-                                mainMenu();
-                                dialog.cancel();
-                            }
-                        })
-                .setNegativeButton("Печатать",
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                                dialog.cancel();
-                            }
-                        })
-                .setPositiveButton("Выйти",
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                                dialog.cancel();
-                            }
-                        })
-                .setItems(receiveDateList, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int item) {
-                        receiveDate = receiveDateList[item];
-                        getReceiveList();
-                        mainMenu();
-                        dialog.cancel();
-                    }
-                });
-        AlertDialog alert = builder.create();
-        alert.show();
-    }
-
-    private void watchSales(){
-        Toast.makeText(getApplicationContext(), "Этот пункт в разработке", Toast.LENGTH_SHORT).show();
     }
 
     private void executeChoice(){
@@ -554,7 +403,7 @@ public class AgentReportActivity extends AppCompatActivity implements View.OnCli
                         "Загрузка: " + arrayMapReceive.valueAt(i).toString() + System.getProperty("line.separator") +
                         System.getProperty("line.separator");
             }
-            showReceiveReport("Конец смены");
+//            showReceiveReport("Конец смены");
         }
     }
 
