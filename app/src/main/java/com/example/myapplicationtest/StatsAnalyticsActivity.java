@@ -31,7 +31,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Locale;
 
+import jxl.Cell;
 import jxl.CellType;
+import jxl.CellView;
 import jxl.Workbook;
 import jxl.WorkbookSettings;
 import jxl.format.CellFormat;
@@ -44,13 +46,14 @@ import jxl.write.WriteException;
 
 public class StatsAnalyticsActivity extends AppCompatActivity implements View.OnClickListener {
     Button btnOptions;
-    String dateStart = "", dateEnd = "", csvFileFormCopy, csvFileForm, areaDefault;
+    String dateStart = "", dateEnd = "", csvFileFormCopy, csvFileForm, areaDefault, tempDate;
     DBHelper dbHelper;
     final String LOG_TAG = "myLogs";
     SQLiteDatabase db;
     String[] reportList;
     ArrayMap<String, Double> arrayMapReceive, arrayMapQuantity, arrayMapExchange, arrayMapReturn,
-            arrayMapQuantityReduced, arrayMapExchangeReduced, arrayMapReturnReduced;
+            arrayMapQuantityReduced, arrayMapExchangeReduced, arrayMapReturnReduced, arrayMapTotal;
+    ArrayMap<String, Integer> arrayMapPrice;
     EditText editTextDateStart, editTextDateEnd;
     ArrayList<String> accountingTypeList, accountingTypePaymentsList;
     ArrayList<Integer> invoiceNumberList;
@@ -148,17 +151,18 @@ public class StatsAnalyticsActivity extends AppCompatActivity implements View.On
 
     private void executeChoice(){
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern( "yyyy-MM-dd HH:mm:ss" );
-        LocalDateTime d = LocalDateTime.parse(lastReceiveDate, formatter);
+        LocalDateTime d = LocalDateTime.parse(tempDate, formatter);
         final String output = d.with(LocalTime.MIN).format( formatter );
         Toast.makeText(getApplicationContext(), output, Toast.LENGTH_SHORT).show();
 
         ArrayList<String> itemNameListDefault;
-        Double quantity;
-        Double exchange;
-        Double returnQuantity;
+        Double quantity, exchange, returnQuantity, total;
+        Integer price;
         arrayMapQuantity = new ArrayMap<>();
         arrayMapExchange = new ArrayMap<>();
         arrayMapReturn = new ArrayMap<>();
+        arrayMapTotal = new ArrayMap<>();
+        arrayMapPrice = new ArrayMap<>();
         arrayMapQuantityReduced = new ArrayMap<>();
         arrayMapExchangeReduced = new ArrayMap<>();
         arrayMapReturnReduced = new ArrayMap<>();
@@ -190,7 +194,7 @@ public class StatsAnalyticsActivity extends AppCompatActivity implements View.On
         Cursor c, c2, c3;
         if (dateStart.length() > 0 && dateEnd.length() > 0){
             sql = "SELECT items.Наименование, invoice.Quantity, invoice.ExchangeQuantity," +
-                    "invoice.ReturnQuantity FROM invoice INNER JOIN items " +
+                    "invoice.ReturnQuantity, invoice.Price, invoice.Total FROM invoice INNER JOIN items " +
                     "ON invoice.ItemID LIKE items.Артикул " +
                     "WHERE invoice.DateTimeDoc BETWEEN ? AND ?";
             c = db.rawQuery(sql, new String[]{dateStart, dateEnd});
@@ -204,7 +208,7 @@ public class StatsAnalyticsActivity extends AppCompatActivity implements View.On
             c3 = db.rawQuery(sql3, new String[]{dateStart, dateEnd});
         } else {
             sql = "SELECT items.Наименование, invoice.Quantity, invoice.ExchangeQuantity," +
-                    "invoice.ReturnQuantity FROM invoice INNER JOIN items " +
+                    "invoice.ReturnQuantity, invoice.Price, invoice.Total FROM invoice INNER JOIN items " +
                     "ON invoice.ItemID LIKE items.Артикул " +
                     "WHERE invoice.DateTimeDoc > ?";
             c = db.rawQuery(sql, new String[]{output});
@@ -265,16 +269,21 @@ public class StatsAnalyticsActivity extends AppCompatActivity implements View.On
             int quantityInvoiceTmp = c.getColumnIndex("Quantity");
             int exchangeQuantityTmp = c.getColumnIndex("ExchangeQuantity");
             int returnQuantityTmp = c.getColumnIndex("ReturnQuantity");
+            int priceTmp = c.getColumnIndex("Price");
+            int totalTmp = c.getColumnIndex("Total");
             ArrayList<String> itemNameList = new ArrayList<>();
-            ArrayList<Double> quantityReceiveList = new ArrayList<>();
+            ArrayList<Double> totalList = new ArrayList<>();
             ArrayList<Double> quantityInvoiceList = new ArrayList<>();
             ArrayList<Double> exchangeQuantityList = new ArrayList<>();
             ArrayList<Double> returnQuantityList = new ArrayList<>();
+            ArrayList<Integer> priceList = new ArrayList<>();
             do {
                 itemNameList.add(c.getString(itemNameTmp));
                 quantityInvoiceList.add(c.getDouble(quantityInvoiceTmp));
                 exchangeQuantityList.add(c.getDouble(exchangeQuantityTmp));
                 returnQuantityList.add(c.getDouble(returnQuantityTmp));
+                totalList.add(c.getDouble(totalTmp));
+                priceList.add(c.getInt(priceTmp));
 
                 if (arrayMapQuantity.containsKey(c.getString(itemNameTmp))) {
                     quantity = arrayMapQuantity.get(c.getString(itemNameTmp)) + c.getDouble((quantityInvoiceTmp));
@@ -291,9 +300,21 @@ public class StatsAnalyticsActivity extends AppCompatActivity implements View.On
                 } else {
                     returnQuantity =c.getDouble((returnQuantityTmp));
                 }
+                if (arrayMapPrice.containsKey(c.getString(itemNameTmp))) {
+                    price = arrayMapPrice.get(c.getString(itemNameTmp)) + c.getInt((priceTmp));
+                } else {
+                    price =c.getInt((priceTmp));
+                }
+                if (arrayMapTotal.containsKey(c.getString(itemNameTmp))) {
+                    total = arrayMapTotal.get(c.getString(itemNameTmp)) + c.getDouble((totalTmp));
+                } else {
+                    total =c.getDouble((totalTmp));
+                }
                 arrayMapQuantity.put(c.getString(itemNameTmp), quantity);
                 arrayMapExchange.put(c.getString(itemNameTmp), exchange);
                 arrayMapReturn.put(c.getString(itemNameTmp), returnQuantity);
+                arrayMapTotal.put(c.getString(itemNameTmp), total);
+                arrayMapPrice.put(c.getString(itemNameTmp), price);
             } while (c.moveToNext());
 
             for (int i = 0; i < arrayMapQuantity.size(); i++){
@@ -475,9 +496,9 @@ public class StatsAnalyticsActivity extends AppCompatActivity implements View.On
         String output = zdt.format( formatter );
 
         File sd = Environment.getExternalStorageDirectory();
-        csvFileFormCopy = "агент_отчет_" + output + ".xls";
+        csvFileFormCopy = "руководитель_отчет_" + output + ".xls";
         File directorySave = new File(sd.getAbsolutePath() + File.separator + "Download"
-                + File.separator + "Excel" + File.separator + "Агент_отчет");
+                + File.separator + "Excel" + File.separator + "Руководитель_отчет");
         if (!directorySave.isDirectory()) {
             directorySave.mkdirs();
         }
@@ -491,7 +512,7 @@ public class StatsAnalyticsActivity extends AppCompatActivity implements View.On
             WritableWorkbook copy = Workbook.createWorkbook(fileSave, w);
             WritableSheet sheet = copy.getSheet(0);
 
-            for (int j = 0; j < sheet.getColumns(); j++){
+            for (int j = 0; j < 6; j++){
                 for (int i = 0; i < sheet.getRows(); i++){
                     WritableCell cell = sheet.getWritableCell(j, i);
                     CellFormat cfm = cell.getCellFormat();
@@ -501,130 +522,16 @@ public class StatsAnalyticsActivity extends AppCompatActivity implements View.On
                             l.setString("Дата: " + output); //Дата
                         }
                     }
-                    if (j == 0 && i == 4) {
-                        if (cell.getType() == CellType.LABEL) {
-                            Label l = (Label) cell;
-                            l.setString("Район № " + areaDefault); //Район
-                        }
-                    }
-                    if (i > 29 && i < 37) {
-                        if (j == 2 && i == 30) {
-                            if (cell.getType() == CellType.LABEL) {
-                                Label l = (Label) cell;
-                                l.setString(String.valueOf(invoiceNumberList.size())); //Всего накладных
-                            }
-                        }
-                        if (j == 2 && i == 31) {
-                            if (cell.getType() == CellType.LABEL) {
-                                Label l = (Label) cell;
-                                l.setString(String.valueOf(invoiceAccTypeOneCount)); //Всего проводных
-                            }
-                        }
-                        if (j == 2 && i == 32) {
-                            if (cell.getType() == CellType.LABEL) {
-                                Label l = (Label) cell;
-                                l.setString(String.valueOf(invoiceAccTypeTwoCount)); //Всего непроводных
-                            }
-                        }
-                        if (j == 2 && i == 33) {
-                            if (cell.getType() == CellType.LABEL) {
-                                Label l = (Label) cell;
-                                l.setString(invoiceAccTypeOnePaymentsCount.toString()); //Всего проводных за наличные
-                            }
-                        }
-                        if (j == 2 && i == 34) {
-                            if (cell.getType() == CellType.LABEL) {
-                                Label l = (Label) cell;
-                                l.setString(invoiceAccTypeTwoPaymentsCount.toString()); //Всего непроводных за наличные
-                            }
-                        }
-                        if (j == 2 && i == 35) {
-                            if (cell.getType() == CellType.LABEL) {
-                                Label l = (Label) cell;
-                                l.setString(String.valueOf(invoiceAccTypeTwoCount - invoiceAccTypeTwoPaymentsCount)); //Всего непроводных на реализацию
-                            }
-                        }
-
-                        if (j == 4 && i == 30) {
-                            if (cell.getType() == CellType.LABEL) {
-                                Label l = (Label) cell;
-                                l.setString(String.valueOf(invoiceSumTotal)); //Всего накладных сумма
-                            }
-                        }
-                        if (j == 4 && i == 31) {
-                            if (cell.getType() == CellType.LABEL) {
-                                Label l = (Label) cell;
-                                l.setString(String.valueOf(invoiceSumTypeOneTotal)); //Всего проводных сумма
-                            }
-                        }
-                        if (j == 4 && i == 32) {
-                            if (cell.getType() == CellType.LABEL) {
-                                Label l = (Label) cell;
-                                l.setString(String.valueOf(invoiceSumTypeTwoTotal)); //Всего непроводных сумма
-                            }
-                        }
-                        if (j == 4 && i == 33) {
-                            if (cell.getType() == CellType.LABEL) {
-                                Label l = (Label) cell;
-                                l.setString(invoiceSumTypeOnePaymentsTotal.toString()); //Всего проводных за нал. сумма
-                            }
-                        }
-                        if (j == 4 && i == 34) {
-                            if (cell.getType() == CellType.LABEL) {
-                                Label l = (Label) cell;
-                                l.setString(invoiceSumTypeTwoPaymentsTotal.toString()); //Всего непроводных за нал. сумма
-                            }
-                        }
-                        if (j == 4 && i == 35) {
-                            if (cell.getType() == CellType.LABEL) {
-                                Label l = (Label) cell;
-                                l.setString(String.valueOf(invoiceSumTypeTwoTotal - invoiceSumTypeTwoPaymentsTotal)); //Всего непроводных на реал. сумма
-                            }
-                        }
-
-                    }
-
-                    if (i > 6 && i < 28 && i < (arrayMapExchangeReduced.size() + 7)) {
-                        if (j == 0) {
-                            if (cell.getType() == CellType.LABEL) {
-                                Label l = (Label) cell;
-                                l.setString(String.valueOf(arrayMapExchangeReduced.valueAt(i - 7))); //Обмен
-                            }
-                        }
-                        if (j == 1) {
-                            if (cell.getType() == CellType.LABEL) {
-                                Label l = (Label) cell;
-                                l.setString(String.valueOf(arrayMapExchangeReduced.keyAt(i - 7))); //Наименование
-                            }
-                        }
-                        if (j == 2) {
-                            Double tmp = arrayMapReceive.valueAt(i - 7) - arrayMapQuantityReduced.valueAt(i - 7)
-                                    - arrayMapExchangeReduced.valueAt(i - 7);
-                            if (cell.getType() == CellType.LABEL) {
-                                Label l = (Label) cell;
-                                l.setString(String.valueOf(roundUp(tmp, 2))); //Остаток
-                            }
-                        }
-                        if (j == 3) {
-                            if (cell.getType() == CellType.LABEL) {
-                                Label l = (Label) cell;
-                                l.setString(String.valueOf(arrayMapQuantityReduced.valueAt(i - 7))); //Продажа
-                            }
-                        }
-                        if (j == 4) {
-                            if (cell.getType() == CellType.LABEL) {
-                                Label l = (Label) cell;
-                                l.setString(String.valueOf(arrayMapReceive.valueAt(i - 7))); //Загрузка
-                            }
-                        }
-                        if (j == 5) {
-                            if (cell.getType() == CellType.LABEL) {
-                                Label l = (Label) cell;
-                                l.setString(String.valueOf(0)); //Сумма
-                            }
-                        }
-                    }
-                    cell.setCellFormat(cfm);
+//                    Cell readCell = sheet.getCell(j, i);
+//                    Label label = new Label(j, i, readCell.getContents());
+//                    CellView cell = sheet.getColumnView(x);
+//                    cell.setAutosize(true);
+//                    sheet.setColumnView(x, cell);
+//
+//                    if (j == 0){
+//                        label = new Label(j, i, String.valueOf(j));
+//                    }
+//                    sheet.addCell(label);
                 }
             }
 
@@ -640,9 +547,9 @@ public class StatsAnalyticsActivity extends AppCompatActivity implements View.On
 
     private void makeExcel(){
         File sd = Environment.getExternalStorageDirectory();
-        csvFileForm = "agentReport.xls";
+        csvFileForm = "ceoReport.xls";
         File directory = new File(sd.getAbsolutePath() + File.separator + "Download"
-                + File.separator + "Excel" + File.separator + "Агент_отчет_форма");
+                + File.separator + "Excel" + File.separator + "Руководитель_отчет_форма");
         file = new File(directory, csvFileForm);
 
     }
