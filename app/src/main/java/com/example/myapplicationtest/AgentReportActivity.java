@@ -545,14 +545,18 @@ public class AgentReportActivity extends AppCompatActivity implements View.OnCli
             }
             reportList = new String[arrayMapQuantityReduced.size()];
             for (int i = 0; i < arrayMapQuantityReduced.size(); i++) {
-                Double tmp = arrayMapReceive.valueAt(i) - arrayMapQuantityReduced.valueAt(i) - arrayMapExchangeReduced.valueAt(i);
-                reportList[i] = "Обмен: " + arrayMapExchangeReduced.valueAt(i).toString() + System.getProperty("line.separator") +
-                        "Наименование: " + System.getProperty("line.separator") +
-                        arrayMapExchangeReduced.keyAt(i) + System.getProperty("line.separator") +
-                        "Остаток: " + roundUp(tmp, 2).toString() + System.getProperty("line.separator") +
-                        "Продажа: " + arrayMapQuantityReduced.valueAt(i).toString() + System.getProperty("line.separator") +
-                        "Загрузка: " + arrayMapReceive.valueAt(i).toString() + System.getProperty("line.separator") +
-                        System.getProperty("line.separator");
+                for (int j = 0; j < arrayMapReceive.size(); j++) {
+                    if (arrayMapQuantityReduced.keyAt(i).equals(arrayMapReceive.keyAt(j))) {
+                        Double tmp = arrayMapReceive.valueAt(j) - arrayMapQuantityReduced.valueAt(i) - arrayMapExchangeReduced.valueAt(i);
+                        reportList[i] = "Обмен: " + arrayMapExchangeReduced.valueAt(i).toString() + System.getProperty("line.separator") +
+                                "Наименование: " + System.getProperty("line.separator") +
+                                arrayMapExchangeReduced.keyAt(i) + System.getProperty("line.separator") +
+                                "Остаток: " + roundUp(tmp, 2).toString() + System.getProperty("line.separator") +
+                                "Продажа: " + arrayMapQuantityReduced.valueAt(i).toString() + System.getProperty("line.separator") +
+                                "Загрузка: " + arrayMapReceive.valueAt(j).toString() + System.getProperty("line.separator") +
+                                System.getProperty("line.separator");
+                    }
+                }
             }
             showReceiveReport("Конец смены");
         }
@@ -736,9 +740,9 @@ public class AgentReportActivity extends AppCompatActivity implements View.OnCli
                     }
 
                     if (i > 6 && i < 28 && i < (arrayMapExchangeReduced.size() + 7)) {
-                        for (int a = 0; a < arrayMapQuantityReduced.size(); a++) {
+//                        for (int a = 0; a < arrayMapQuantityReduced.size(); a++) {
                             for (int b = 0; b < arrayMapReceive.size(); b++) {
-                                if (arrayMapQuantityReduced.keyAt(a).equals(arrayMapReceive.keyAt(b))) {
+                                if (arrayMapQuantityReduced.keyAt(i - 7).equals(arrayMapReceive.keyAt(b))) {
                                     if (j == 0) {
                                         if (cell.getType() == CellType.LABEL) {
                                             Label l = (Label) cell;
@@ -752,7 +756,7 @@ public class AgentReportActivity extends AppCompatActivity implements View.OnCli
                                         }
                                     }
                                     if (j == 2) {
-                                        Double tmp = arrayMapReceive.valueAt(i - 7) - arrayMapQuantityReduced.valueAt(i - 7)
+                                        Double tmp = arrayMapReceive.valueAt(b) - arrayMapQuantityReduced.valueAt(i - 7)
                                                 - arrayMapExchangeReduced.valueAt(i - 7);
                                         if (cell.getType() == CellType.LABEL) {
                                             Label l = (Label) cell;
@@ -768,7 +772,7 @@ public class AgentReportActivity extends AppCompatActivity implements View.OnCli
                                     if (j == 4) {
                                         if (cell.getType() == CellType.LABEL) {
                                             Label l = (Label) cell;
-                                            l.setString(String.valueOf(arrayMapReceive.valueAt(i - 7))); //Загрузка
+                                            l.setString(String.valueOf(arrayMapReceive.valueAt(b))); //Загрузка
                                         }
                                     }
                                     if (j == 5) {
@@ -778,7 +782,7 @@ public class AgentReportActivity extends AppCompatActivity implements View.OnCli
                                         }
                                     }
                                 }
-                            }
+//                            }
                         }
                     }
                     cell.setCellFormat(cfm);
