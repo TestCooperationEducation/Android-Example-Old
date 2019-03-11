@@ -129,10 +129,14 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
                             agent = obj.getString("Фамилия") + " "
                                     + obj.getString("Имя") + " " + obj.getString("Отчество");
                         }
-                        if (!area[0].equals("accountant")) {
+                        if (!area[0].equals("accountant") && !area[0].equals("ceo")) {
                             loadMainMenu();
-                        } else {
+                        }
+                        if (area[0].equals("accountant")){
                             loadAccounting();
+                        }
+                        if (area[0].equals("ceo")){
+                            loadAnalytics();
                         }
                         e = sPrefAgent.edit();
                         e.putString(SAVED_AGENT, agent);
@@ -182,6 +186,11 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
 
     private void loadAccounting(){
         Intent intent = new Intent(getApplicationContext(), AccountingActivity.class);
+        startActivity(intent);
+    }
+
+    private void loadAnalytics(){
+        Intent intent = new Intent(getApplicationContext(), StatsAnalyticsActivity.class);
         startActivity(intent);
     }
 

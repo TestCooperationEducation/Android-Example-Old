@@ -6,4 +6,44 @@
     android:layout_height="match_parent"
     tools:context=".StatsAnalyticsActivity">
 
+    <ScrollView
+        android:id="@+id/scrollView3"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@+id/buttonOptions"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" >
+
+            <EditText
+                android:id="@+id/editTextDateStart"
+                android:layout_width="match_parent"
+                android:layout_height="70dp"
+                android:hint="@string/editTextDateStart"
+                android:inputType="datetime" />
+
+            <EditText
+                android:id="@+id/editTextDateEnd"
+                android:layout_width="match_parent"
+                android:layout_height="70dp"
+                android:hint="@string/editTextDateEnd"
+                android:inputType="datetime" />
+        </LinearLayout>
+    </ScrollView>
+
+    <Button
+        android:id="@+id/buttonOptions"
+        android:layout_width="0dp"
+        android:layout_height="70dp"
+        android:text="@string/btnOptions"
+        android:textSize="24sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
 </android.support.constraint.ConstraintLayout>
