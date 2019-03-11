@@ -676,7 +676,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                         }
                     }
                 }
-                Toast.makeText(getApplicationContext(), String.valueOf(arrayMapQuantityReduced.get("Ким-ча весовая")), Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), String.valueOf(arrayMapQuantityReduced.get("Ким-ча традиционная 250")), Toast.LENGTH_SHORT).show();
 //                Toast.makeText(getApplicationContext(), String.valueOf(arrayMapQuantityReduced.get(i)), Toast.LENGTH_SHORT).show();
                 reportList = new String[arrayMapQuantityReduced.size()];
                 for (int i = 0; i < arrayMapQuantityReduced.size(); i++) {
