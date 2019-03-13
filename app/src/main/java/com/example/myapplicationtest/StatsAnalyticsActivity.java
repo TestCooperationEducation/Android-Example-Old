@@ -358,12 +358,16 @@ public class StatsAnalyticsActivity extends AppCompatActivity implements View.On
                 } else {
                     totalExtended =c.getDouble((totalTmp));
                 }
+                if (arrayMapExchangeTotal.containsKey(itemName)){
+                    arrayMapExchangeTotal.put(itemName, arrayMapExchangeTotal.get(itemName) + priceExtended * exchangeExtended);
+                } else {
+                    arrayMapExchangeTotal.put(itemName, priceExtended * exchangeExtended);
+                }
                 arrayMapQuantityExtended.put(itemNamePrice, quantityExtended);
                 arrayMapExchangeExtended.put(itemNamePrice, exchangeExtended);
                 arrayMapReturnExtended.put(itemNamePrice, returnQuantityExtended);
                 arrayMapTotalExtended.put(itemNamePrice, totalExtended);
                 arrayMapPriceExtended.put(itemNamePrice, priceExtended);
-                arrayMapExchangeTotal.put(itemName, priceExtended * exchangeExtended);
 
                 if (arrayMapQuantity.containsKey(itemName)) {
                     quantity = arrayMapQuantity.get(itemName) + c.getDouble((quantityInvoiceTmp));
