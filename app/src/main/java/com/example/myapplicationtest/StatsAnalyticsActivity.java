@@ -359,9 +359,14 @@ public class StatsAnalyticsActivity extends AppCompatActivity implements View.On
                     totalExtended =c.getDouble((totalTmp));
                 }
                 if (arrayMapExchangeTotal.containsKey(itemName)){
-                    arrayMapExchangeTotal.put(itemName, arrayMapExchangeTotal.get(itemName) + priceExtended * exchangeExtended);
+                    arrayMapExchangeTotal.put(itemName, arrayMapExchangeTotal.get(itemName) + c.getInt(priceTmp) * c.getDouble(exchangeQuantityTmp));
                 } else {
-                    arrayMapExchangeTotal.put(itemName, priceExtended * exchangeExtended);
+                    arrayMapExchangeTotal.put(itemName, c.getInt(priceTmp) * c.getDouble(exchangeQuantityTmp));
+                }
+                if (arrayMapReturnTotal.containsKey(itemName)){
+                    arrayMapReturnTotal.put(itemName, arrayMapReturnTotal.get(itemName) + c.getInt(priceTmp) * c.getDouble(returnQuantityTmp));
+                } else {
+                    arrayMapReturnTotal.put(itemName, c.getInt(priceTmp) * c.getDouble(returnQuantityTmp));
                 }
                 arrayMapQuantityExtended.put(itemNamePrice, quantityExtended);
                 arrayMapExchangeExtended.put(itemNamePrice, exchangeExtended);
@@ -836,9 +841,11 @@ public class StatsAnalyticsActivity extends AppCompatActivity implements View.On
 //                }
 //            }
 
-            for (int j = 0; j < 16; j++) {
-                if (j < 9) {
+            for (int j = 0; j < 17; j++) {
+                if (j < 10) {
                     for (int i = 0; i < arrayMapQuantityExtended.size(); i++) {
+                        WritableCell cellWritable = sheet.getWritableCell(j, i);
+                        CellFormat cfm = cellWritable.getCellFormat();
                         Cell readCell = sheet.getCell(j, i);
                         Label label = new Label(j, i, readCell.getContents());
                         CellView cell = sheet.getColumnView(j);
@@ -873,37 +880,41 @@ public class StatsAnalyticsActivity extends AppCompatActivity implements View.On
                             label = new Label(j, i + 6, String.valueOf(roundUp(arrayMapReturnExtended.valueAt(i) * arrayMapPriceExtended.valueAt(i), 2))); //Возврат стоимость
                         }
                         sheet.addCell(label);
+                        cellWritable.setCellFormat(cfm);
                     }
                 } else {
                     for (int i = 0; i < arrayMapQuantity.size(); i++) {
+                        WritableCell cellWritable = sheet.getWritableCell(j, i);
                         Cell readCell = sheet.getCell(j, i);
+                        CellFormat cfm = readCell.getCellFormat();
                         Label label = new Label(j, i, readCell.getContents());
                         CellView cell = sheet.getColumnView(j);
                         cell.setAutosize(true);
                         sheet.setColumnView(j, cell);
 
-                        if (j == 9) {
+                        if (j == 10) {
                             label = new Label(j, i + 2, String.valueOf(roundUp(arrayMapExchange.valueAt(i), 2))); //Обмен количество
                         }
-                        if (j == 10) {
+                        if (j == 11) {
                             label = new Label(j, i + 2, String.valueOf(roundUp(arrayMapExchangeTotal.valueAt(i), 2))); //Обмен стоимость
                         }
-                        if (j == 11) {
+                        if (j == 12) {
                             label = new Label(j, i + 2, arrayMapExchange.keyAt(i)); //Наименование
                         }
-                        if (j == 12) {
+                        if (j == 13) {
                             label = new Label(j, i + 2, String.valueOf(roundUp(arrayMapQuantity.valueAt(i), 2))); //Продажа количество
                         }
-                        if (j == 13) {
+                        if (j == 14) {
                             label = new Label(j, i + 2, String.valueOf(roundUp(arrayMapTotal.valueAt(i), 2))); //Продажа стоимость
                         }
-                        if (j == 14) {
+                        if (j == 15) {
                             label = new Label(j, i + 2, String.valueOf(roundUp(arrayMapReturn.valueAt(i), 2))); //Возврат количество
                         }
-                        if (j == 15) {
-                            label = new Label(j, i + 2, String.valueOf(roundUp(arrayMapTotal.valueAt(i), 2))); //Возврат стоимость
+                        if (j == 16) {
+                            label = new Label(j, i + 2, String.valueOf(roundUp(arrayMapReturnTotal.valueAt(i), 2))); //Возврат стоимость
                         }
                         sheet.addCell(label);
+                        cellWritable.setCellFormat(cfm);
                     }
                 }
             }
