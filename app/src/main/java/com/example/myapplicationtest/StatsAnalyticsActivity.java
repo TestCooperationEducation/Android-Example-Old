@@ -65,12 +65,16 @@ public class StatsAnalyticsActivity extends AppCompatActivity implements View.On
     SQLiteDatabase db;
     String[] reportList;
     ArrayMap<String, Double> arrayMapReceive, arrayMapQuantity, arrayMapExchange, arrayMapReturn,
-            arrayMapQuantityReduced, arrayMapExchangeReduced, arrayMapReturnReduced, arrayMapTotal;
-    ArrayMap<String, Integer> arrayMapPrice;
+            arrayMapQuantityReduced, arrayMapExchangeReduced, arrayMapReturnReduced, arrayMapTotalReduced,
+            arrayMapTotal, arrayMapQuantityExtended, arrayMapExchangeExtended, arrayMapReturnExtended,
+            arrayMapTotalExtended, arrayMapReturnTotal, arrayMapExchangeTotal;
+    ArrayMap<String, Integer> arrayMapPrice, arrayMapPriceExtended, arrayMapPriceReduced;
     EditText editTextDateStart, editTextDateEnd;
-    ArrayList<String> accountingTypeList, accountingTypePaymentsList;
+    ArrayList<String> accountingTypeList, accountingTypePaymentsList, itemNameList;
     ArrayList<Integer> invoiceNumberList;
-    ArrayList<Double> invoiceSumList, invoiceSumPaymentsList;
+    ArrayList<Double> invoiceSumList, invoiceSumPaymentsList, totalList, quantityInvoiceList,
+            exchangeQuantityList, returnQuantityList;
+    ArrayList<Integer> priceList;
     File file;
     SharedPreferences sPrefAreaDefault, sPrefDBName, sPrefDBPassword, sPrefDBUser;;
     final String SAVED_AREADEFAULT = "areaDefault";
@@ -183,16 +187,29 @@ public class StatsAnalyticsActivity extends AppCompatActivity implements View.On
         Toast.makeText(getApplicationContext(), output, Toast.LENGTH_SHORT).show();
 
         ArrayList<String> itemNameListDefault;
-        Double quantity, exchange, returnQuantity, total;
-        Integer price;
+        Double quantity, exchange, returnQuantity, total, quantityExtended, exchangeExtended, returnQuantityExtended, totalExtended;
+        Integer price, priceExtended;
         arrayMapQuantity = new ArrayMap<>();
         arrayMapExchange = new ArrayMap<>();
         arrayMapReturn = new ArrayMap<>();
         arrayMapTotal = new ArrayMap<>();
         arrayMapPrice = new ArrayMap<>();
+
+        arrayMapQuantityExtended = new ArrayMap<>();
+        arrayMapExchangeExtended = new ArrayMap<>();
+        arrayMapReturnExtended= new ArrayMap<>();
+        arrayMapTotalExtended = new ArrayMap<>();
+        arrayMapPriceExtended = new ArrayMap<>();
+
         arrayMapQuantityReduced = new ArrayMap<>();
         arrayMapExchangeReduced = new ArrayMap<>();
         arrayMapReturnReduced = new ArrayMap<>();
+        arrayMapTotalReduced = new ArrayMap<>();
+        arrayMapPriceReduced = new ArrayMap<>();
+
+        arrayMapExchangeTotal = new ArrayMap<>();
+        arrayMapReturnTotal = new ArrayMap<>();
+
         invoiceAccTypeTwoCount = 0;
         invoiceAccTypeOneCount = 0;
         invoiceSumTypeOneTotal = 0d;
@@ -226,13 +243,13 @@ public class StatsAnalyticsActivity extends AppCompatActivity implements View.On
                     "WHERE invoiceAggregate.DateTimeDoc BETWEEN ? AND ?";
             c = db.rawQuery(sql, new String[]{dateStart, dateEnd});
 
-            sql2 = "SELECT DISTINCT InvoiceNumber, AccountingType, InvoiceSum FROM invoice WHERE DateTimeDoc BETWEEN ? AND ?";
-            c2 = db.rawQuery(sql2, new String[]{dateStart, dateEnd});
-
-            sql3 = "SELECT DISTINCT invoice.InvoiceNumber, invoice.AccountingType, invoice.InvoiceSum FROM invoice INNER JOIN " +
-                    "paymentsServer ON invoice.InvoiceNumber = paymentsServer.InvoiceNumber " +
-                    "WHERE invoice.DateTimeDoc BETWEEN ? AND ?";
-            c3 = db.rawQuery(sql3, new String[]{dateStart, dateEnd});
+//            sql2 = "SELECT DISTINCT InvoiceNumber, AccountingType, InvoiceSum FROM invoice WHERE DateTimeDoc BETWEEN ? AND ?";
+//            c2 = db.rawQuery(sql2, new String[]{dateStart, dateEnd});
+//
+//            sql3 = "SELECT DISTINCT invoice.InvoiceNumber, invoice.AccountingType, invoice.InvoiceSum FROM invoice INNER JOIN " +
+//                    "paymentsServer ON invoice.InvoiceNumber = paymentsServer.InvoiceNumber " +
+//                    "WHERE invoice.DateTimeDoc BETWEEN ? AND ?";
+//            c3 = db.rawQuery(sql3, new String[]{dateStart, dateEnd});
         } else {
             sql = "SELECT items.Наименование, invoiceAggregate.Quantity, invoiceAggregate.ExchangeQuantity," +
                     "invoiceAggregate.ReturnQuantity, invoiceAggregate.Price, invoiceAggregate.Total FROM invoiceAggregate INNER JOIN items " +
@@ -240,56 +257,56 @@ public class StatsAnalyticsActivity extends AppCompatActivity implements View.On
                     "WHERE invoiceAggregate.DateTimeDoc > ?";
             c = db.rawQuery(sql, new String[]{output});
 
-            sql2 = "SELECT DISTINCT InvoiceNumber, AccountingType, InvoiceSum FROM invoice WHERE DateTimeDoc > ?";
-            c2 = db.rawQuery(sql2, new String[]{output});
-
-            sql3 = "SELECT DISTINCT invoice.InvoiceNumber, invoice.AccountingType, invoice.InvoiceSum FROM invoice INNER JOIN " +
-                    "paymentsServer ON invoice.InvoiceNumber = paymentsServer.InvoiceNumber " +
-                    "WHERE invoice.DateTimeDoc > ?";
-            c3 = db.rawQuery(sql3, new String[]{output});
+//            sql2 = "SELECT DISTINCT InvoiceNumber, AccountingType, InvoiceSum FROM invoice WHERE DateTimeDoc > ?";
+//            c2 = db.rawQuery(sql2, new String[]{output});
+//
+//            sql3 = "SELECT DISTINCT invoice.InvoiceNumber, invoice.AccountingType, invoice.InvoiceSum FROM invoice INNER JOIN " +
+//                    "paymentsServer ON invoice.InvoiceNumber = paymentsServer.InvoiceNumber " +
+//                    "WHERE invoice.DateTimeDoc > ?";
+//            c3 = db.rawQuery(sql3, new String[]{output});
         }
-        if (c3.moveToFirst()){
-            int accountingTypeTmp = c3.getColumnIndex("AccountingType");
-            int invoiceSumTmp = c3.getColumnIndex("InvoiceSum");
-
-            do {
-                accountingTypePaymentsList.add(c3.getString(accountingTypeTmp));
-                invoiceSumPaymentsList.add(c3.getDouble(invoiceSumTmp));
-            } while (c3.moveToNext());
-        }
-        for (int i = 0; i < accountingTypePaymentsList.size(); i++){
-            if (accountingTypePaymentsList.get(i).equals("провод")){
-                invoiceAccTypeOnePaymentsCount += 1;
-                invoiceSumTypeOnePaymentsTotal += invoiceSumPaymentsList.get(i);
-
-            } else {
-                invoiceAccTypeTwoPaymentsCount += 1;
-                invoiceSumTypeTwoPaymentsTotal += invoiceSumPaymentsList.get(i);
-            }
-        }
-
-        if (c2.moveToFirst()){
-            int invoiceNumberTmp = c2.getColumnIndex("InvoiceNumber");
-            int accountingTypeTmp = c2.getColumnIndex("AccountingType");
-            int invoiceSumTmp = c2.getColumnIndex("InvoiceSum");
-
-            do {
-                invoiceNumberList.add(c2.getInt(invoiceNumberTmp));
-                accountingTypeList.add(c2.getString(accountingTypeTmp));
-                invoiceSumList.add(c2.getDouble(invoiceSumTmp));
-            } while (c2.moveToNext());
-        }
-        for (int i = 0; i < accountingTypeList.size(); i++){
-            if (accountingTypeList.get(i).equals("провод")){
-                invoiceAccTypeOneCount += 1;
-                invoiceSumTypeOneTotal += invoiceSumList.get(i);
-
-            } else {
-                invoiceAccTypeTwoCount += 1;
-                invoiceSumTypeTwoTotal += invoiceSumList.get(i);
-            }
-            invoiceSumTotal += invoiceSumList.get(i);
-        }
+//        if (c3.moveToFirst()){
+//            int accountingTypeTmp = c3.getColumnIndex("AccountingType");
+//            int invoiceSumTmp = c3.getColumnIndex("InvoiceSum");
+//
+//            do {
+//                accountingTypePaymentsList.add(c3.getString(accountingTypeTmp));
+//                invoiceSumPaymentsList.add(c3.getDouble(invoiceSumTmp));
+//            } while (c3.moveToNext());
+//        }
+//        for (int i = 0; i < accountingTypePaymentsList.size(); i++){
+//            if (accountingTypePaymentsList.get(i).equals("провод")){
+//                invoiceAccTypeOnePaymentsCount += 1;
+//                invoiceSumTypeOnePaymentsTotal += invoiceSumPaymentsList.get(i);
+//
+//            } else {
+//                invoiceAccTypeTwoPaymentsCount += 1;
+//                invoiceSumTypeTwoPaymentsTotal += invoiceSumPaymentsList.get(i);
+//            }
+//        }
+//
+//        if (c2.moveToFirst()){
+//            int invoiceNumberTmp = c2.getColumnIndex("InvoiceNumber");
+//            int accountingTypeTmp = c2.getColumnIndex("AccountingType");
+//            int invoiceSumTmp = c2.getColumnIndex("InvoiceSum");
+//
+//            do {
+//                invoiceNumberList.add(c2.getInt(invoiceNumberTmp));
+//                accountingTypeList.add(c2.getString(accountingTypeTmp));
+//                invoiceSumList.add(c2.getDouble(invoiceSumTmp));
+//            } while (c2.moveToNext());
+//        }
+//        for (int i = 0; i < accountingTypeList.size(); i++){
+//            if (accountingTypeList.get(i).equals("провод")){
+//                invoiceAccTypeOneCount += 1;
+//                invoiceSumTypeOneTotal += invoiceSumList.get(i);
+//
+//            } else {
+//                invoiceAccTypeTwoCount += 1;
+//                invoiceSumTypeTwoTotal += invoiceSumList.get(i);
+//            }
+//            invoiceSumTotal += invoiceSumList.get(i);
+//        }
 
         if (c.moveToFirst()) {
             int itemNameTmp = c.getColumnIndex("Наименование");
@@ -298,12 +315,13 @@ public class StatsAnalyticsActivity extends AppCompatActivity implements View.On
             int returnQuantityTmp = c.getColumnIndex("ReturnQuantity");
             int priceTmp = c.getColumnIndex("Price");
             int totalTmp = c.getColumnIndex("Total");
-            ArrayList<String> itemNameList = new ArrayList<>();
-            ArrayList<Double> totalList = new ArrayList<>();
-            ArrayList<Double> quantityInvoiceList = new ArrayList<>();
-            ArrayList<Double> exchangeQuantityList = new ArrayList<>();
-            ArrayList<Double> returnQuantityList = new ArrayList<>();
-            ArrayList<Integer> priceList = new ArrayList<>();
+            itemNameList = new ArrayList<>();
+            totalList = new ArrayList<>();
+            quantityInvoiceList = new ArrayList<>();
+            exchangeQuantityList = new ArrayList<>();
+            returnQuantityList = new ArrayList<>();
+            priceList = new ArrayList<>();
+
             do {
                 itemNameList.add(c.getString(itemNameTmp));
                 quantityInvoiceList.add(c.getDouble(quantityInvoiceTmp));
@@ -312,134 +330,207 @@ public class StatsAnalyticsActivity extends AppCompatActivity implements View.On
                 totalList.add(c.getDouble(totalTmp));
                 priceList.add(c.getInt(priceTmp));
 
-                if (arrayMapQuantity.containsKey(c.getString(itemNameTmp))) {
-                    quantity = arrayMapQuantity.get(c.getString(itemNameTmp)) + c.getDouble((quantityInvoiceTmp));
+                String itemNamePrice = c.getString(itemNameTmp) + "_" + c.getInt(priceTmp);
+                String itemName = c.getString(itemNameTmp);
+
+                if (arrayMapQuantityExtended.containsKey(itemNamePrice)) {
+                    quantityExtended = arrayMapQuantityExtended.get(itemNamePrice) + c.getDouble((quantityInvoiceTmp));
+                } else {
+                    quantityExtended =c.getDouble((quantityInvoiceTmp));
+                }
+                if (arrayMapExchangeExtended.containsKey(itemNamePrice)) {
+                    exchangeExtended = arrayMapExchangeExtended.get(itemNamePrice) + c.getDouble((exchangeQuantityTmp));
+                } else {
+                    exchangeExtended =c.getDouble((exchangeQuantityTmp));
+                }
+                if (arrayMapReturnExtended.containsKey(itemNamePrice)) {
+                    returnQuantityExtended = arrayMapReturnExtended.get(itemNamePrice) + c.getDouble((returnQuantityTmp));
+                } else {
+                    returnQuantityExtended =c.getDouble((returnQuantityTmp));
+                }
+                if (arrayMapPriceExtended.containsKey(itemNamePrice)) {
+                    priceExtended = arrayMapPriceExtended.get(itemNamePrice);
+                } else {
+                    priceExtended =c.getInt((priceTmp));
+                }
+                if (arrayMapTotalExtended.containsKey(itemNamePrice)) {
+                    totalExtended = arrayMapTotalExtended.get(itemNamePrice) + c.getDouble((totalTmp));
+                } else {
+                    totalExtended =c.getDouble((totalTmp));
+                }
+                arrayMapQuantityExtended.put(itemNamePrice, quantityExtended);
+                arrayMapExchangeExtended.put(itemNamePrice, exchangeExtended);
+                arrayMapReturnExtended.put(itemNamePrice, returnQuantityExtended);
+                arrayMapTotalExtended.put(itemNamePrice, totalExtended);
+                arrayMapPriceExtended.put(itemNamePrice, priceExtended);
+                arrayMapExchangeTotal.put(itemName, priceExtended * exchangeExtended);
+
+                if (arrayMapQuantity.containsKey(itemName)) {
+                    quantity = arrayMapQuantity.get(itemName) + c.getDouble((quantityInvoiceTmp));
                 } else {
                     quantity =c.getDouble((quantityInvoiceTmp));
                 }
-                if (arrayMapExchange.containsKey(c.getString(itemNameTmp))) {
-                    exchange = arrayMapExchange.get(c.getString(itemNameTmp)) + c.getDouble((exchangeQuantityTmp));
+                if (arrayMapExchange.containsKey(itemName)) {
+                    exchange = arrayMapExchange.get(itemName) + c.getDouble((exchangeQuantityTmp));
                 } else {
                     exchange =c.getDouble((exchangeQuantityTmp));
                 }
-                if (arrayMapReturn.containsKey(c.getString(itemNameTmp))) {
-                    returnQuantity = arrayMapReturn.get(c.getString(itemNameTmp)) + c.getDouble((returnQuantityTmp));
+                if (arrayMapReturn.containsKey(itemName)) {
+                    returnQuantity = arrayMapReturn.get(itemName) + c.getDouble((returnQuantityTmp));
                 } else {
                     returnQuantity =c.getDouble((returnQuantityTmp));
                 }
-                if (arrayMapPrice.containsKey(c.getString(itemNameTmp))) {
-                    price = arrayMapPrice.get(c.getString(itemNameTmp)) + c.getInt((priceTmp));
+                if (arrayMapPrice.containsKey(itemName)) {
+                    price = arrayMapPrice.get(itemName);
                 } else {
                     price =c.getInt((priceTmp));
                 }
-                if (arrayMapTotal.containsKey(c.getString(itemNameTmp))) {
-                    total = arrayMapTotal.get(c.getString(itemNameTmp)) + c.getDouble((totalTmp));
+                if (arrayMapTotal.containsKey(itemName)) {
+                    total = arrayMapTotal.get(itemName) + c.getDouble((totalTmp));
                 } else {
                     total =c.getDouble((totalTmp));
                 }
-                arrayMapQuantity.put(c.getString(itemNameTmp), quantity);
-                arrayMapExchange.put(c.getString(itemNameTmp), exchange);
-                arrayMapReturn.put(c.getString(itemNameTmp), returnQuantity);
-                arrayMapTotal.put(c.getString(itemNameTmp), total);
-                arrayMapPrice.put(c.getString(itemNameTmp), price);
+                arrayMapQuantity.put(itemName, quantity);
+                arrayMapExchange.put(itemName, exchange);
+                arrayMapReturn.put(itemName, returnQuantity);
+                arrayMapTotal.put(itemName, total);
+                arrayMapPrice.put(itemName, price);
             } while (c.moveToNext());
 
-            for (int i = 0; i < arrayMapQuantity.size(); i++){
-                if (!arrayMapQuantity.keyAt(i).equals("Ким-ча 700 гр особая цена 1") &&
-                        !arrayMapQuantity.keyAt(i).equals("Ким-ча 700 гр особая цена 2") &&
-                        !arrayMapQuantity.keyAt(i).equals("Редька по-восточному 500гр особая цена 1") &&
-                        !arrayMapQuantity.keyAt(i).equals("Редька по-восточному 500гр особая цена 2")){
-                    if (arrayMapQuantity.keyAt(i).equals("Ким-ча весовая")) {
-                        if (arrayMapQuantityReduced.containsKey("Ким-ча весовая") &&
-                                arrayMapExchangeReduced.containsKey("Ким-ча весовая") &&
-                                arrayMapReturnReduced.containsKey("Ким-ча весовая")) {
-                            arrayMapQuantityReduced.put("Ким-ча весовая", arrayMapQuantityReduced.get("Ким-ча весовая") + (arrayMapQuantity.valueAt(i)));
-                            arrayMapExchangeReduced.put("Ким-ча весовая", arrayMapExchangeReduced.get("Ким-ча весовая") + (arrayMapExchange.valueAt(i)));
-                            arrayMapReturnReduced.put("Ким-ча весовая", arrayMapReturnReduced.get("Ким-ча весовая") + (arrayMapReturn.valueAt(i)));
-                        } else {
-                            arrayMapQuantityReduced.put("Ким-ча весовая", (arrayMapQuantity.valueAt(i)));
-                            arrayMapExchangeReduced.put("Ким-ча весовая", (arrayMapExchange.valueAt(i)));
-                            arrayMapReturnReduced.put("Ким-ча весовая", (arrayMapReturn.valueAt(i)));
-                        }
-                    }
-
-                    if (arrayMapQuantity.keyAt(i).equals("Редька по-восточному весовая")){
-                        if (arrayMapQuantityReduced.containsKey("Редька по-восточному весовая") &&
-                                arrayMapExchangeReduced.containsKey("Редька по-восточному весовая") &&
-                                arrayMapReturnReduced.containsKey("Редька по-восточному весовая")) {
-                            arrayMapQuantityReduced.put("Редька по-восточному весовая", arrayMapQuantityReduced.get("Редька по-восточному весовая") + (arrayMapQuantity.valueAt(i)));
-                            arrayMapExchangeReduced.put("Редька по-восточному весовая", arrayMapExchangeReduced.get("Редька по-восточному весовая") + (arrayMapExchange.valueAt(i)));
-                            arrayMapReturnReduced.put("Редька по-восточному весовая", arrayMapReturnReduced.get("Редька по-восточному весовая") + (arrayMapReturn.valueAt(i)));
-                        } else {
-                            arrayMapQuantityReduced.put("Редька по-восточному весовая", (arrayMapQuantity.valueAt(i)));
-                            arrayMapExchangeReduced.put("Редька по-восточному весовая", (arrayMapExchange.valueAt(i)));
-                            arrayMapReturnReduced.put("Редька по-восточному весовая", (arrayMapReturn.valueAt(i)));
-                        }
-                    }
-
-                    if (!arrayMapQuantity.keyAt(i).equals("Ким-ча весовая") &&
-                            !arrayMapQuantity.keyAt(i).equals("Редька по-восточному весовая")) {
-                        arrayMapQuantityReduced.put(arrayMapQuantity.keyAt(i), arrayMapQuantity.valueAt(i));
-                        arrayMapExchangeReduced.put(arrayMapQuantity.keyAt(i), arrayMapExchange.valueAt(i));
-                        arrayMapReturnReduced.put(arrayMapQuantity.keyAt(i), arrayMapReturn.valueAt(i));
-                    }
-                }
-                if (arrayMapQuantity.keyAt(i).equals("Ким-ча 700 гр особая цена 1")) {
-                    if (arrayMapQuantityReduced.containsKey("Ким-ча весовая") &&
-                            arrayMapExchangeReduced.containsKey("Ким-ча весовая") &&
-                            arrayMapReturnReduced.containsKey("Ким-ча весовая")) {
-                        arrayMapQuantityReduced.put("Ким-ча весовая", arrayMapQuantityReduced.get("Ким-ча весовая") + (arrayMapQuantity.valueAt(i) * 0.7));
-                        arrayMapExchangeReduced.put("Ким-ча весовая", arrayMapExchangeReduced.get("Ким-ча весовая") + (arrayMapExchange.valueAt(i) * 0.7));
-                        arrayMapReturnReduced.put("Ким-ча весовая", arrayMapReturnReduced.get("Ким-ча весовая") + (arrayMapReturn.valueAt(i) * 0.7));
-                    } else {
-                        arrayMapQuantityReduced.put("Ким-ча весовая", (arrayMapQuantity.valueAt(i) * 0.7));
-                        arrayMapExchangeReduced.put("Ким-ча весовая", (arrayMapExchange.valueAt(i) * 0.7));
-                        arrayMapReturnReduced.put("Ким-ча весовая", (arrayMapReturn.valueAt(i) * 0.7));
-                    }
-                }
-
-                if (arrayMapQuantity.keyAt(i).equals("Ким-ча 700 гр особая цена 2")) {
-                    if (arrayMapQuantityReduced.containsKey("Ким-ча весовая") &&
-                            arrayMapExchangeReduced.containsKey("Ким-ча весовая") &&
-                            arrayMapReturnReduced.containsKey("Ким-ча весовая")) {
-                        arrayMapQuantityReduced.put("Ким-ча весовая", arrayMapQuantityReduced.get("Ким-ча весовая") + (arrayMapQuantity.valueAt(i) * 0.7));
-                        arrayMapExchangeReduced.put("Ким-ча весовая", arrayMapExchangeReduced.get("Ким-ча весовая") + (arrayMapExchange.valueAt(i) * 0.7));
-                        arrayMapReturnReduced.put("Ким-ча весовая", arrayMapReturnReduced.get("Ким-ча весовая") + (arrayMapReturn.valueAt(i) * 0.7));
-                    }  else {
-                        arrayMapQuantityReduced.put("Ким-ча весовая", (arrayMapQuantity.valueAt(i) * 0.7));
-                        arrayMapExchangeReduced.put("Ким-ча весовая", (arrayMapExchange.valueAt(i) * 0.7));
-                        arrayMapReturnReduced.put("Ким-ча весовая", (arrayMapReturn.valueAt(i) * 0.7));
-                    }
-                }
-
-                if (arrayMapQuantity.keyAt(i).equals("Редька по-восточному 500гр особая цена 1")) {
-                    if (arrayMapQuantityReduced.containsKey("Редька по-восточному весовая") &&
-                            arrayMapExchangeReduced.containsKey("Редька по-восточному весовая") &&
-                            arrayMapReturnReduced.containsKey("Редька по-восточному весовая")) {
-                        arrayMapQuantityReduced.put("Редька по-восточному весовая", arrayMapQuantityReduced.get("Редька по-восточному весовая") + (arrayMapQuantity.valueAt(i) * 0.5));
-                        arrayMapExchangeReduced.put("Редька по-восточному весовая", arrayMapExchangeReduced.get("Редька по-восточному весовая") + (arrayMapExchange.valueAt(i) * 0.5));
-                        arrayMapReturnReduced.put("Редька по-восточному весовая", arrayMapReturnReduced.get("Редька по-восточному весовая") + (arrayMapReturn.valueAt(i) * 0.5));
-                    } else {
-                        arrayMapQuantityReduced.put("Редька по-восточному весовая", (arrayMapQuantity.valueAt(i) * 0.5));
-                        arrayMapExchangeReduced.put("Редька по-восточному весовая", (arrayMapExchange.valueAt(i) * 0.5));
-                        arrayMapReturnReduced.put("Редька по-восточному весовая", (arrayMapReturn.valueAt(i) * 0.5));
-                    }
-                }
-
-                if (arrayMapQuantity.keyAt(i).equals("Редька по-восточному 500гр особая цена 2")) {
-                    if (arrayMapQuantityReduced.containsKey("Редька по-восточному весовая") &&
-                            arrayMapExchangeReduced.containsKey("Редька по-восточному весовая") &&
-                            arrayMapReturnReduced.containsKey("Редька по-восточному весовая")) {
-                        arrayMapQuantityReduced.put("Редька по-восточному весовая", arrayMapQuantityReduced.get("Редька по-восточному весовая") + (arrayMapQuantity.valueAt(i) * 0.5));
-                        arrayMapExchangeReduced.put("Редька по-восточному весовая", arrayMapExchangeReduced.get("Редька по-восточному весовая") + (arrayMapExchange.valueAt(i) * 0.5));
-                        arrayMapReturnReduced.put("Редька по-восточному весовая", arrayMapReturnReduced.get("Редька по-восточному весовая") + (arrayMapReturn.valueAt(i) * 0.5));
-                    } else {
-                        arrayMapQuantityReduced.put("Редька по-восточному весовая", (arrayMapQuantity.valueAt(i) * 0.5));
-                        arrayMapExchangeReduced.put("Редька по-восточному весовая", (arrayMapExchange.valueAt(i) * 0.5));
-                        arrayMapReturnReduced.put("Редька по-восточному весовая", (arrayMapReturn.valueAt(i) * 0.5));
-                    }
-                }
-            }
+//            for (int i = 0; i < arrayMapQuantity.size(); i++){
+//                if (!arrayMapQuantity.keyAt(i).equals("Ким-ча 700 гр особая цена 1") &&
+//                        !arrayMapQuantity.keyAt(i).equals("Ким-ча 700 гр особая цена 2") &&
+//                        !arrayMapQuantity.keyAt(i).equals("Редька по-восточному 500гр особая цена 1") &&
+//                        !arrayMapQuantity.keyAt(i).equals("Редька по-восточному 500гр особая цена 2")){
+//                    if (arrayMapQuantity.keyAt(i).equals("Ким-ча весовая")) {
+//                        if (arrayMapQuantityReduced.containsKey("Ким-ча весовая") &&
+//                                arrayMapExchangeReduced.containsKey("Ким-ча весовая") &&
+//                                arrayMapReturnReduced.containsKey("Ким-ча весовая") &&
+//                                arrayMapTotalReduced.containsKey("Ким-ча весовая")) {
+//                            arrayMapQuantityReduced.put("Ким-ча весовая", arrayMapQuantityReduced.get("Ким-ча весовая") + (arrayMapQuantity.valueAt(i)));
+//                            arrayMapExchangeReduced.put("Ким-ча весовая", arrayMapExchangeReduced.get("Ким-ча весовая") + (arrayMapExchange.valueAt(i)));
+//                            arrayMapReturnReduced.put("Ким-ча весовая", arrayMapReturnReduced.get("Ким-ча весовая") + (arrayMapReturn.valueAt(i)));
+//                            arrayMapTotalReduced.put("Ким-ча весовая", arrayMapTotalReduced.get("Ким-ча весовая") + arrayMapTotal.valueAt(i));
+//                            arrayMapExchangeTotalReduced.put("Ким-ча весовая", arrayMapExchangeTotalReduced.get("Ким-ча весовая") + arrayMapPrice.valueAt(i)
+//                                    * arrayMapExchange.valueAt(i));
+//                        } else {
+//                            arrayMapQuantityReduced.put("Ким-ча весовая", arrayMapQuantity.valueAt(i));
+//                            arrayMapExchangeReduced.put("Ким-ча весовая", arrayMapExchange.valueAt(i));
+//                            arrayMapReturnReduced.put("Ким-ча весовая", arrayMapReturn.valueAt(i));
+//                            arrayMapTotalReduced.put("Ким-ча весовая", arrayMapTotal.valueAt(i));
+//                            arrayMapExchangeTotalReduced.put("Ким-ча весовая", arrayMapExchange.valueAt(i) * arrayMapPrice.valueAt(i));
+//                        }
+//                    }
+//
+//                    if (arrayMapQuantity.keyAt(i).equals("Редька по-восточному весовая")){
+//                        if (arrayMapQuantityReduced.containsKey("Редька по-восточному весовая") &&
+//                                arrayMapExchangeReduced.containsKey("Редька по-восточному весовая") &&
+//                                arrayMapReturnReduced.containsKey("Редька по-восточному весовая") &&
+//                                arrayMapTotalReduced.containsKey("Редька по-восточному весовая")) {
+//                            arrayMapQuantityReduced.put("Редька по-восточному весовая", arrayMapQuantityReduced.get("Редька по-восточному весовая") + (arrayMapQuantity.valueAt(i)));
+//                            arrayMapExchangeReduced.put("Редька по-восточному весовая", arrayMapExchangeReduced.get("Редька по-восточному весовая") + (arrayMapExchange.valueAt(i)));
+//                            arrayMapReturnReduced.put("Редька по-восточному весовая", arrayMapReturnReduced.get("Редька по-восточному весовая") + (arrayMapReturn.valueAt(i)));
+//                            arrayMapTotalReduced.put("Редька по-восточному весовая", arrayMapTotalReduced.get("Редька по-восточному весовая") + arrayMapTotal.valueAt(i));
+//                            arrayMapExchangeTotalReduced.put("Редька по-восточному весовая", arrayMapExchangeTotalReduced.get("Редька по-восточному весовая") + arrayMapPrice.valueAt(i)
+//                                    * arrayMapExchange.valueAt(i));
+//                        } else {
+//                            arrayMapQuantityReduced.put("Редька по-восточному весовая", arrayMapQuantity.valueAt(i));
+//                            arrayMapExchangeReduced.put("Редька по-восточному весовая", arrayMapExchange.valueAt(i));
+//                            arrayMapReturnReduced.put("Редька по-восточному весовая", arrayMapReturn.valueAt(i));
+//                            arrayMapTotalReduced.put("Редька по-восточному весовая", arrayMapTotal.valueAt(i));
+//                            arrayMapExchangeTotalReduced.put("Редька по-восточному весовая", arrayMapExchange.valueAt(i) * arrayMapPrice.valueAt(i));
+//                        }
+//                    }
+//
+//                    if (!arrayMapQuantity.keyAt(i).equals("Ким-ча весовая") &&
+//                            !arrayMapQuantity.keyAt(i).equals("Редька по-восточному весовая")) {
+//                        arrayMapQuantityReduced.put(arrayMapQuantity.keyAt(i), arrayMapQuantity.valueAt(i));
+//                        arrayMapExchangeReduced.put(arrayMapQuantity.keyAt(i), arrayMapExchange.valueAt(i));
+//                        arrayMapReturnReduced.put(arrayMapQuantity.keyAt(i), arrayMapReturn.valueAt(i));
+//                        arrayMapTotalReduced.put(arrayMapTotal.keyAt(i), arrayMapTotal.valueAt(i));
+//                        arrayMapExchangeTotalReduced.put(arrayMapQuantity.keyAt(i), arrayMapExchange.valueAt(i) * arrayMapPrice.valueAt(i));
+//                    }
+//                }
+//                if (arrayMapQuantity.keyAt(i).equals("Ким-ча 700 гр особая цена 1")) {
+//                    if (arrayMapQuantityReduced.containsKey("Ким-ча весовая") &&
+//                            arrayMapExchangeReduced.containsKey("Ким-ча весовая") &&
+//                            arrayMapReturnReduced.containsKey("Ким-ча весовая") &&
+//                            arrayMapTotalReduced.containsKey("Ким-ча весовая")) {
+//                        arrayMapQuantityReduced.put("Ким-ча весовая", arrayMapQuantityReduced.get("Ким-ча весовая") + (arrayMapQuantity.valueAt(i) * 0.7));
+//                        arrayMapExchangeReduced.put("Ким-ча весовая", arrayMapExchangeReduced.get("Ким-ча весовая") + (arrayMapExchange.valueAt(i) * 0.7));
+//                        arrayMapReturnReduced.put("Ким-ча весовая", arrayMapReturnReduced.get("Ким-ча весовая") + (arrayMapReturn.valueAt(i) * 0.7));
+//                        arrayMapTotalReduced.put("Ким-ча весовая", arrayMapTotalReduced.get("Ким-ча весовая") + (arrayMapTotal.valueAt(i)  * 0.7));
+//                        arrayMapExchangeTotalReduced.put("Ким-ча весовая", arrayMapExchangeTotalReduced.get("Ким-ча весовая") + arrayMapExchange.valueAt(i)
+//                                * arrayMapPrice.valueAt(i));
+//                    } else {
+//                        arrayMapQuantityReduced.put("Ким-ча весовая", (arrayMapQuantity.valueAt(i) * 0.7));
+//                        arrayMapExchangeReduced.put("Ким-ча весовая", (arrayMapExchange.valueAt(i) * 0.7));
+//                        arrayMapReturnReduced.put("Ким-ча весовая", (arrayMapReturn.valueAt(i) * 0.7));
+//                        arrayMapTotalReduced.put("Ким-ча весовая", (arrayMapTotal.valueAt(i) * 0.7));
+//                        arrayMapExchangeTotalReduced.put("Ким-ча весовая", arrayMapExchange.valueAt(i) * arrayMapPrice.valueAt(i));
+//                    }
+//                }
+//
+//                if (arrayMapQuantity.keyAt(i).equals("Ким-ча 700 гр особая цена 2")) {
+//                    if (arrayMapQuantityReduced.containsKey("Ким-ча весовая") &&
+//                            arrayMapExchangeReduced.containsKey("Ким-ча весовая") &&
+//                            arrayMapReturnReduced.containsKey("Ким-ча весовая") &&
+//                            arrayMapTotalReduced.containsKey("Ким-ча весовая")) {
+//                        arrayMapQuantityReduced.put("Ким-ча весовая", arrayMapQuantityReduced.get("Ким-ча весовая") + (arrayMapQuantity.valueAt(i) * 0.7));
+//                        arrayMapExchangeReduced.put("Ким-ча весовая", arrayMapExchangeReduced.get("Ким-ча весовая") + (arrayMapExchange.valueAt(i) * 0.7));
+//                        arrayMapReturnReduced.put("Ким-ча весовая", arrayMapReturnReduced.get("Ким-ча весовая") + (arrayMapReturn.valueAt(i) * 0.7));
+//                        arrayMapTotalReduced.put("Ким-ча весовая", arrayMapTotalReduced.get("Ким-ча весовая") + (arrayMapTotal.valueAt(i) * 0.7));
+//                        arrayMapExchangeTotalReduced.put("Ким-ча весовая", arrayMapExchangeTotalReduced.get("Ким-ча весовая") + arrayMapExchange.valueAt(i)
+//                                * arrayMapPrice.valueAt(i));
+//                    }  else {
+//                        arrayMapQuantityReduced.put("Ким-ча весовая", (arrayMapQuantity.valueAt(i) * 0.7));
+//                        arrayMapExchangeReduced.put("Ким-ча весовая", (arrayMapExchange.valueAt(i) * 0.7));
+//                        arrayMapReturnReduced.put("Ким-ча весовая", (arrayMapReturn.valueAt(i) * 0.7));
+//                        arrayMapTotalReduced.put("Ким-ча весовая", (arrayMapTotal.valueAt(i) * 0.7));
+//                        arrayMapExchangeTotalReduced.put("Ким-ча весовая", arrayMapExchange.valueAt(i) * arrayMapPrice.valueAt(i));
+//                    }
+//                }
+//
+//                if (arrayMapQuantity.keyAt(i).equals("Редька по-восточному 500гр особая цена 1")) {
+//                    if (arrayMapQuantityReduced.containsKey("Редька по-восточному весовая") &&
+//                            arrayMapExchangeReduced.containsKey("Редька по-восточному весовая") &&
+//                            arrayMapReturnReduced.containsKey("Редька по-восточному весовая") &&
+//                            arrayMapTotalReduced.containsKey("Редька по-восточному весовая")) {
+//                        arrayMapQuantityReduced.put("Редька по-восточному весовая", arrayMapQuantityReduced.get("Редька по-восточному весовая") + (arrayMapQuantity.valueAt(i) * 0.5));
+//                        arrayMapExchangeReduced.put("Редька по-восточному весовая", arrayMapExchangeReduced.get("Редька по-восточному весовая") + (arrayMapExchange.valueAt(i) * 0.5));
+//                        arrayMapReturnReduced.put("Редька по-восточному весовая", arrayMapReturnReduced.get("Редька по-восточному весовая") + (arrayMapReturn.valueAt(i) * 0.5));
+//                        arrayMapTotalReduced.put("Редька по-восточному весовая", arrayMapTotalReduced.get("Редька по-восточному весовая") + (arrayMapTotal.valueAt(i) * 0.5));
+//                        arrayMapExchangeTotalReduced.put("Редька по-восточному весовая", arrayMapExchangeTotalReduced.get("Редька по-восточному весовая")
+//                                + arrayMapExchange.valueAt(i) * arrayMapPrice.valueAt(i));
+//                    } else {
+//                        arrayMapQuantityReduced.put("Редька по-восточному весовая", (arrayMapQuantity.valueAt(i) * 0.5));
+//                        arrayMapExchangeReduced.put("Редька по-восточному весовая", (arrayMapExchange.valueAt(i) * 0.5));
+//                        arrayMapReturnReduced.put("Редька по-восточному весовая", (arrayMapReturn.valueAt(i) * 0.5));
+//                        arrayMapTotalReduced.put("Редька по-восточному весовая", (arrayMapTotal.valueAt(i) * 0.5));
+//                        arrayMapExchangeTotalReduced.put("Редька по-восточному весовая", arrayMapExchange.valueAt(i) * arrayMapPrice.valueAt(i));
+//                    }
+//                }
+//
+//                if (arrayMapQuantity.keyAt(i).equals("Редька по-восточному 500гр особая цена 2")) {
+//                    if (arrayMapQuantityReduced.containsKey("Редька по-восточному весовая") &&
+//                            arrayMapExchangeReduced.containsKey("Редька по-восточному весовая") &&
+//                            arrayMapReturnReduced.containsKey("Редька по-восточному весовая") &&
+//                            arrayMapTotalReduced.containsKey("Редька по-восточному весовая")) {
+//                        arrayMapQuantityReduced.put("Редька по-восточному весовая", arrayMapQuantityReduced.get("Редька по-восточному весовая") + (arrayMapQuantity.valueAt(i) * 0.5));
+//                        arrayMapExchangeReduced.put("Редька по-восточному весовая", arrayMapExchangeReduced.get("Редька по-восточному весовая") + (arrayMapExchange.valueAt(i) * 0.5));
+//                        arrayMapReturnReduced.put("Редька по-восточному весовая", arrayMapReturnReduced.get("Редька по-восточному весовая") + (arrayMapReturn.valueAt(i) * 0.5));
+//                        arrayMapTotalReduced.put("Редька по-восточному весовая", arrayMapTotalReduced.get("Редька по-восточному весовая") + (arrayMapTotal.valueAt(i) * 0.5));
+//                        arrayMapExchangeTotalReduced.put("Редька по-восточному весовая", arrayMapExchangeTotalReduced.get("Редька по-восточному весовая")
+//                                + arrayMapExchange.valueAt(i) * arrayMapPrice.valueAt(i));
+//                    } else {
+//                        arrayMapQuantityReduced.put("Редька по-восточному весовая", (arrayMapQuantity.valueAt(i) * 0.5));
+//                        arrayMapExchangeReduced.put("Редька по-восточному весовая", (arrayMapExchange.valueAt(i) * 0.5));
+//                        arrayMapReturnReduced.put("Редька по-восточному весовая", (arrayMapReturn.valueAt(i) * 0.5));
+//                        arrayMapTotalReduced.put("Редька по-восточному весовая", (arrayMapTotal.valueAt(i) * 0.5));
+//                        arrayMapExchangeTotalReduced.put("Редька по-восточному весовая", arrayMapExchange.valueAt(i) * arrayMapPrice.valueAt(i));
+//                    }
+//                }
+//            }
 //            reportList = new String[arrayMapQuantityReduced.size()];
 //            for (int i = 0; i < arrayMapQuantityReduced.size(); i++) {
 //                Double tmp = arrayMapReceive.valueAt(i) - arrayMapQuantityReduced.valueAt(i) - arrayMapExchangeReduced.valueAt(i);
@@ -710,7 +801,7 @@ public class StatsAnalyticsActivity extends AppCompatActivity implements View.On
         ZonedDateTime zdt = ZonedDateTime.ofInstant( instant , zoneId );
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern( "dd.MM.yyyy" );
         String output = zdt.format( formatter );
-
+//        Toast.makeText(getApplicationContext(), arrayMapExchange.size(), Toast.LENGTH_SHORT).show();
         File sd = Environment.getExternalStorageDirectory();
         csvFileFormCopy = "руководитель_отчет_" + output + ".xls";
         File directorySave = new File(sd.getAbsolutePath() + File.separator + "Download"
@@ -741,21 +832,75 @@ public class StatsAnalyticsActivity extends AppCompatActivity implements View.On
 //                }
 //            }
 
-            for (int j = 0; j < 6; j++) {
-                for (int i = 0; i < arrayMapQuantityReduced.size(); i++) {
-                    Cell readCell = sheet.getCell(j, i);
-                    Label label = new Label(j, i, readCell.getContents());
-                    CellView cell = sheet.getColumnView(j);
-                    cell.setAutosize(true);
-                    sheet.setColumnView(j, cell);
+            for (int j = 0; j < 16; j++) {
+                if (j < 9) {
+                    for (int i = 0; i < arrayMapQuantityExtended.size(); i++) {
+                        Cell readCell = sheet.getCell(j, i);
+                        Label label = new Label(j, i, readCell.getContents());
+                        CellView cell = sheet.getColumnView(j);
+                        cell.setAutosize(true);
+                        sheet.setColumnView(j, cell);
 
-                    if (j == 2 && i == 2) {
-                        label = new Label(j, i, output); //Текущая дата
+                        if (j == 0 && i == 2) {
+                            label = new Label(j, i + 6, output); //Текущая дата
+                        }
+                        if (j == 0) {
+                            label = new Label(j, i + 6, String.valueOf(roundUp(arrayMapExchangeExtended.valueAt(i), 2))); //Обмен количество
+                        }
+                        if (j == 1) {
+                            label = new Label(j, i + 6, String.valueOf(roundUp(arrayMapExchangeExtended.valueAt(i) * arrayMapPriceExtended.valueAt(i), 2))); //Обмен стоимость
+                        }
+                        if (j == 2) {
+                            label = new Label(j, i + 6, arrayMapExchangeExtended.keyAt(i)); //Наименование
+                        }
+                        if (j == 3) {
+                            label = new Label(j, i + 6, String.valueOf(roundUp(arrayMapPriceExtended.valueAt(i), 2))); //Цена продажи
+                        }
+                        if (j == 4) {
+                            label = new Label(j, i + 6, String.valueOf(roundUp(arrayMapQuantityExtended.valueAt(i), 2))); //Продажа количество
+                        }
+                        if (j == 5) {
+                            label = new Label(j, i + 6, String.valueOf(roundUp(arrayMapTotalExtended.valueAt(i), 2))); //Продажа стоимость
+                        }
+                        if (j == 6) {
+                            label = new Label(j, i + 6, String.valueOf(roundUp(arrayMapReturnExtended.valueAt(i), 2))); //Возврат количество
+                        }
+                        if (j == 7) {
+                            label = new Label(j, i + 6, String.valueOf(roundUp(arrayMapReturnExtended.valueAt(i) * arrayMapPriceExtended.valueAt(i), 2))); //Возврат стоимость
+                        }
+                        sheet.addCell(label);
                     }
-                    if (j == 0) {
-                        label = new Label(j, i, String.valueOf(arrayMapQuantityReduced.keyAt(i))); //Наименование
+                } else {
+                    for (int i = 0; i < arrayMapQuantity.size(); i++) {
+                        Cell readCell = sheet.getCell(j, i);
+                        Label label = new Label(j, i, readCell.getContents());
+                        CellView cell = sheet.getColumnView(j);
+                        cell.setAutosize(true);
+                        sheet.setColumnView(j, cell);
+
+                        if (j == 9) {
+                            label = new Label(j, i + 2, String.valueOf(roundUp(arrayMapExchange.valueAt(i), 2))); //Обмен количество
+                        }
+                        if (j == 10) {
+                            label = new Label(j, i + 2, String.valueOf(roundUp(arrayMapExchangeTotal.valueAt(i), 2))); //Обмен стоимость
+                        }
+                        if (j == 11) {
+                            label = new Label(j, i + 2, arrayMapExchange.keyAt(i)); //Наименование
+                        }
+                        if (j == 12) {
+                            label = new Label(j, i + 2, String.valueOf(roundUp(arrayMapQuantity.valueAt(i), 2))); //Продажа количество
+                        }
+                        if (j == 13) {
+                            label = new Label(j, i + 2, String.valueOf(roundUp(arrayMapTotal.valueAt(i), 2))); //Продажа стоимость
+                        }
+                        if (j == 14) {
+                            label = new Label(j, i + 2, String.valueOf(roundUp(arrayMapReturn.valueAt(i), 2))); //Возврат количество
+                        }
+                        if (j == 15) {
+                            label = new Label(j, i + 2, String.valueOf(roundUp(arrayMapTotal.valueAt(i), 2))); //Возврат стоимость
+                        }
+                        sheet.addCell(label);
                     }
-                    sheet.addCell(label);
                 }
             }
 
@@ -859,7 +1004,7 @@ public class StatsAnalyticsActivity extends AppCompatActivity implements View.On
                                             Runnable runnable = new Runnable() {
                                                 @Override
                                                 public void run() {
-                                                    for (int g = 1; g < 2; g++) {
+                                                    for (int g = 3; g < 4; g++) {
                                                         loadInvoicesFromServerDB(g);
                                                     }
                                                 }
@@ -1191,7 +1336,7 @@ public class StatsAnalyticsActivity extends AppCompatActivity implements View.On
                             comment[i] = obj.getString("Comment");
 
                             ContentValues cv = new ContentValues();
-                            Log.d(LOG_TAG, "--- Insert in invoice: ---");
+                            Log.d(LOG_TAG, "--- Insert in invoiceAggregate: ---");
                             cv.put("serverDB_ID", serverDB_ID[i]);
                             cv.put("InvoiceNumber", invoiceNumber[i]);
                             cv.put("AgentID", agentID[i]);
