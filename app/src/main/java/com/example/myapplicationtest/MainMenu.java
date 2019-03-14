@@ -480,7 +480,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
             final String output = d.with(LocalTime.MIN).format( formatter );
             Toast.makeText(getApplicationContext(), output, Toast.LENGTH_SHORT).show();
 
-//            String output = "2019-02-19 15:00:00";
+//            String output = "2019-03-13 07:00:00";
 
             ArrayList<String> itemNameListDefault;
             Double quantity;
@@ -681,16 +681,16 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                 reportList = new String[arrayMapQuantityReduced.size()];
                 for (int i = 0; i < arrayMapQuantityReduced.size(); i++) {
                     for (int j = 0; j < arrayMapReceive.size(); j++){
-                    if (arrayMapQuantityReduced.keyAt(i).equals(arrayMapReceive.keyAt(j))) {
-                        Double tmp = arrayMapReceive.valueAt(j) - arrayMapQuantityReduced.valueAt(i) - arrayMapExchangeReduced.valueAt(i);
-                        reportList[i] = "Обмен: " + arrayMapExchangeReduced.valueAt(i).toString() + System.getProperty("line.separator") +
-                                "Наименование: " + System.getProperty("line.separator") +
-                                arrayMapExchangeReduced.keyAt(i) + System.getProperty("line.separator") +
-                                "Остаток: " + roundUp(tmp, 2).toString() + System.getProperty("line.separator") +
-                                "Продажа: " + arrayMapQuantityReduced.valueAt(i).toString() + System.getProperty("line.separator") +
-                                "Загрузка: " + arrayMapReceive.valueAt(j).toString() + System.getProperty("line.separator") +
-                                System.getProperty("line.separator");
-                    }
+                        if (arrayMapQuantityReduced.keyAt(i).equals(arrayMapReceive.keyAt(j))) {
+                            Double tmp = arrayMapReceive.valueAt(j) - arrayMapQuantityReduced.valueAt(i) - arrayMapExchangeReduced.valueAt(i);
+                            reportList[i] = "Обмен: " + arrayMapExchangeReduced.valueAt(i).toString() + System.getProperty("line.separator") +
+                                    "Наименование: " + System.getProperty("line.separator") +
+                                    arrayMapExchangeReduced.keyAt(i) + System.getProperty("line.separator") +
+                                    "Остаток: " + roundUp(tmp, 2).toString() + System.getProperty("line.separator") +
+                                    "Продажа: " + arrayMapQuantityReduced.valueAt(i).toString() + System.getProperty("line.separator") +
+                                    "Загрузка: " + arrayMapReceive.valueAt(j).toString() + System.getProperty("line.separator") +
+                                    System.getProperty("line.separator");
+                        }
                     }
                 }
                 showReceiveReport("Конец смены");

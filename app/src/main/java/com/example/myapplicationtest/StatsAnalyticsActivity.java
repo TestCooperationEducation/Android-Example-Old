@@ -81,8 +81,13 @@ public class StatsAnalyticsActivity extends AppCompatActivity implements View.On
     final String SAVED_DBName = "dbName";
     final String SAVED_DBUser = "dbUser";
     final String SAVED_DBPassword = "dbPassword";
-    Integer invoiceAccTypeOneCount, invoiceAccTypeTwoCount, invoiceAccTypeOnePaymentsCount, invoiceAccTypeTwoPaymentsCount;
-    Double invoiceSumTotal, invoiceSumTypeOneTotal, invoiceSumTypeTwoTotal, invoiceSumTypeOnePaymentsTotal, invoiceSumTypeTwoPaymentsTotal;
+    Integer invoiceAccTypeOneCount, invoiceAccTypeTwoCount, invoiceAccTypeOnePaymentsCount,
+            invoiceAccTypeTwoPaymentsCount, g = 1;
+    Double invoiceSumTotal, invoiceSumTypeOneTotal, invoiceSumTypeTwoTotal, invoiceSumTypeOnePaymentsTotal,
+            invoiceSumTypeTwoPaymentsTotal, totalSalesSum = 0d, totalExchangeSum = 0d, totalReturnSum = 0d,
+            totalSalesWeightSum = 0d, totalExchangeWeightSum = 0d, totalReturnWeightSum = 0d, totalSalesWeight = 0d,
+            totalExchangeWeight = 0d, totalReturnWeight = 0d, totalExchangeQuantity = 0d, totalReturnQuantity = 0d,
+            totalSalesQuantity = 0d, totalExchangeQuantitySum = 0d, totalReturnQuantitySum = 0d, totalSalesQuantitySum = 0d;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -115,34 +120,14 @@ public class StatsAnalyticsActivity extends AppCompatActivity implements View.On
         switch (v.getId()) {
             case R.id.buttonOptions:
                 mainMenu();
-//                AlertDialog.Builder builder = new AlertDialog.Builder(this);
-//                builder = new AlertDialog.Builder(this);
-//                builder.setTitle("Обновление локальной базы данных")
-//                        .setMessage("Все таблицы будут перезаписаны!")
-//                        .setCancelable(true)
-//                        .setNegativeButton("Да",
-//                                new DialogInterface.OnClickListener() {
-//                                    public void onClick(DialogInterface dialog, int id) {
-//                                        updateLocalDB();
-//                                        dialog.cancel();
-//                                    }
-//                                })
-//                        .setPositiveButton("Нет",
-//                                new DialogInterface.OnClickListener() {
-//                                    public void onClick(DialogInterface dialog, int id) {
-//                                        dialog.cancel();
-//                                    }
-//                                });
-//                AlertDialog alert = builder.create();
-//                alert.show();
-//                break;
+                break;
             default:
                 break;
         }
     }
 
     private void mainMenu(){
-        final String[] choice ={"Посмотреть продажи", "Сформировать", "По умолчанию", "Обновить БД"};
+        final String[] choice ={"Посмотреть продажи", "Сформировать", "По умолчанию", "Обновить БД", "Сбросить Агрегатор", "Район"};
         AlertDialog.Builder builder;
         builder = new AlertDialog.Builder(this);
         builder.setTitle("Меню");
@@ -155,6 +140,14 @@ public class StatsAnalyticsActivity extends AppCompatActivity implements View.On
                 }
                 if (choice[item].equals("Обновить БД")){
                     updateLocalDB();
+                    dialog.cancel();
+                }
+                if (choice[item].equals("Сбросить Агрегатор")){
+                    dropAggregate();
+                    dialog.cancel();
+                }
+                if (choice[item].equals("Район")){
+                    chooseArea();
                     dialog.cancel();
                 }
                 if (choice[item].equals("Сформировать")){
@@ -334,29 +327,29 @@ public class StatsAnalyticsActivity extends AppCompatActivity implements View.On
                 String itemName = c.getString(itemNameTmp);
 
                 if (arrayMapQuantityExtended.containsKey(itemNamePrice)) {
-                    quantityExtended = arrayMapQuantityExtended.get(itemNamePrice) + c.getDouble((quantityInvoiceTmp));
+                    quantityExtended = arrayMapQuantityExtended.get(itemNamePrice) + c.getDouble(quantityInvoiceTmp);
                 } else {
                     quantityExtended =c.getDouble((quantityInvoiceTmp));
                 }
                 if (arrayMapExchangeExtended.containsKey(itemNamePrice)) {
-                    exchangeExtended = arrayMapExchangeExtended.get(itemNamePrice) + c.getDouble((exchangeQuantityTmp));
+                    exchangeExtended = arrayMapExchangeExtended.get(itemNamePrice) + c.getDouble(exchangeQuantityTmp);
                 } else {
                     exchangeExtended =c.getDouble((exchangeQuantityTmp));
                 }
                 if (arrayMapReturnExtended.containsKey(itemNamePrice)) {
-                    returnQuantityExtended = arrayMapReturnExtended.get(itemNamePrice) + c.getDouble((returnQuantityTmp));
+                    returnQuantityExtended = arrayMapReturnExtended.get(itemNamePrice) + c.getDouble(returnQuantityTmp);
                 } else {
-                    returnQuantityExtended =c.getDouble((returnQuantityTmp));
+                    returnQuantityExtended =c.getDouble(returnQuantityTmp);
                 }
                 if (arrayMapPriceExtended.containsKey(itemNamePrice)) {
                     priceExtended = arrayMapPriceExtended.get(itemNamePrice);
                 } else {
-                    priceExtended =c.getInt((priceTmp));
+                    priceExtended =c.getInt(priceTmp);
                 }
                 if (arrayMapTotalExtended.containsKey(itemNamePrice)) {
-                    totalExtended = arrayMapTotalExtended.get(itemNamePrice) + c.getDouble((totalTmp));
+                    totalExtended = arrayMapTotalExtended.get(itemNamePrice) + c.getDouble(totalTmp);
                 } else {
-                    totalExtended =c.getDouble((totalTmp));
+                    totalExtended =c.getDouble(totalTmp);
                 }
                 if (arrayMapExchangeTotal.containsKey(itemName)){
                     arrayMapExchangeTotal.put(itemName, arrayMapExchangeTotal.get(itemName) + c.getInt(priceTmp) * c.getDouble(exchangeQuantityTmp));
@@ -373,6 +366,27 @@ public class StatsAnalyticsActivity extends AppCompatActivity implements View.On
                 arrayMapReturnExtended.put(itemNamePrice, returnQuantityExtended);
                 arrayMapTotalExtended.put(itemNamePrice, totalExtended);
                 arrayMapPriceExtended.put(itemNamePrice, priceExtended);
+                totalSalesSum += c.getDouble((totalTmp));
+                totalExchangeSum += c.getInt(priceTmp) * c.getDouble(exchangeQuantityTmp);
+                totalReturnSum += c.getInt(priceTmp) * c.getDouble(returnQuantityTmp);
+                if (!itemName.equals("Ким-ча 700 гр особая цена 1") && !itemName.equals("Ким-ча 700 гр особая цена 2")
+                        && !itemName.equals("Редька по-восточному 500гр особая цена 1") &&
+                        !itemName.equals("Редька по-восточному 500гр особая цена 2") &&
+                        !itemName.equals("Ким-ча весовая") && !itemName.equals("Редька по-восточному весовая")){
+                    totalSalesQuantity += c.getDouble(quantityInvoiceTmp);
+                    totalExchangeQuantity += c.getDouble(exchangeQuantityTmp);
+                    totalReturnQuantity += c.getDouble(returnQuantityTmp);
+                    totalSalesQuantitySum += c.getDouble((totalTmp));
+                    totalExchangeQuantitySum += c.getInt(priceTmp) * c.getDouble(exchangeQuantityTmp);
+                    totalReturnQuantitySum += c.getInt(priceTmp) * c.getDouble(returnQuantityTmp);
+                } else {
+                    totalSalesWeight += c.getDouble(quantityInvoiceTmp);
+                    totalExchangeWeight += c.getDouble(exchangeQuantityTmp);
+                    totalReturnWeight += c.getDouble(returnQuantityTmp);
+                    totalSalesWeightSum += c.getDouble((totalTmp));
+                    totalExchangeWeightSum += c.getInt(priceTmp) * c.getDouble(exchangeQuantityTmp);
+                    totalReturnWeightSum += c.getInt(priceTmp) * c.getDouble(returnQuantityTmp);
+                }
 
                 if (arrayMapQuantity.containsKey(itemName)) {
                     quantity = arrayMapQuantity.get(itemName) + c.getDouble((quantityInvoiceTmp));
@@ -916,6 +930,111 @@ public class StatsAnalyticsActivity extends AppCompatActivity implements View.On
                         sheet.addCell(label);
                         cellWritable.setCellFormat(cfm);
                     }
+
+                    for (int i = 31; i < 42; i++){
+                        WritableCell cell = sheet.getWritableCell(j, i);
+                        CellFormat cfm = cell.getCellFormat();
+                        if (j == 13){
+                            if (i == 32){
+                                if (cell.getType() == CellType.LABEL) {
+                                    Label l = (Label) cell;
+                                    l.setString(String.valueOf(totalExchangeQuantity));
+                                }
+                            }
+                            if (i == 33){
+                                if (cell.getType() == CellType.LABEL) {
+                                    Label l = (Label) cell;
+                                    l.setString(String.valueOf(totalExchangeWeight));
+                                }
+                            }
+
+                            if (i == 36){
+                                if (cell.getType() == CellType.LABEL) {
+                                    Label l = (Label) cell;
+                                    l.setString(String.valueOf(totalReturnQuantity));
+                                }
+                            }
+                            if (i == 37){
+                                if (cell.getType() == CellType.LABEL) {
+                                    Label l = (Label) cell;
+                                    l.setString(String.valueOf(totalReturnWeight));
+                                }
+                            }
+
+                            if (i == 40){
+                                if (cell.getType() == CellType.LABEL) {
+                                    Label l = (Label) cell;
+                                    l.setString(String.valueOf(totalSalesQuantity));
+                                }
+                            }
+                            if (i == 41){
+                                if (cell.getType() == CellType.LABEL) {
+                                    Label l = (Label) cell;
+                                    l.setString(String.valueOf(totalSalesWeight));
+                                }
+                            }
+
+                        }
+                        if (j == 15){
+                            if (i == 33){
+                                if (cell.getType() == CellType.LABEL) {
+                                    Label l = (Label) cell;
+                                    l.setString(String.valueOf(totalExchangeSum));
+                                }
+                            }
+                            if (i == 31){
+                                if (cell.getType() == CellType.LABEL) {
+                                    Label l = (Label) cell;
+                                    l.setString(String.valueOf(totalExchangeQuantitySum));
+                                }
+                            }
+                            if (i == 32){
+                                if (cell.getType() == CellType.LABEL) {
+                                    Label l = (Label) cell;
+                                    l.setString(String.valueOf(totalExchangeWeightSum));
+                                }
+                            }
+
+                            if (i == 37){
+                                if (cell.getType() == CellType.LABEL) {
+                                    Label l = (Label) cell;
+                                    l.setString(String.valueOf(totalReturnSum));
+                                }
+                            }
+                            if (i == 35){
+                                if (cell.getType() == CellType.LABEL) {
+                                    Label l = (Label) cell;
+                                    l.setString(String.valueOf(totalReturnQuantitySum));
+                                }
+                            }
+                            if (i == 36){
+                                if (cell.getType() == CellType.LABEL) {
+                                    Label l = (Label) cell;
+                                    l.setString(String.valueOf(totalReturnWeightSum));
+                                }
+                            }
+
+                            if (i == 41){
+                                if (cell.getType() == CellType.LABEL) {
+                                    Label l = (Label) cell;
+                                    l.setString(String.valueOf(totalSalesSum));
+                                }
+                            }
+                            if (i == 39){
+                                if (cell.getType() == CellType.LABEL) {
+                                    Label l = (Label) cell;
+                                    l.setString(String.valueOf(totalSalesQuantitySum));
+                                }
+                            }
+                            if (i == 40){
+                                if (cell.getType() == CellType.LABEL) {
+                                    Label l = (Label) cell;
+                                    l.setString(String.valueOf(totalSalesWeightSum));
+                                }
+                            }
+                        }
+                        cell.setCellFormat(cfm);
+                    }
                 }
             }
 
@@ -1013,15 +1132,12 @@ public class StatsAnalyticsActivity extends AppCompatActivity implements View.On
                                             thread4.start();
                                         }
                                         if (listCheckTableName[i].equals("Накладная")){
-                                            db.execSQL("DROP TABLE IF EXISTS invoiceAggregate");
-                                            db.execSQL("DROP TABLE IF EXISTS invoice");
+//                                            db.execSQL("DROP TABLE IF EXISTS invoice");
                                             dbHelper.onUpgrade(db, 1, 2);
                                             Runnable runnable = new Runnable() {
                                                 @Override
                                                 public void run() {
-                                                    for (int g = 3; g < 4; g++) {
-                                                        loadInvoicesFromServerDB(g);
-                                                    }
+                                                    loadInvoicesFromServerDB(g);
                                                 }
                                             };
                                             Thread thread5 = new Thread(runnable);
@@ -1547,6 +1663,64 @@ public class StatsAnalyticsActivity extends AppCompatActivity implements View.On
                                 dialog.cancel();
                             }
                         });
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+    private void dropAggregate(){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder = new AlertDialog.Builder(this);
+        builder.setTitle("Сброс агрегирующей таблицы")
+//                .setMessage("Все таблицы будут перезаписаны!")
+                .setCancelable(true)
+                .setNegativeButton("Да",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                db.execSQL("DROP TABLE IF EXISTS invoiceAggregate");
+                                dialog.cancel();
+                            }
+                        })
+                .setPositiveButton("Нет",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialog.cancel();
+                            }
+                        });
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+    private void chooseArea(){
+        final String[] choice ={"Район 1", "Район 2", "Район 3", "Район 4"};
+        AlertDialog.Builder builder;
+        builder = new AlertDialog.Builder(this);
+        builder.setTitle("Выбрать район для загрузки");
+        builder.setItems(choice, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int item) {
+                if (choice[item].equals("Район 1")){
+                    g = 1;
+                    Toast.makeText(getApplicationContext(), "Вы выбрали район № " + g, Toast.LENGTH_SHORT).show();
+                    dialog.cancel();
+                }
+                if (choice[item].equals("Район 2")){
+                    g = 2;
+                    Toast.makeText(getApplicationContext(), "Вы выбрали район № " + g, Toast.LENGTH_SHORT).show();
+                    dialog.cancel();
+                }
+                if (choice[item].equals("Район 3")){
+                    g = 3;
+                    Toast.makeText(getApplicationContext(), "Вы выбрали район № " + g, Toast.LENGTH_SHORT).show();
+                    dialog.cancel();
+                }
+                if (choice[item].equals("Район 4")){
+                    g = 4;
+                    Toast.makeText(getApplicationContext(), "Вы выбрали район № " + g, Toast.LENGTH_SHORT).show();
+                    dialog.cancel();
+                }
+            }
+        });
+        builder.setCancelable(true);
         AlertDialog alert = builder.create();
         alert.show();
     }
