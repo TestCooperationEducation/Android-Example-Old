@@ -1201,96 +1201,45 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
     }
 
     public void read() throws IOException  {
+        Instant instant = Instant.now();
+        ZoneId zoneId = ZoneId.of( "Asia/Sakhalin" );
+        ZonedDateTime zdt = ZonedDateTime.ofInstant( instant , zoneId );
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern( "dd.MM.yyyy" );
+        String output = zdt.format( formatter );
+//        Toast.makeText(getApplicationContext(), arrayMapExchange.size(), Toast.LENGTH_SHORT).show();
+
         File sd = Environment.getExternalStorageDirectory();
         csvFileCopy = "accountant.xls";
 
-        File directory = new File(sd.getAbsolutePath() + File.separator + "Download" + File.separator + "Excel");
-        //create directory if not exist
+        File directory = new File(sd.getAbsolutePath() + File.separator + "Download" +
+                File.separator + "Excel" + File.separator + "Accountant");
         if (!directory.isDirectory()) {
             directory.mkdirs();
         }
-        //file path
         File file = new File(directory, csvFileCopy);
         File inputWorkbook = new File(inputFile);
+
         Workbook w;
-        WorkbookSettings wbSettings = new WorkbookSettings();
-        wbSettings.setLocale(new Locale("ru", "Ru"));
-        WritableWorkbook workbook;
         try {
             w = Workbook.getWorkbook(inputWorkbook);
-//            WritableWorkbook copy = Workbook.createWorkbook(file, w);
+            WritableWorkbook copy = Workbook.createWorkbook(file, w);
             Sheet sheet = w.getSheet(0);
-
-            workbook = Workbook.createWorkbook(file, wbSettings);
-            WritableSheet newSheet = workbook.createSheet("testSheet", 0);
-
-//            WritableCell cell = sheet.getWritableCell(1, 2);
-//            CellFormat cfm = cell.getCellFormat();
-//            Label l = (Label) cell;
-//            l.setString("modified cell");
-//            cell.setCellFormat(cfm);
-
-//            if (cell.getType() == CellType.LABEL)
-//            {
-//                l = (Label) cell;
-//                l.setString("modified cell");
-//            }
-//            copy.write();
-//            copy.close();
-//            w.close();
-            // Get the first sheet
-//            Sheet sheet = w.getSheet(0);
-            // Loop over first 10 column and lines
-            Map<CellFormat, WritableCellFormat> definedFormats = new HashMap<>();
-            for (int j = 0; j < sheet.getColumns(); j++) {
-                newSheet.setColumnView(j, sheet.getColumnView(j));
-                for (int i = 0; i < sheet.getRows(); i++) {
-
-//                    Cell cell = sheet.getCell(j, i);
-                    if (j == 0) {
-                        newSheet.setRowView(i, sheet.getRowView(i));
-                    }
+            WritableSheet newSheet = copy.createSheet("accounting", 0);
+            for (int j = 0; j < newSheet.getColumns(); j++) {
+                for (int i = 0; i < newSheet.getRows(); i++) {
                     Cell readCell = sheet.getCell(j, i);
                     Label label = new Label(j, i, readCell.getContents());
-//                    if (i == 18){
-//                        label = new Label(1, i, String.valueOf(j));
-//                        if (j == 3){
-//                            label = new Label(j, i, "test");
-//                        }
-//                    }
-                    CellFormat readFormat = readCell.getCellFormat();
-                    if (readFormat != null) {
-                        if (!definedFormats.containsKey(readFormat)) {
-                            definedFormats.put(readFormat, new WritableCellFormat(
-                                    readFormat));
-                        }
-                        label.setCellFormat(definedFormats.get(readFormat));
+                    CellView cell = newSheet.getColumnView(j);
+                    cell.setAutosize(true);
+                    newSheet.setColumnView(j, cell);
+                    if (j == 0 && i == 2) {
+                        label = new Label(j, i + 6, output); //Текущая дата
                     }
                     newSheet.addCell(label);
-//                    WritableCell cell = sheet.getWritableCell(j, i);
-//                    CellFormat cfm = cell.getCellFormat();
-//                    CellType type = cell.getType();
-//                    if (type == CellType.LABEL) {
-//                        if (j == 21 && i == 3) {
-//                            System.out.println("I got a label "
-//                                    + cell.getContents());
-//                            Label l = (Label) cell;
-//                            l.setString("modified cell");
-//                            cell.setCellFormat(cfm);
-//                        }
-//                    }
-
-//                    if (type == CellType.NUMBER) {
-//                        System.out.println("I got a number "
-//                                + cell.getContents());
-//                        Number l = (Number) cell;
-//                        l.setValue();
-//                        cell.setCellFormat(cfm);
-//                    }
                 }
             }
-            workbook.write();
-            workbook.close();
+            copy.write();
+            copy.close();
             w.close();
         } catch (BiffException e) {
             e.printStackTrace();
@@ -1300,54 +1249,15 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
     }
 
     private void makeExcel(){
-        Instant instant = Instant.now();
-        ZoneId zoneId = ZoneId.of( "Asia/Sakhalin" );
-        ZonedDateTime zdt = ZonedDateTime.ofInstant( instant , zoneId );
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern( "yyyy-MM-dd-HH-mm-ss" );
-        String output = zdt.format( formatter );
-
         File sd = Environment.getExternalStorageDirectory();
-        csvFile = "accountant-" + output + ".xls";
-
-        File directory = new File(sd.getAbsolutePath() + File.separator + "Download" + File.separator + "Excel");
-        //create directory if not exist
+        csvFile = "accountant_form.xls";
+        File directory = new File(sd.getAbsolutePath() + File.separator + "Download" +
+                File.separator + "Excel"  + File.separator + "Accountant_отчет_форма");
         if (!directory.isDirectory()) {
             directory.mkdirs();
         }
-        //file path
-        File file = new File(directory, csvFile);
-
-        setInputFile(sd.getAbsolutePath() + File.separator + "Download" + File.separator + "Excel" + File.separator + "ЧЕВЕ.xls");
-
-        MediaScannerConnection.scanFile(this, new String[]{file.getAbsolutePath()}, null, null);
-//        WorkbookSettings wbSettings = new WorkbookSettings();
-//        wbSettings.setLocale(new Locale("ru", "Ru"));
-//        WritableWorkbook workbook;
-//        try {
-//            workbook = Workbook.createWorkbook(file, wbSettings);
-//            //Excel sheet name. 0 represents first sheet
-//            WritableSheet sheet = workbook.createSheet("userList", 0);
-//            // column and row
-//            sheet.addCell(new Label(0, 0, "UserName"));
-//            sheet.addCell(new Label(1, 0, "PhoneNumber"));
-//            String name = "Vova";
-//            String phoneNumber = "Che";
-//            sheet.addCell(new Label(0, 1, name));
-//            sheet.addCell(new Label(1, 1, phoneNumber));
-//
-//            workbook.write();
-//            workbook.close();
-//            Toast.makeText(getApplication(),
-//                    "Выбранные данные экспортированы в файл Эксель", Toast.LENGTH_SHORT).show();
-//            sendViaEmail("Download" + File.separator + "Excel", csvFile, email);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        } catch (RowsExceededException e) {
-//            e.printStackTrace();
-//        } catch (WriteException e) {
-//            e.printStackTrace();
-//        }
-
+        setInputFile(directory + File.separator + csvFile);
+//        MediaScannerConnection.scanFile(this, new String[]{file.getAbsolutePath()}, null, null);
     }
 
     private void sendViaEmail(String folder_name, String file_name, String emailAddress) {

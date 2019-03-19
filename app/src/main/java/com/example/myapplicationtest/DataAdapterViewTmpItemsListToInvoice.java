@@ -1,6 +1,8 @@
 package com.example.myapplicationtest;
 
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.Typeface;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,12 +27,15 @@ public class DataAdapterViewTmpItemsListToInvoice extends RecyclerView.Adapter<D
     }
 
     @Override
-    public void onBindViewHolder(DataAdapterViewTmpItemsListToInvoice.ViewHolder holder, int position) {
+    public void onBindViewHolder(ViewHolder holder, int position) {
         DataItemsListTmp itemsListTmp = listTmp.get(position);
         holder.itemNameView.setText(itemsListTmp.getItemName());
+        holder.itemNameView.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD));
         holder.exchangeView.setText(itemsListTmp.getExchange().toString());
+        holder.exchangeView.setTextColor(Color.parseColor("Black"));
         holder.priceView.setText(itemsListTmp.getPrice().toString());
         holder.quantityView.setText(itemsListTmp.getQuantity().toString());
+        holder.quantityView.setTextColor(Color.parseColor("Black"));
         holder.totalView.setText(itemsListTmp.getTotal().toString());
         holder.returnQuantityView.setText(itemsListTmp.getReturnQuantity().toString());
     }

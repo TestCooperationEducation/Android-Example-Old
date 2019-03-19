@@ -1,0 +1,2 @@
+configurations.maybeCreate("default")
+artifacts.add("default", file('jofficeconvert.v2018R1.05.jar'))
