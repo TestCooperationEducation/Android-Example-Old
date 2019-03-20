@@ -913,7 +913,7 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
             e.printStackTrace();
         }
         iText_xls_7_pdf.close();
-        officeTool();
+//        officeTool();
     }
 
     private void makeExcel(){

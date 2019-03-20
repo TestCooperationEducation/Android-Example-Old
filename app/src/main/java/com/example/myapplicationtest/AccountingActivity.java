@@ -69,7 +69,8 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
     EditText editTextDateStart, editTextDateEnd;
     String chosenArea = "любой", chosenRoot = "любой", chosenAccountingType = "провод", dbName, dbUser,
             dbPassword, syncUrl = "https://caiman.ru.com/php/syncDB.php", areaDefault = "accountant",
-            agentChosen = "любой", dateStart = "", dateEnd = "", email = "accountant@caiman.ru.com";
+            agentChosen = "любой", dateStart = "", dateEnd = "", email = "accountant@caiman.ru.com",
+            output;
     DBHelper dbHelper;
     SQLiteDatabase db;
     final String LOG_TAG = "myLogs";
@@ -81,15 +82,23 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
             itemIDListTmp, salesPartnerIDListTmp;
     ArrayList<Double> quantityListTmp, priceListTmp, totalListTmp, invoiceSumListTmp;
     ArrayList<String> secondNameList, firstNameList, middleNameList, salesPartnerNameList,
-            dateTimeDocListTmp;
+            dateTimeDocListTmp, salesPartnerNameListTmp, itemsNameListTmp;
     String[] agentsList, salesPartnersList;
     boolean[] mCheckedItems;
     private String inputFile;
+    Integer g = 1;
+    boolean mChecked = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_accounting);
+
+        Instant instant = Instant.now();
+        ZoneId zoneId = ZoneId.of( "Asia/Sakhalin" );
+        ZonedDateTime zdt = ZonedDateTime.ofInstant( instant , zoneId );
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern( "dd.MM.yyyy" );
+        output = zdt.format( formatter );
 
         dbHelper = new DBHelper(this);
         db = dbHelper.getWritableDatabase();
@@ -138,7 +147,8 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
     }
 
     private void mainMenu(){
-        final String[] choice ={"Настройки", "Контрагенты", "Агенты", "Учёт", "Просмотр", "Выполнить", "Обновить БД"};
+        final String[] choice ={"Настройки", "Контрагенты", "Агенты", "Учёт", "Показать параметры",
+                "Выполнить", "Обновить БД", "Сбросить Агрегатор"};
         AlertDialog.Builder builder;
         builder = new AlertDialog.Builder(this);
         builder.setTitle("Меню");
@@ -161,7 +171,7 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
                     accountingTypeChoice();
                     dialog.cancel();
                 }
-                if (choice[item].equals("Просмотр")){
+                if (choice[item].equals("Показать параметры")){
                     showChosen();
                     dialog.cancel();
                 }
@@ -171,6 +181,11 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
                 }
                 if (choice[item].equals("Обновить БД")){
                     updateLocalDB();
+                    dialog.cancel();
+                }
+
+                if (choice[item].equals("Сбросить Агрегатор")){
+                    dropAggregate();
                     dialog.cancel();
                 }
             }
@@ -441,7 +456,7 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
                                 for (int i = 0; i < salesPartnersList.length; i++) {
 
                                     if (mCheckedItems[i]){
-
+                                        mChecked = true;
                                     }
                                 }
                             }
@@ -468,6 +483,7 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
             public void onClick(DialogInterface dialog, int item) {
                 agentChosen = agentsList[item];
                 chosenArea = agentAreaList.get(item).toString();
+                g = agentAreaList.get(item);
                 textViewAgentName.setText(agentChosen);
                 mainMenu();
             }
@@ -522,7 +538,8 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
                         chosenAccountingType = "провод";
                         chosenRoot = "любой";
                         agentChosen = "любой";
-                        chosenArea = "любой";
+                        g = 1;
+                        mChecked = false;
                         textViewAccountingType.setText("Проводные документы");
                         textViewAgentName.setText("Любой агент");
                         editTextDateStart.setText("");
@@ -536,8 +553,8 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
         builder.setItems(choice, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int item) {
-                chosenAccountingType = choice[item];
-                dialog.cancel();
+//                chosenAccountingType = choice[item];
+//                dialog.cancel();
             }
         });
         builder.setCancelable(false);
@@ -546,42 +563,210 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
     }
 
     private void executeChoice(){
-        if (tableExists(db, "invoice")) {
-            String sql = "SELECT InvoiceNumber, AgentID, SalesPartnerID, ItemID, Quantity, Price, Total, DateTimeDoc, InvoiceSum FROM invoice";
-            Cursor c = db.rawQuery(sql, null);
-            if (c.moveToFirst()) {
-                int invoiceNumberTmp = c.getColumnIndex("InvoiceNumber");
-                int agentIDTmp = c.getColumnIndex("AgentID");
-                int salesPartnerIDTmp = c.getColumnIndex("SalesPartnerID");
-                int itemIDTmp = c.getColumnIndex("ItemID");
-                int quantityTmp = c.getColumnIndex("Quantity");
-                int priceTmp = c.getColumnIndex("Price");
-                int totalTmp = c.getColumnIndex("Total");
-                int dateTimeDocTmp = c.getColumnIndex("DateTimeDoc");
-                int invoiceSumTmp = c.getColumnIndex("InvoiceSum");
-                invoiceNumberListTmp = new ArrayList<>();
-                agentIDListTmp = new ArrayList<>();
-                salesPartnerIDListTmp = new ArrayList<>();
-                itemIDListTmp = new ArrayList<>();
-                quantityListTmp = new ArrayList<>();
-                priceListTmp = new ArrayList<>();
-                totalListTmp = new ArrayList<>();
-                dateTimeDocListTmp = new ArrayList<>();
-                invoiceSumListTmp = new ArrayList<>();
-                do {
-                    invoiceNumberListTmp.add(c.getInt(invoiceNumberTmp));
-                    agentIDListTmp.add(c.getInt(agentIDTmp));
-                    salesPartnerIDListTmp.add(c.getInt(salesPartnerIDTmp));
-                    itemIDListTmp.add(c.getInt(itemIDTmp));
-                    quantityListTmp.add(c.getDouble(quantityTmp));
-                    priceListTmp.add(c.getDouble(priceTmp));
-                    totalListTmp.add(c.getDouble(totalTmp));
-                    dateTimeDocListTmp.add(c.getString(dateTimeDocTmp));
-                    invoiceSumListTmp.add(c.getDouble(invoiceSumTmp));
+        if (tableExists(db, "invoiceAggregate")) {
+            Cursor c;
+            if (chosenArea.equals("любой") && chosenRoot.equals("любой") && chosenAccountingType.equals("провод") &&
+                    !dateStart.equals("") && !dateEnd.equals("")) {
+                if (mChecked){
+                    invoiceNumberListTmp = new ArrayList<>();
+                    agentIDListTmp = new ArrayList<>();
+                    salesPartnerIDListTmp = new ArrayList<>();
+                    salesPartnerNameListTmp = new ArrayList<>();
+                    itemIDListTmp = new ArrayList<>();
+                    quantityListTmp = new ArrayList<>();
+                    priceListTmp = new ArrayList<>();
+                    totalListTmp = new ArrayList<>();
+                    dateTimeDocListTmp = new ArrayList<>();
+                    invoiceSumListTmp = new ArrayList<>();
+                    itemsNameListTmp = new ArrayList<>();
+                    for (int i = 0; i < salesPartnerIDList.size(); i++) {
+                        if (mCheckedItems[i]) {
+                            Integer tmpID = salesPartnerIDListTmp.get(i);
+                            String sql = "SELECT InvoiceNumber, AgentID, SalesPartnerID, ItemID, Quantity, Price, " +
+                                    "Total, DateTimeDoc, InvoiceSum, salesPartners.Наименование, items.Наименование " +
+                                    "FROM invoiceAggregate INNER JOIN salesPartners ON " +
+                                    "invoiceAggregate.SalesPartnerID = salesPartners.serverDB_ID " +
+                                    "INNER JOIN items ON invoiceAggregate.ItemID = items.Артикул " +
+                                    "WHERE DateTimeDoc BETWEEN " +
+                                    "? AND ? AND AccountingType = ? AND SalesPartnerID = ?";
+                            c = db.rawQuery(sql, new String[]{dateStart, dateEnd, chosenAccountingType, tmpID.toString()});
 
-                } while (c.moveToNext());
+                            if (c.moveToFirst()) {
+                                int invoiceNumberTmp = c.getColumnIndex("InvoiceNumber");
+                                int agentIDTmp = c.getColumnIndex("AgentID");
+                                int salesPartnerIDTmp = c.getColumnIndex("SalesPartnerID");
+                                int itemIDTmp = c.getColumnIndex("ItemID");
+                                int quantityTmp = c.getColumnIndex("Quantity");
+                                int priceTmp = c.getColumnIndex("Price");
+                                int totalTmp = c.getColumnIndex("Total");
+                                int dateTimeDocTmp = c.getColumnIndex("DateTimeDoc");
+                                int invoiceSumTmp = c.getColumnIndex("InvoiceSum");
+                                do {
+                                    invoiceNumberListTmp.add(c.getInt(invoiceNumberTmp));
+                                    agentIDListTmp.add(c.getInt(agentIDTmp));
+                                    salesPartnerIDListTmp.add(c.getInt(salesPartnerIDTmp));
+                                    itemIDListTmp.add(c.getInt(itemIDTmp));
+                                    quantityListTmp.add(c.getDouble(quantityTmp));
+                                    priceListTmp.add(c.getDouble(priceTmp));
+                                    totalListTmp.add(c.getDouble(totalTmp));
+                                    dateTimeDocListTmp.add(c.getString(dateTimeDocTmp));
+                                    invoiceSumListTmp.add(c.getDouble(invoiceSumTmp));
+                                    salesPartnerNameListTmp.add(c.getString(9));
+                                    itemsNameListTmp.add(c.getString(10));
+                                } while (c.moveToNext());
+                            }
+                            c.close();
+                        }
+                    }
+                } else {
+                    String sql = "SELECT InvoiceNumber, AgentID, SalesPartnerID, ItemID, Quantity, Price, " +
+                            "Total, DateTimeDoc, InvoiceSum, salesPartners.Наименование, items.Наименование " +
+                            "FROM invoiceAggregate INNER JOIN salesPartners ON " +
+                            "invoiceAggregate.SalesPartnerID = salesPartners.serverDB_ID " +
+                            "INNER JOIN items ON invoiceAggregate.ItemID = items.Артикул " +
+                            "WHERE DateTimeDoc BETWEEN " +
+                            "? AND ? AND AccountingType = ?";
+                    c = db.rawQuery(sql, new String[]{dateStart, dateEnd, chosenAccountingType});
+
+                    if (c.moveToFirst()) {
+                        int invoiceNumberTmp = c.getColumnIndex("InvoiceNumber");
+                        int agentIDTmp = c.getColumnIndex("AgentID");
+                        int salesPartnerIDTmp = c.getColumnIndex("SalesPartnerID");
+                        int itemIDTmp = c.getColumnIndex("ItemID");
+                        int quantityTmp = c.getColumnIndex("Quantity");
+                        int priceTmp = c.getColumnIndex("Price");
+                        int totalTmp = c.getColumnIndex("Total");
+                        int dateTimeDocTmp = c.getColumnIndex("DateTimeDoc");
+                        int invoiceSumTmp = c.getColumnIndex("InvoiceSum");
+                        invoiceNumberListTmp = new ArrayList<>();
+                        agentIDListTmp = new ArrayList<>();
+                        salesPartnerIDListTmp = new ArrayList<>();
+                        itemIDListTmp = new ArrayList<>();
+                        quantityListTmp = new ArrayList<>();
+                        priceListTmp = new ArrayList<>();
+                        totalListTmp = new ArrayList<>();
+                        dateTimeDocListTmp = new ArrayList<>();
+                        invoiceSumListTmp = new ArrayList<>();
+                        salesPartnerNameListTmp = new ArrayList<>();
+                        itemsNameListTmp = new ArrayList<>();
+                        do {
+                            invoiceNumberListTmp.add(c.getInt(invoiceNumberTmp));
+                            agentIDListTmp.add(c.getInt(agentIDTmp));
+                            salesPartnerIDListTmp.add(c.getInt(salesPartnerIDTmp));
+                            itemIDListTmp.add(c.getInt(itemIDTmp));
+                            quantityListTmp.add(c.getDouble(quantityTmp));
+                            priceListTmp.add(c.getDouble(priceTmp));
+                            totalListTmp.add(c.getDouble(totalTmp));
+                            dateTimeDocListTmp.add(c.getString(dateTimeDocTmp));
+                            invoiceSumListTmp.add(c.getDouble(invoiceSumTmp));
+                            salesPartnerNameListTmp.add(c.getString(9));
+                            itemsNameListTmp.add(c.getString(10));
+                        } while (c.moveToNext());
+                    }
+                    c.close();
+                }
+            } else {
+                if (!mChecked) {
+                    String sql = "SELECT InvoiceNumber, AgentID, SalesPartnerID, ItemID, Quantity, Price, " +
+                            "Total, DateTimeDoc, InvoiceSum, salesPartners.Наименование, items.Наименование " +
+                            "FROM invoiceAggregate INNER JOIN salesPartners ON " +
+                            "invoiceAggregate.SalesPartnerID = salesPartners.serverDB_ID " +
+                            "INNER JOIN items ON invoiceAggregate.ItemID = items.Артикул " +
+                            "WHERE DateTimeDoc > ? " +
+                            "AND AccountingType = ? AND AgentID = ?";
+                    c = db.rawQuery(sql, new String[]{output, chosenAccountingType, agentChosen});
+
+                    if (c.moveToFirst()) {
+                        int invoiceNumberTmp = c.getColumnIndex("InvoiceNumber");
+                        int agentIDTmp = c.getColumnIndex("AgentID");
+                        int salesPartnerIDTmp = c.getColumnIndex("SalesPartnerID");
+                        int itemIDTmp = c.getColumnIndex("ItemID");
+                        int quantityTmp = c.getColumnIndex("Quantity");
+                        int priceTmp = c.getColumnIndex("Price");
+                        int totalTmp = c.getColumnIndex("Total");
+                        int dateTimeDocTmp = c.getColumnIndex("DateTimeDoc");
+                        int invoiceSumTmp = c.getColumnIndex("InvoiceSum");
+                        invoiceNumberListTmp = new ArrayList<>();
+                        agentIDListTmp = new ArrayList<>();
+                        salesPartnerIDListTmp = new ArrayList<>();
+                        itemIDListTmp = new ArrayList<>();
+                        quantityListTmp = new ArrayList<>();
+                        priceListTmp = new ArrayList<>();
+                        totalListTmp = new ArrayList<>();
+                        dateTimeDocListTmp = new ArrayList<>();
+                        invoiceSumListTmp = new ArrayList<>();
+                        salesPartnerNameListTmp = new ArrayList<>();
+                        itemsNameListTmp = new ArrayList<>();
+                        do {
+                            invoiceNumberListTmp.add(c.getInt(invoiceNumberTmp));
+                            agentIDListTmp.add(c.getInt(agentIDTmp));
+                            salesPartnerIDListTmp.add(c.getInt(salesPartnerIDTmp));
+                            itemIDListTmp.add(c.getInt(itemIDTmp));
+                            quantityListTmp.add(c.getDouble(quantityTmp));
+                            priceListTmp.add(c.getDouble(priceTmp));
+                            totalListTmp.add(c.getDouble(totalTmp));
+                            dateTimeDocListTmp.add(c.getString(dateTimeDocTmp));
+                            invoiceSumListTmp.add(c.getDouble(invoiceSumTmp));
+                            salesPartnerNameListTmp.add(c.getString(9));
+                            itemsNameListTmp.add(c.getString(10));
+
+                        } while (c.moveToNext());
+                    }
+                    c.close();
+                } else {
+                    invoiceNumberListTmp = new ArrayList<>();
+                    agentIDListTmp = new ArrayList<>();
+                    salesPartnerIDListTmp = new ArrayList<>();
+                    itemIDListTmp = new ArrayList<>();
+                    quantityListTmp = new ArrayList<>();
+                    priceListTmp = new ArrayList<>();
+                    totalListTmp = new ArrayList<>();
+                    dateTimeDocListTmp = new ArrayList<>();
+                    invoiceSumListTmp = new ArrayList<>();
+                    salesPartnerNameListTmp = new ArrayList<>();
+                    itemsNameListTmp = new ArrayList<>();
+                    for (int i = 0; i < salesPartnerIDList.size(); i++) {
+                        if (mCheckedItems[i]) {
+                            Integer tmpID = salesPartnerIDListTmp.get(i);
+                            String sql = "SELECT InvoiceNumber, AgentID, SalesPartnerID, ItemID, Quantity, Price, " +
+                                    "Total, DateTimeDoc, InvoiceSum, salesPartners.Наименование, items.Наименование " +
+                                    "FROM invoiceAggregate INNER JOIN salesPartners ON " +
+                                    "invoiceAggregate.SalesPartnerID = salesPartners.serverDB_ID " +
+                                    "INNER JOIN items ON invoiceAggregate.ItemID = items.Артикул " +
+                                    "WHERE DateTimeDoc > ? " +
+                                    "AND AccountingType = ? AND SalesPartnerID = ?";
+                            c = db.rawQuery(sql, new String[]{output, chosenAccountingType, tmpID.toString()});
+
+                            if (c.moveToFirst()) {
+                                int invoiceNumberTmp = c.getColumnIndex("InvoiceNumber");
+                                int agentIDTmp = c.getColumnIndex("AgentID");
+                                int salesPartnerIDTmp = c.getColumnIndex("SalesPartnerID");
+                                int itemIDTmp = c.getColumnIndex("ItemID");
+                                int quantityTmp = c.getColumnIndex("Quantity");
+                                int priceTmp = c.getColumnIndex("Price");
+                                int totalTmp = c.getColumnIndex("Total");
+                                int dateTimeDocTmp = c.getColumnIndex("DateTimeDoc");
+                                int invoiceSumTmp = c.getColumnIndex("InvoiceSum");
+                                do {
+                                    invoiceNumberListTmp.add(c.getInt(invoiceNumberTmp));
+                                    agentIDListTmp.add(c.getInt(agentIDTmp));
+                                    salesPartnerIDListTmp.add(c.getInt(salesPartnerIDTmp));
+                                    itemIDListTmp.add(c.getInt(itemIDTmp));
+                                    quantityListTmp.add(c.getDouble(quantityTmp));
+                                    priceListTmp.add(c.getDouble(priceTmp));
+                                    totalListTmp.add(c.getDouble(totalTmp));
+                                    dateTimeDocListTmp.add(c.getString(dateTimeDocTmp));
+                                    invoiceSumListTmp.add(c.getDouble(invoiceSumTmp));
+                                    salesPartnerNameListTmp.add(c.getString(9));
+                                    itemsNameListTmp.add(c.getString(10));
+                                } while (c.moveToNext());
+                            }
+                            c.close();
+                        }
+                    }
+                }
             }
-            c.close();
+            Toast.makeText(getApplicationContext(), String.valueOf(invoiceNumberListTmp.size()), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -696,7 +881,7 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
                                                 @Override
                                                 public void run() {
 
-                                                    loadInvoicesFromServerDB();
+                                                    loadInvoicesFromServerDB(g);
                                                 }
                                             };
                                             Thread thread5 = new Thread(runnable);
@@ -985,7 +1170,7 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
         VolleySingleton.getInstance(this).getRequestQueue().add(request);
     }
 
-    private void loadInvoicesFromServerDB(){
+    private void loadInvoicesFromServerDB(final Integer g){
         StringRequest request = new StringRequest(Request.Method.POST,
                 syncUrl, new Response.Listener<String>() {
             @Override
@@ -1043,6 +1228,25 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
                             cv.put("Comment", comment[i]);
                             long rowID = db.insert("invoice", null, cv);
                             Log.d(LOG_TAG, "row inserted, ID = " + rowID);
+
+                            cv = new ContentValues();
+                            Log.d(LOG_TAG, "--- Insert in invoiceAggregate: ---");
+                            cv.put("serverDB_ID", serverDB_ID[i]);
+                            cv.put("InvoiceNumber", invoiceNumber[i]);
+                            cv.put("AgentID", agentID[i]);
+                            cv.put("SalesPartnerID", salesPartnerID[i]);
+                            cv.put("AccountingType", accountingType[i]);
+                            cv.put("ItemID", itemNumber[i]);
+                            cv.put("Quantity", itemQuantity[i]);
+                            cv.put("Price", itemPrice[i]);
+                            cv.put("Total", totalSum[i]);
+                            cv.put("ExchangeQuantity", exchangeQuantity[i]);
+                            cv.put("ReturnQuantity", returnQuantity[i]);
+                            cv.put("DateTimeDoc", dateTimeDoc[i]);
+                            cv.put("InvoiceSum", invoiceSum[i]);
+                            cv.put("Comment", comment[i]);
+                            rowID = db.insert("invoiceAggregate", null, cv);
+                            Log.d(LOG_TAG, "row inserted, ID = " + rowID);
                         }
                         Toast.makeText(getApplicationContext(), "Накладные загружены", Toast.LENGTH_SHORT).show();
                     }else{
@@ -1066,7 +1270,7 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
                 parameters.put("dbName", dbName);
                 parameters.put("dbUser", dbUser);
                 parameters.put("dbPassword", dbPassword);
-                parameters.put("agentID", areaDefault);
+                parameters.put("agentID", String.valueOf(g));
                 parameters.put("tableName", "invoice");
                 return parameters;
             }
@@ -1201,41 +1405,85 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
     }
 
     public void read() throws IOException  {
-        Instant instant = Instant.now();
-        ZoneId zoneId = ZoneId.of( "Asia/Sakhalin" );
-        ZonedDateTime zdt = ZonedDateTime.ofInstant( instant , zoneId );
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern( "dd.MM.yyyy" );
-        String output = zdt.format( formatter );
-//        Toast.makeText(getApplicationContext(), arrayMapExchange.size(), Toast.LENGTH_SHORT).show();
-
         File sd = Environment.getExternalStorageDirectory();
-        csvFileCopy = "accountant.xls";
+        csvFileCopy = "accountant_" + output + ".xls";
 
         File directory = new File(sd.getAbsolutePath() + File.separator + "Download" +
-                File.separator + "Excel" + File.separator + "Accountant");
+                File.separator + "Excel" + File.separator + "Accountant_отчет");
         if (!directory.isDirectory()) {
             directory.mkdirs();
         }
+
         File file = new File(directory, csvFileCopy);
         File inputWorkbook = new File(inputFile);
-
         Workbook w;
+
         try {
             w = Workbook.getWorkbook(inputWorkbook);
             WritableWorkbook copy = Workbook.createWorkbook(file, w);
-            Sheet sheet = w.getSheet(0);
-            WritableSheet newSheet = copy.createSheet("accounting", 0);
-            for (int j = 0; j < newSheet.getColumns(); j++) {
-                for (int i = 0; i < newSheet.getRows(); i++) {
+            WritableSheet sheet = copy.getSheet(0);
+
+            Integer k = 1;
+            for (int j = 0; j < 12; j++) {
+                for (int i = 0; i < invoiceNumberListTmp.size() + 1; i++) {
+                    WritableCell cellWritable = sheet.getWritableCell(j, i);
+                    CellFormat cfm = cellWritable.getCellFormat();
                     Cell readCell = sheet.getCell(j, i);
                     Label label = new Label(j, i, readCell.getContents());
-                    CellView cell = newSheet.getColumnView(j);
+                    CellView cell = sheet.getColumnView(j);
                     cell.setAutosize(true);
-                    newSheet.setColumnView(j, cell);
-                    if (j == 0 && i == 2) {
-                        label = new Label(j, i + 6, output); //Текущая дата
+                    sheet.setColumnView(j, cell);
+
+                    if (j == 0 && i == 1) {
+                        label = new Label(j, i, String.valueOf(k)); //Номер строчки
+                        k += 1;
                     }
-                    newSheet.addCell(label);
+                    if (j == 0 && i > 1) {
+                        label = new Label(j, i, String.valueOf(k)); //Номер строчки
+                        k += 1;
+                    }
+                    if (j == 2 && i > 0) {
+                        label = new Label(j, i, String.valueOf(invoiceNumberListTmp.get(i - 1))); //Номер накладной
+                        k += 1;
+                    }
+                    if (j == 3 && i > 0) {
+                        label = new Label(j, i, String.valueOf(agentIDListTmp.get(i - 1))); //Номер района
+                        k += 1;
+                    }
+                    if (j == 4 && i > 0) {
+                        label = new Label(j, i, String.valueOf(salesPartnerNameListTmp.get(i - 1))); //Название магазина
+                        k += 1;
+                    }
+                    if (j == 5 && i > 0) {
+                        label = new Label(j, i, String.valueOf(k)); //ИНН
+                        k += 1;
+                    }
+                    if (j == 6 && i > 0) {
+                        label = new Label(j, i, String.valueOf(itemsNameListTmp.get(i - 1))); //Номенклатура
+                        k += 1;
+                    }
+                    if (j == 7 && i > 0) {
+                        label = new Label(j, i, String.valueOf(priceListTmp.get(i - 1))); //Цена
+                        k += 1;
+                    }
+                    if (j == 8 && i > 0) {
+                        label = new Label(j, i, String.valueOf(quantityListTmp.get(i - 1))); //Кол-во
+                        k += 1;
+                    }
+                    if (j == 9 && i > 0) {
+                        label = new Label(j, i, String.valueOf(totalListTmp.get(i - 1))); //Сумма
+                        k += 1;
+                    }
+                    if (j == 10 && i > 0) {
+                        label = new Label(j, i, String.valueOf(invoiceSumListTmp.get(i - 1))); //Всего
+                        k += 1;
+                    }
+                    if (j == 11 && i > 0) {
+                        label = new Label(j, i, String.valueOf(dateTimeDocListTmp.get(i - 1))); //Дата прадажи
+                        k += 1;
+                    }
+                    sheet.addCell(label);
+                    cellWritable.setCellFormat(cfm);
                 }
             }
             copy.write();
@@ -1333,6 +1581,25 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
                 db.execSQL("create table invoice ("
                         + "id integer primary key autoincrement,"
                         + "serverDB_ID integer UNIQUE ON CONFLICT REPLACE,"
+                        + "InvoiceNumber integer,"
+                        + "AgentID integer,"
+                        + "SalesPartnerID integer,"
+                        + "AccountingType text,"
+                        + "ItemID integer,"
+                        + "Quantity real,"
+                        + "Price real,"
+                        + "Total real,"
+                        + "ExchangeQuantity real,"
+                        + "ReturnQuantity  real,"
+                        + "DateTimeDoc text,"
+                        + "InvoiceSum real,"
+                        + "Comment text" + ");");
+            }
+
+            if (!tableExists(db, "invoiceAggregate")) {
+                db.execSQL("create table invoiceAggregate ("
+                        + "id integer primary key autoincrement,"
+                        + "serverDB_ID integer,"
                         + "InvoiceNumber integer,"
                         + "AgentID integer,"
                         + "SalesPartnerID integer,"
@@ -1503,5 +1770,28 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
                 }
             }
         });
+    }
+
+    private void dropAggregate(){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder = new AlertDialog.Builder(this);
+        builder.setTitle("Сброс агрегирующей таблицы")
+//                .setMessage("Все таблицы будут перезаписаны!")
+                .setCancelable(true)
+                .setNegativeButton("Да",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                db.execSQL("DROP TABLE IF EXISTS invoiceAggregate");
+                                dialog.cancel();
+                            }
+                        })
+                .setPositiveButton("Нет",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialog.cancel();
+                            }
+                        });
+        AlertDialog alert = builder.create();
+        alert.show();
     }
 }
