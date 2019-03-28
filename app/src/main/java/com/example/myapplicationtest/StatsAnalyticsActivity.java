@@ -935,39 +935,39 @@ public class StatsAnalyticsActivity extends AppCompatActivity implements View.On
                         WritableCell cell = sheet.getWritableCell(j, i);
                         CellFormat cfm = cell.getCellFormat();
                         if (j == 13){
-                            if (i == 32){
+                            if (i == 31){
                                 if (cell.getType() == CellType.LABEL) {
                                     Label l = (Label) cell;
                                     l.setString(String.valueOf(totalExchangeQuantity));
                                 }
                             }
-                            if (i == 33){
+                            if (i == 32){
                                 if (cell.getType() == CellType.LABEL) {
                                     Label l = (Label) cell;
                                     l.setString(String.valueOf(totalExchangeWeight));
                                 }
                             }
 
-                            if (i == 36){
+                            if (i == 35){
                                 if (cell.getType() == CellType.LABEL) {
                                     Label l = (Label) cell;
                                     l.setString(String.valueOf(totalReturnQuantity));
                                 }
                             }
-                            if (i == 37){
+                            if (i == 36){
                                 if (cell.getType() == CellType.LABEL) {
                                     Label l = (Label) cell;
                                     l.setString(String.valueOf(totalReturnWeight));
                                 }
                             }
 
-                            if (i == 40){
+                            if (i == 39){
                                 if (cell.getType() == CellType.LABEL) {
                                     Label l = (Label) cell;
                                     l.setString(String.valueOf(totalSalesQuantity));
                                 }
                             }
-                            if (i == 41){
+                            if (i == 40){
                                 if (cell.getType() == CellType.LABEL) {
                                     Label l = (Label) cell;
                                     l.setString(String.valueOf(totalSalesWeight));

@@ -486,6 +486,7 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
                 g = agentAreaList.get(item);
                 textViewAgentName.setText(agentChosen);
                 mainMenu();
+                Toast.makeText(getApplicationContext(), g.toString(), Toast.LENGTH_SHORT).show();
             }
         });
         builder.setCancelable(true);
@@ -565,7 +566,7 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
     private void executeChoice(){
         if (tableExists(db, "invoiceAggregate")) {
             Cursor c;
-            if (chosenArea.equals("любой") && chosenRoot.equals("любой") && chosenAccountingType.equals("провод") &&
+            if (chosenArea.equals("любой") &&
                     !dateStart.equals("") && !dateEnd.equals("")) {
                 if (mChecked){
                     invoiceNumberListTmp = new ArrayList<>();
@@ -665,16 +666,18 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
                     }
                     c.close();
                 }
-            } else {
+            }
+            if (!chosenArea.equals("любой") &&
+                    !dateStart.equals("") && !dateEnd.equals("")) {
                 if (!mChecked) {
                     String sql = "SELECT InvoiceNumber, AgentID, SalesPartnerID, ItemID, Quantity, Price, " +
                             "Total, DateTimeDoc, InvoiceSum, salesPartners.Наименование, items.Наименование " +
                             "FROM invoiceAggregate INNER JOIN salesPartners ON " +
                             "invoiceAggregate.SalesPartnerID = salesPartners.serverDB_ID " +
                             "INNER JOIN items ON invoiceAggregate.ItemID = items.Артикул " +
-                            "WHERE DateTimeDoc > ? " +
+                            "WHERE DateTimeDoc BETWEEN ? AND ? " +
                             "AND AccountingType = ? AND AgentID = ?";
-                    c = db.rawQuery(sql, new String[]{output, chosenAccountingType, agentChosen});
+                    c = db.rawQuery(sql, new String[]{dateStart, dateEnd, chosenAccountingType, chosenArea});
 
                     if (c.moveToFirst()) {
                         int invoiceNumberTmp = c.getColumnIndex("InvoiceNumber");
@@ -875,7 +878,7 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
                                             thread4.start();
                                         }
                                         if (listCheckTableName[i].equals("Накладная")){
-                                            db.execSQL("DROP TABLE IF EXISTS invoice");
+//                                            db.execSQL("DROP TABLE IF EXISTS invoice");
                                             dbHelper.onUpgrade(db, 1, 2);
                                             Runnable runnable = new Runnable() {
                                                 @Override
@@ -1211,25 +1214,25 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
                             comment[i] = obj.getString("Comment");
 
                             ContentValues cv = new ContentValues();
-                            Log.d(LOG_TAG, "--- Insert in invoice: ---");
-                            cv.put("serverDB_ID", serverDB_ID[i]);
-                            cv.put("InvoiceNumber", invoiceNumber[i]);
-                            cv.put("AgentID", agentID[i]);
-                            cv.put("SalesPartnerID", salesPartnerID[i]);
-                            cv.put("AccountingType", accountingType[i]);
-                            cv.put("ItemID", itemNumber[i]);
-                            cv.put("Quantity", itemQuantity[i]);
-                            cv.put("Price", itemPrice[i]);
-                            cv.put("Total", totalSum[i]);
-                            cv.put("ExchangeQuantity", exchangeQuantity[i]);
-                            cv.put("ReturnQuantity", returnQuantity[i]);
-                            cv.put("DateTimeDoc", dateTimeDoc[i]);
-                            cv.put("InvoiceSum", invoiceSum[i]);
-                            cv.put("Comment", comment[i]);
-                            long rowID = db.insert("invoice", null, cv);
-                            Log.d(LOG_TAG, "row inserted, ID = " + rowID);
+//                            Log.d(LOG_TAG, "--- Insert in invoice: ---");
+//                            cv.put("serverDB_ID", serverDB_ID[i]);
+//                            cv.put("InvoiceNumber", invoiceNumber[i]);
+//                            cv.put("AgentID", agentID[i]);
+//                            cv.put("SalesPartnerID", salesPartnerID[i]);
+//                            cv.put("AccountingType", accountingType[i]);
+//                            cv.put("ItemID", itemNumber[i]);
+//                            cv.put("Quantity", itemQuantity[i]);
+//                            cv.put("Price", itemPrice[i]);
+//                            cv.put("Total", totalSum[i]);
+//                            cv.put("ExchangeQuantity", exchangeQuantity[i]);
+//                            cv.put("ReturnQuantity", returnQuantity[i]);
+//                            cv.put("DateTimeDoc", dateTimeDoc[i]);
+//                            cv.put("InvoiceSum", invoiceSum[i]);
+//                            cv.put("Comment", comment[i]);
+//                            long rowID = db.insert("invoice", null, cv);
+//                            Log.d(LOG_TAG, "row inserted, ID = " + rowID);
 
-                            cv = new ContentValues();
+//                            cv = new ContentValues();
                             Log.d(LOG_TAG, "--- Insert in invoiceAggregate: ---");
                             cv.put("serverDB_ID", serverDB_ID[i]);
                             cv.put("InvoiceNumber", invoiceNumber[i]);
@@ -1245,7 +1248,7 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
                             cv.put("DateTimeDoc", dateTimeDoc[i]);
                             cv.put("InvoiceSum", invoiceSum[i]);
                             cv.put("Comment", comment[i]);
-                            rowID = db.insert("invoiceAggregate", null, cv);
+                            long rowID = db.insert("invoiceAggregate", null, cv);
                             Log.d(LOG_TAG, "row inserted, ID = " + rowID);
                         }
                         Toast.makeText(getApplicationContext(), "Накладные загружены", Toast.LENGTH_SHORT).show();
@@ -1430,9 +1433,9 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
                     CellFormat cfm = cellWritable.getCellFormat();
                     Cell readCell = sheet.getCell(j, i);
                     Label label = new Label(j, i, readCell.getContents());
-                    CellView cell = sheet.getColumnView(j);
-                    cell.setAutosize(true);
-                    sheet.setColumnView(j, cell);
+//                    CellView cell = sheet.getColumnView(j);
+//                    cell.setAutosize(true);
+//                    sheet.setColumnView(j, cell);
 
                     if (j == 0 && i == 1) {
                         label = new Label(j, i, String.valueOf(k)); //Номер строчки
@@ -1479,11 +1482,11 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
                         k += 1;
                     }
                     if (j == 11 && i > 0) {
-                        label = new Label(j, i, String.valueOf(dateTimeDocListTmp.get(i - 1))); //Дата прадажи
+                        label = new Label(j, i, String.valueOf(dateTimeDocListTmp.get(i - 1))); //Дата продажи
                         k += 1;
                     }
                     sheet.addCell(label);
-                    cellWritable.setCellFormat(cfm);
+//                    cellWritable.setCellFormat(cfm);
                 }
             }
             copy.write();

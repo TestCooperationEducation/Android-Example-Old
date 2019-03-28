@@ -40,6 +40,8 @@ import jxl.format.CellFormat;
 import jxl.read.biff.BiffException;
 import jxl.write.Label;
 import jxl.write.WritableCell;
+import jxl.write.WritableCellFormat;
+import jxl.write.WritableFont;
 import jxl.write.WritableSheet;
 import jxl.write.WritableWorkbook;
 import jxl.write.WriteException;
@@ -64,6 +66,7 @@ public class AgentReportActivity extends AppCompatActivity implements View.OnCli
     final String SAVED_AREADEFAULT = "areaDefault";
     Integer invoiceAccTypeOneCount, invoiceAccTypeTwoCount, invoiceAccTypeOnePaymentsCount, invoiceAccTypeTwoPaymentsCount;
     Double invoiceSumTotal, invoiceSumTypeOneTotal, invoiceSumTypeTwoTotal, invoiceSumTypeOnePaymentsTotal, invoiceSumTypeTwoPaymentsTotal;
+    Boolean weeklyReport = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -118,7 +121,7 @@ public class AgentReportActivity extends AppCompatActivity implements View.OnCli
     }
 
     private void mainMenu(){
-        final String[] choice ={"Выбрать загрузку", "Показать загрузку", "Продажи", "Сформировать", "По умолчанию"};
+        final String[] choice ={"Выбрать загрузку", "Показать загрузку", "Продажи", "Сформировать", "Недельный отчет", "По умолчанию"};
         AlertDialog.Builder builder;
         builder = new AlertDialog.Builder(this);
         builder.setTitle("Меню");
@@ -146,6 +149,17 @@ public class AgentReportActivity extends AppCompatActivity implements View.OnCli
                     dateEnd = "";
                     dateStart = "";
                     Toast.makeText(getApplicationContext(), "Сброшено по умолчанию", Toast.LENGTH_SHORT).show();
+                    mainMenu();
+                }
+                if (choice[item].equals("Недельный отчет")){
+                    weeklyReport = !weeklyReport;
+                    String weeklyReportMessage;
+                    if (weeklyReport){
+                        weeklyReportMessage = "<<< Недельный Отчет >>>";
+                    } else {
+                        weeklyReportMessage = "<<< Ежедневный Отчет >>>";
+                    }
+                    Toast.makeText(getApplicationContext(), weeklyReportMessage, Toast.LENGTH_SHORT).show();
                     mainMenu();
                 }
             }
@@ -544,18 +558,28 @@ public class AgentReportActivity extends AppCompatActivity implements View.OnCli
                 }
             }
             reportList = new String[arrayMapQuantityReduced.size()];
-            for (int i = 0; i < arrayMapQuantityReduced.size(); i++) {
-                for (int j = 0; j < arrayMapReceive.size(); j++) {
-                    if (arrayMapQuantityReduced.keyAt(i).equals(arrayMapReceive.keyAt(j))) {
-                        Double tmp = arrayMapReceive.valueAt(j) - arrayMapQuantityReduced.valueAt(i) - arrayMapExchangeReduced.valueAt(i);
-                        reportList[i] = "Обмен: " + arrayMapExchangeReduced.valueAt(i).toString() + System.getProperty("line.separator") +
-                                "Наименование: " + System.getProperty("line.separator") +
-                                arrayMapExchangeReduced.keyAt(i) + System.getProperty("line.separator") +
-                                "Остаток: " + roundUp(tmp, 2).toString() + System.getProperty("line.separator") +
-                                "Продажа: " + arrayMapQuantityReduced.valueAt(i).toString() + System.getProperty("line.separator") +
-                                "Загрузка: " + arrayMapReceive.valueAt(j).toString() + System.getProperty("line.separator") +
-                                System.getProperty("line.separator");
+            if (!weeklyReport) {
+                for (int i = 0; i < arrayMapQuantityReduced.size(); i++) {
+                    for (int j = 0; j < arrayMapReceive.size(); j++) {
+                        if (arrayMapQuantityReduced.keyAt(i).equals(arrayMapReceive.keyAt(j))) {
+                            Double tmp = arrayMapReceive.valueAt(j) - arrayMapQuantityReduced.valueAt(i) - arrayMapExchangeReduced.valueAt(i);
+                            reportList[i] = "Обмен: " + arrayMapExchangeReduced.valueAt(i).toString() + System.getProperty("line.separator") +
+                                    "Наименование: " + System.getProperty("line.separator") +
+                                    arrayMapExchangeReduced.keyAt(i) + System.getProperty("line.separator") +
+                                    "Остаток: " + roundUp(tmp, 2).toString() + System.getProperty("line.separator") +
+                                    "Продажа: " + arrayMapQuantityReduced.valueAt(i).toString() + System.getProperty("line.separator") +
+                                    "Загрузка: " + arrayMapReceive.valueAt(j).toString() + System.getProperty("line.separator") +
+                                    System.getProperty("line.separator");
+                        }
                     }
+                }
+            } else {
+                for (int i = 0; i < arrayMapQuantityReduced.size(); i++) {
+                    reportList[i] = "Обмен: " + arrayMapExchangeReduced.valueAt(i).toString() + System.getProperty("line.separator") +
+                            "Наименование: " + System.getProperty("line.separator") +
+                            arrayMapExchangeReduced.keyAt(i) + System.getProperty("line.separator") +
+                            "Продажа: " + arrayMapQuantityReduced.valueAt(i).toString() + System.getProperty("line.separator") +
+                            System.getProperty("line.separator");
                 }
             }
             showReceiveReport("Конец смены");
@@ -631,8 +655,14 @@ public class AgentReportActivity extends AppCompatActivity implements View.OnCli
 
         File sd = Environment.getExternalStorageDirectory();
         csvFileFormCopy = "агент_отчет_" + output + ".xls";
-        File directorySave = new File(sd.getAbsolutePath() + File.separator + "Download"
-                + File.separator + "Excel" + File.separator + "Агент_отчет");
+        File directorySave;
+        if (!weeklyReport) {
+            directorySave = new File(sd.getAbsolutePath() + File.separator + "Download"
+                    + File.separator + "Excel" + File.separator + "Агент_отчет");
+        } else {
+            directorySave = new File(sd.getAbsolutePath() + File.separator + "Download"
+                    + File.separator + "Excel" + File.separator + "Агент_отчет_неделя");
+        }
         if (!directorySave.isDirectory()) {
             directorySave.mkdirs();
         }
@@ -641,6 +671,10 @@ public class AgentReportActivity extends AppCompatActivity implements View.OnCli
         Workbook w;
         WorkbookSettings wbSettings = new WorkbookSettings();
         wbSettings.setLocale(new Locale("ru", "Ru"));
+
+        WritableFont cellFont = new WritableFont(WritableFont.TIMES, 8);
+        WritableCellFormat cellFormat = new WritableCellFormat(cellFont);
+
         try {
             w = Workbook.getWorkbook(inputWorkbook);
             WritableWorkbook copy = Workbook.createWorkbook(fileSave, w);
@@ -649,11 +683,25 @@ public class AgentReportActivity extends AppCompatActivity implements View.OnCli
             for (int j = 0; j < sheet.getColumns(); j++){
                 for (int i = 0; i < sheet.getRows(); i++){
                     WritableCell cell = sheet.getWritableCell(j, i);
+                    WritableCell cell2 = sheet.getWritableCell(2, 2);
                     CellFormat cfm = cell.getCellFormat();
+                    if (weeklyReport){
+                        if (j == 0 && i == 0){
+                            if (cell2.getType() == CellType.LABEL) {
+                                Label l = (Label) cell2;
+                                l.setString("Еженедельный отчет торгового представителя"); //Заголовок
+                            }
+                        }
+                    }
                     if (j == 2 && i == 2) {
                         if (cell.getType() == CellType.LABEL) {
                             Label l = (Label) cell;
-                            l.setString("Дата: " + output); //Дата
+                            if (!weeklyReport) {
+                                l.setString("Дата: " + output); //Дата
+                            } else {
+                                l.setString("Период: " + dateStart + " - " + dateEnd); //Период
+                                cell2.setCellFormat(cellFormat);
+                            }
                         }
                     }
                     if (j == 0 && i == 4) {
@@ -755,7 +803,7 @@ public class AgentReportActivity extends AppCompatActivity implements View.OnCli
                                             l.setString(String.valueOf(arrayMapExchangeReduced.keyAt(i - 7))); //Наименование
                                         }
                                     }
-                                    if (j == 2) {
+                                    if (j == 2 && !weeklyReport) {
                                         Double tmp = arrayMapReceive.valueAt(b) - arrayMapQuantityReduced.valueAt(i - 7)
                                                 - arrayMapExchangeReduced.valueAt(i - 7);
                                         if (cell.getType() == CellType.LABEL) {
@@ -769,7 +817,7 @@ public class AgentReportActivity extends AppCompatActivity implements View.OnCli
                                             l.setString(String.valueOf(arrayMapQuantityReduced.valueAt(i - 7))); //Продажа
                                         }
                                     }
-                                    if (j == 4) {
+                                    if (j == 4 && !weeklyReport) {
                                         if (cell.getType() == CellType.LABEL) {
                                             Label l = (Label) cell;
                                             l.setString(String.valueOf(arrayMapReceive.valueAt(b))); //Загрузка
@@ -785,7 +833,9 @@ public class AgentReportActivity extends AppCompatActivity implements View.OnCli
 //                            }
                         }
                     }
-                    cell.setCellFormat(cfm);
+                    if (j != 2 && i != 2) {
+                        cell.setCellFormat(cfm);
+                    }
                 }
             }
 
