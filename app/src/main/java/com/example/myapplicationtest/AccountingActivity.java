@@ -79,10 +79,10 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
     final String SAVED_DBPassword = "dbPassword";
     SharedPreferences sPrefDBName, sPrefDBPassword, sPrefDBUser;
     ArrayList<Integer> agentAreaList, salesPartnerIDList, invoiceNumberListTmp, agentIDListTmp,
-            itemIDListTmp, salesPartnerIDListTmp;
+            itemIDListTmp, salesPartnerIDListTmp, itemIDBuhgalterListTmp;
     ArrayList<Double> quantityListTmp, priceListTmp, totalListTmp, invoiceSumListTmp;
     ArrayList<String> secondNameList, firstNameList, middleNameList, salesPartnerNameList,
-            dateTimeDocListTmp, salesPartnerNameListTmp, itemsNameListTmp;
+            dateTimeDocListTmp, salesPartnerNameListTmp, itemsNameListTmp, spTINListTmp;
     String[] agentsList, salesPartnersList;
     boolean[] mCheckedItems;
     private String inputFile;
@@ -580,11 +580,14 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
                     dateTimeDocListTmp = new ArrayList<>();
                     invoiceSumListTmp = new ArrayList<>();
                     itemsNameListTmp = new ArrayList<>();
+                    spTINListTmp = new ArrayList<>();
+                    itemIDBuhgalterListTmp = new ArrayList<>();
                     for (int i = 0; i < salesPartnerIDList.size(); i++) {
                         if (mCheckedItems[i]) {
                             Integer tmpID = salesPartnerIDListTmp.get(i);
                             String sql = "SELECT InvoiceNumber, AgentID, SalesPartnerID, ItemID, Quantity, Price, " +
-                                    "Total, DateTimeDoc, InvoiceSum, salesPartners.Наименование, items.Наименование " +
+                                    "Total, DateTimeDoc, InvoiceSum, salesPartners.Наименование, salesPartners.ИНН, " +
+                                    "items.Наименование, items.Артикул_1С " +
                                     "FROM invoiceAggregate INNER JOIN salesPartners ON " +
                                     "invoiceAggregate.SalesPartnerID = salesPartners.serverDB_ID " +
                                     "INNER JOIN items ON invoiceAggregate.ItemID = items.Артикул " +
@@ -613,7 +616,9 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
                                     dateTimeDocListTmp.add(c.getString(dateTimeDocTmp));
                                     invoiceSumListTmp.add(c.getDouble(invoiceSumTmp));
                                     salesPartnerNameListTmp.add(c.getString(9));
-                                    itemsNameListTmp.add(c.getString(10));
+                                    spTINListTmp.add(c.getString(10));
+                                    itemsNameListTmp.add(c.getString(11));
+                                    itemIDBuhgalterListTmp.add(c.getInt(12));
                                 } while (c.moveToNext());
                             }
                             c.close();
@@ -621,7 +626,8 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
                     }
                 } else {
                     String sql = "SELECT InvoiceNumber, AgentID, SalesPartnerID, ItemID, Quantity, Price, " +
-                            "Total, DateTimeDoc, InvoiceSum, salesPartners.Наименование, items.Наименование " +
+                            "Total, DateTimeDoc, InvoiceSum, salesPartners.Наименование, salesPartners.ИНН, " +
+                            "items.Наименование, items.Артикул_1С " +
                             "FROM invoiceAggregate INNER JOIN salesPartners ON " +
                             "invoiceAggregate.SalesPartnerID = salesPartners.serverDB_ID " +
                             "INNER JOIN items ON invoiceAggregate.ItemID = items.Артикул " +
@@ -650,6 +656,8 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
                         invoiceSumListTmp = new ArrayList<>();
                         salesPartnerNameListTmp = new ArrayList<>();
                         itemsNameListTmp = new ArrayList<>();
+                        spTINListTmp = new ArrayList<>();
+                        itemIDBuhgalterListTmp = new ArrayList<>();
                         do {
                             invoiceNumberListTmp.add(c.getInt(invoiceNumberTmp));
                             agentIDListTmp.add(c.getInt(agentIDTmp));
@@ -661,7 +669,9 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
                             dateTimeDocListTmp.add(c.getString(dateTimeDocTmp));
                             invoiceSumListTmp.add(c.getDouble(invoiceSumTmp));
                             salesPartnerNameListTmp.add(c.getString(9));
-                            itemsNameListTmp.add(c.getString(10));
+                            spTINListTmp.add(c.getString(10));
+                            itemsNameListTmp.add(c.getString(11));
+                            itemIDBuhgalterListTmp.add(c.getInt(12));
                         } while (c.moveToNext());
                     }
                     c.close();
@@ -671,7 +681,8 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
                     !dateStart.equals("") && !dateEnd.equals("")) {
                 if (!mChecked) {
                     String sql = "SELECT InvoiceNumber, AgentID, SalesPartnerID, ItemID, Quantity, Price, " +
-                            "Total, DateTimeDoc, InvoiceSum, salesPartners.Наименование, items.Наименование " +
+                            "Total, DateTimeDoc, InvoiceSum, salesPartners.Наименование, salesPartners.ИНН, " +
+                            "items.Наименование, items.Артикул_1С " +
                             "FROM invoiceAggregate INNER JOIN salesPartners ON " +
                             "invoiceAggregate.SalesPartnerID = salesPartners.serverDB_ID " +
                             "INNER JOIN items ON invoiceAggregate.ItemID = items.Артикул " +
@@ -700,6 +711,8 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
                         invoiceSumListTmp = new ArrayList<>();
                         salesPartnerNameListTmp = new ArrayList<>();
                         itemsNameListTmp = new ArrayList<>();
+                        spTINListTmp = new ArrayList<>();
+                        itemIDBuhgalterListTmp = new ArrayList<>();
                         do {
                             invoiceNumberListTmp.add(c.getInt(invoiceNumberTmp));
                             agentIDListTmp.add(c.getInt(agentIDTmp));
@@ -711,8 +724,9 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
                             dateTimeDocListTmp.add(c.getString(dateTimeDocTmp));
                             invoiceSumListTmp.add(c.getDouble(invoiceSumTmp));
                             salesPartnerNameListTmp.add(c.getString(9));
-                            itemsNameListTmp.add(c.getString(10));
-
+                            spTINListTmp.add(c.getString(10));
+                            itemsNameListTmp.add(c.getString(11));
+                            itemIDBuhgalterListTmp.add(c.getInt(12));
                         } while (c.moveToNext());
                     }
                     c.close();
@@ -728,11 +742,14 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
                     invoiceSumListTmp = new ArrayList<>();
                     salesPartnerNameListTmp = new ArrayList<>();
                     itemsNameListTmp = new ArrayList<>();
+                    spTINListTmp = new ArrayList<>();
+                    itemIDBuhgalterListTmp = new ArrayList<>();
                     for (int i = 0; i < salesPartnerIDList.size(); i++) {
                         if (mCheckedItems[i]) {
                             Integer tmpID = salesPartnerIDListTmp.get(i);
                             String sql = "SELECT InvoiceNumber, AgentID, SalesPartnerID, ItemID, Quantity, Price, " +
-                                    "Total, DateTimeDoc, InvoiceSum, salesPartners.Наименование, items.Наименование " +
+                                    "Total, DateTimeDoc, InvoiceSum, salesPartners.Наименование," +
+                                    " salesPartners.ИНН, items.Наименование, items.Артикул_1С " +
                                     "FROM invoiceAggregate INNER JOIN salesPartners ON " +
                                     "invoiceAggregate.SalesPartnerID = salesPartners.serverDB_ID " +
                                     "INNER JOIN items ON invoiceAggregate.ItemID = items.Артикул " +
@@ -761,7 +778,9 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
                                     dateTimeDocListTmp.add(c.getString(dateTimeDocTmp));
                                     invoiceSumListTmp.add(c.getDouble(invoiceSumTmp));
                                     salesPartnerNameListTmp.add(c.getString(9));
-                                    itemsNameListTmp.add(c.getString(10));
+                                    spTINListTmp.add(c.getString(10));
+                                    itemsNameListTmp.add(c.getString(11));
+                                    itemIDBuhgalterListTmp.add(c.getInt(12));
                                 } while (c.moveToNext());
                             }
                             c.close();
@@ -941,10 +960,11 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
                 try{
                     JSONArray jsonArray = new JSONArray(response);
                     String[] dayOfTheWeek = new String[jsonArray.length()];
-                    String[] salesPartnersName= new String[jsonArray.length()];
-                    Integer[] area= new Integer[jsonArray.length()];
-                    String[] accountingType= new String[jsonArray.length()];
-                    String[] author= new String[jsonArray.length()];
+                    String[] salesPartnersName = new String[jsonArray.length()];
+                    String[] tin = new String[jsonArray.length()];
+                    Integer[] area = new Integer[jsonArray.length()];
+                    String[] accountingType = new String[jsonArray.length()];
+                    String[] author = new String[jsonArray.length()];
                     Integer[] serverDB_ID = new Integer[jsonArray.length()];
 
                     if (jsonArray.length() > 0){
@@ -952,6 +972,7 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
                             JSONObject obj = jsonArray.getJSONObject(i);
                             dayOfTheWeek[i] = obj.getString("DayOfTheWeek");
                             salesPartnersName[i] = obj.getString("Наименование");
+                            tin[i] = obj.getString("ИНН");
                             area[i] = obj.getInt("Район");
                             accountingType[i] = obj.getString("Учет");
                             author[i] = obj.getString("Автор");
@@ -961,6 +982,7 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
                             Log.d(LOG_TAG, "--- Insert in salesPartners: ---");
                             cv.put("serverDB_ID", serverDB_ID[i]);
                             cv.put("Наименование", salesPartnersName[i]);
+                            cv.put("ИНН", tin[i]);
                             cv.put("Район", area[i]);
                             cv.put("Учет", accountingType[i]);
                             cv.put("DayOfTheWeek", dayOfTheWeek[i]);
@@ -1007,18 +1029,21 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
                     Integer[] itemNumber = new Integer[jsonArray.length()];
                     String[] itemName = new String[jsonArray.length()];
                     Integer[] itemPrice = new Integer[jsonArray.length()];
+                    Integer[] itemNumberBuhgalter = new Integer[jsonArray.length()];
                     String[] itemDescription = new String[jsonArray.length()];
 
                     if (jsonArray.length() > 0){
                         for (int i = 0; i < jsonArray.length(); i++) {
                             JSONObject obj = jsonArray.getJSONObject(i);
                             itemNumber[i] = obj.getInt("Артикул");
+                            itemNumberBuhgalter[i] = obj.getInt("Артикул_1С");
                             itemName[i] = obj.getString("Наименование");
                             itemDescription[i] = obj.getString("Описание");
                             itemPrice[i] = obj.getInt("Цена");
                             ContentValues cv = new ContentValues();
                             Log.d(LOG_TAG, "--- Insert in items: ---");
                             cv.put("Артикул", itemNumber[i]);
+                            cv.put("Артикул_1С", itemNumberBuhgalter[i]);
                             cv.put("Наименование", itemName[i]);
                             cv.put("Описание", itemName[i]);
                             cv.put("Цена", itemPrice[i]);
@@ -1433,9 +1458,6 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
                     CellFormat cfm = cellWritable.getCellFormat();
                     Cell readCell = sheet.getCell(j, i);
                     Label label = new Label(j, i, readCell.getContents());
-//                    CellView cell = sheet.getColumnView(j);
-//                    cell.setAutosize(true);
-//                    sheet.setColumnView(j, cell);
 
                     if (j == 0 && i == 1) {
                         label = new Label(j, i, String.valueOf(k)); //Номер строчки
@@ -1443,6 +1465,10 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
                     }
                     if (j == 0 && i > 1) {
                         label = new Label(j, i, String.valueOf(k)); //Номер строчки
+                        k += 1;
+                    }
+                    if (j == 1 && i > 0) {
+                        label = new Label(j, i, String.valueOf(0)); //Номер подстроки
                         k += 1;
                     }
                     if (j == 2 && i > 0) {
@@ -1458,7 +1484,7 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
                         k += 1;
                     }
                     if (j == 5 && i > 0) {
-                        label = new Label(j, i, String.valueOf(k)); //ИНН
+                        label = new Label(j, i, spTINListTmp.get(i - 1)); //ИНН
                         k += 1;
                     }
                     if (j == 6 && i > 0) {
@@ -1466,27 +1492,34 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
                         k += 1;
                     }
                     if (j == 7 && i > 0) {
-                        label = new Label(j, i, String.valueOf(priceListTmp.get(i - 1))); //Цена
+                        label = new Label(j, i, String.valueOf(itemIDBuhgalterListTmp.get(i - 1))); //Артикул_1С
                         k += 1;
                     }
                     if (j == 8 && i > 0) {
-                        label = new Label(j, i, String.valueOf(quantityListTmp.get(i - 1))); //Кол-во
+                        label = new Label(j, i, String.valueOf(priceListTmp.get(i - 1)).replace(".", ",")); //Цена
                         k += 1;
                     }
                     if (j == 9 && i > 0) {
-                        label = new Label(j, i, String.valueOf(totalListTmp.get(i - 1))); //Сумма
+                        label = new Label(j, i, String.valueOf(quantityListTmp.get(i - 1)).replace(".", ",")); //Кол-во
                         k += 1;
                     }
                     if (j == 10 && i > 0) {
-                        label = new Label(j, i, String.valueOf(invoiceSumListTmp.get(i - 1))); //Всего
+                        label = new Label(j, i, String.valueOf(totalListTmp.get(i - 1)).replace(".", ",")); //Сумма
                         k += 1;
                     }
                     if (j == 11 && i > 0) {
-                        label = new Label(j, i, String.valueOf(dateTimeDocListTmp.get(i - 1))); //Дата продажи
+                        label = new Label(j, i, String.valueOf(invoiceSumListTmp.get(i - 1)).replace(".", ",")); //Всего
+                        k += 1;
+                    }
+                    if (j == 12 && i > 0) {
+                        label = new Label(j, i, String.valueOf(dateTimeDocListTmp.get(i - 1)).replaceAll("-", ",")); //Дата продажи
                         k += 1;
                     }
                     sheet.addCell(label);
-//                    cellWritable.setCellFormat(cfm);
+                    CellView cell = sheet.getColumnView(j);
+                    cell.setAutosize(true);
+                    sheet.setColumnView(j, cell);
+                    cellWritable.setCellFormat(cfm);
                 }
             }
             copy.write();
@@ -1511,10 +1544,11 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
 //        MediaScannerConnection.scanFile(this, new String[]{file.getAbsolutePath()}, null, null);
     }
 
-    private void sendViaEmail(String folder_name, String file_name, String emailAddress) {
+    private void sendViaEmail(String file_name, String emailAddress) {
         try {
             File sd= Environment.getExternalStorageDirectory();
-            String fileLocation = sd.getAbsolutePath() + File.separator + folder_name + File.separator + file_name;
+            String fileLocation = sd.getAbsolutePath() + File.separator + "Download" +
+                    File.separator + "Excel" + File.separator + "Accountant_отчет" + File.separator + file_name;
             Intent intent = new Intent(Intent.ACTION_SENDTO);
             intent.setType("text/plain");
             String message="Файл с накладными за период " + file_name + ".";
@@ -1546,6 +1580,7 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
                         + "id integer primary key autoincrement,"
                         + "serverDB_ID integer UNIQUE ON CONFLICT REPLACE,"
                         + "Наименование text,"
+                        + "ИНН text,"
                         + "Район integer,"
                         + "Учет text,"
                         + "DayOfTheWeek text,"
@@ -1556,6 +1591,7 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
                 db.execSQL("create table items ("
                         + "id integer primary key autoincrement,"
                         + "Артикул integer UNIQUE ON CONFLICT REPLACE,"
+                        + "Артикул_1С integer,"
                         + "Наименование text,"
                         + "Описание text,"
                         + "Цена integer" + ");");
