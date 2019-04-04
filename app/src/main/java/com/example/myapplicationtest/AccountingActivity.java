@@ -1438,6 +1438,8 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
         csvFileCopy = "накладные_Че_" + output + "_" + invoiceNumberListTmp.size() + ".xls";
         csvFileCopyTwo = "накладные_Ли_" + output + "_" + invoiceNumberListTmp.size() + ".xls";
 
+        Toast.makeText(getApplicationContext(), dateTimeDocListTmp.get(0), Toast.LENGTH_SHORT).show();
+
         File directory = new File(sd.getAbsolutePath() + File.separator + "Download" +
                 File.separator + "Excel" + File.separator + "Accountant_отчет");
         if (!directory.isDirectory()) {
@@ -1480,36 +1482,39 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
             ArrayList<String> dateTimeDocListTmpTypeOneReduced = new ArrayList<>();
             ArrayList<String> dateTimeDocListTmpTypeTwoReduced = new ArrayList<>();
             for (int i = 0; i < invoiceNumberListTmp.size(); i++) {
-                if (salesPartnerIDListTmp.get(i - 1).equals(66) || salesPartnerIDListTmp.get(i - 1).equals(1057)
-                        || salesPartnerIDListTmp.get(i - 1).equals(1059) || salesPartnerIDListTmp.get(i - 1).equals(1080)
-                        || (salesPartnerIDListTmp.get(i - 1) > 99 && salesPartnerIDListTmp.get(i - 1) < 106)) {
-                    invoiceNumberListTmpTypeTwoReduced.add(invoiceNumberListTmp.get(i));
-                    agentIDListTmpTypeTwoReduced.add(agentIDListTmp.get(i));
-                    salesPartnerNameListTmpTypeTwoReduced.add(salesPartnerNameListTmp.get(i));
-                    spTINListTmpTypeTwoReduced.add(spTINListTmp.get(i));
-                    itemNameListTmpTypeTwoReduced.add(itemsNameListTmp.get(i));
-                    itemIDBuhgalterListTmpTypeTwoReduced.add(itemIDBuhgalterListTmp.get(i));
-                    priceListTmpTypeTwoReduced.add(priceListTmp.get(i));
-                    quantityListTmpTypeTwoReduced.add(quantityListTmp.get(i));
-                    totalListTmpTypeTwoReduced.add(totalListTmp.get(i));
-                    invoiceSumListTmpTypeTwoReduced.add(invoiceSumListTmp.get(i));
-                    dateTimeDocListTmpTypeTwoReduced.add(dateTimeDocListTmp.get(i));
-                } else {
-                    invoiceNumberListTmpTypeOneReduced.add(invoiceNumberListTmp.get(i));
-                    agentIDListTmpTypeOneReduced.add(agentIDListTmp.get(i));
-                    salesPartnerNameListTmpTypeOneReduced.add(salesPartnerNameListTmp.get(i));
-                    spTINListTmpTypeOneReduced.add(spTINListTmp.get(i));
-                    itemNameListTmpTypeOneReduced.add(itemsNameListTmp.get(i));
-                    itemIDBuhgalterListTmpTypeOneReduced.add(itemIDBuhgalterListTmp.get(i));
-                    priceListTmpTypeOneReduced.add(priceListTmp.get(i));
-                    quantityListTmpTypeOneReduced.add(quantityListTmp.get(i));
-                    totalListTmpTypeOneReduced.add(totalListTmp.get(i));
-                    invoiceSumListTmpTypeOneReduced.add(invoiceSumListTmp.get(i));
-                    dateTimeDocListTmpTypeOneReduced.add(dateTimeDocListTmp.get(i));
+                if (invoiceSumListTmp.get(i) > 0) {
+                    if (salesPartnerIDListTmp.get(i).equals(66) || salesPartnerIDListTmp.get(i).equals(1057)
+                            || salesPartnerIDListTmp.get(i).equals(1059) || salesPartnerIDListTmp.get(i).equals(1080)
+                            || (salesPartnerIDListTmp.get(i) > 99 && salesPartnerIDListTmp.get(i) < 106)) {
+                        invoiceNumberListTmpTypeTwoReduced.add(invoiceNumberListTmp.get(i));
+                        agentIDListTmpTypeTwoReduced.add(agentIDListTmp.get(i));
+                        salesPartnerNameListTmpTypeTwoReduced.add(salesPartnerNameListTmp.get(i));
+                        spTINListTmpTypeTwoReduced.add(spTINListTmp.get(i));
+                        itemNameListTmpTypeTwoReduced.add(itemsNameListTmp.get(i));
+                        itemIDBuhgalterListTmpTypeTwoReduced.add(itemIDBuhgalterListTmp.get(i));
+                        priceListTmpTypeTwoReduced.add(priceListTmp.get(i));
+                        quantityListTmpTypeTwoReduced.add(quantityListTmp.get(i));
+                        totalListTmpTypeTwoReduced.add(totalListTmp.get(i));
+                        invoiceSumListTmpTypeTwoReduced.add(invoiceSumListTmp.get(i));
+                        dateTimeDocListTmpTypeTwoReduced.add(dateTimeDocListTmp.get(i));
+                    } else {
+                        invoiceNumberListTmpTypeOneReduced.add(invoiceNumberListTmp.get(i));
+                        agentIDListTmpTypeOneReduced.add(agentIDListTmp.get(i));
+                        salesPartnerNameListTmpTypeOneReduced.add(salesPartnerNameListTmp.get(i));
+                        spTINListTmpTypeOneReduced.add(spTINListTmp.get(i));
+                        itemNameListTmpTypeOneReduced.add(itemsNameListTmp.get(i));
+                        itemIDBuhgalterListTmpTypeOneReduced.add(itemIDBuhgalterListTmp.get(i));
+                        priceListTmpTypeOneReduced.add(priceListTmp.get(i));
+                        quantityListTmpTypeOneReduced.add(quantityListTmp.get(i));
+                        totalListTmpTypeOneReduced.add(totalListTmp.get(i));
+                        invoiceSumListTmpTypeOneReduced.add(invoiceSumListTmp.get(i));
+                        dateTimeDocListTmpTypeOneReduced.add(dateTimeDocListTmp.get(i));
+                    }
                 }
             }
+//            Toast.makeText(getApplicationContext(), String.valueOf(dateTimeDocListTmpTypeOneReduced.size()), Toast.LENGTH_SHORT).show();
             Integer k = 1;
-            for (int j = 0; j < 12; j++) {
+            for (int j = 0; j < 13; j++) {
                 for (int i = 0; i < invoiceNumberListTmpTypeOneReduced.size() + 1; i++) {
                     WritableCell cellWritable  = sheet.getWritableCell(j, i);
                     CellFormat cfm = cellWritable.getCellFormat();
@@ -1569,13 +1574,82 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
                         k += 1;
                     }
                     if (j == 12 && i > 0) {
-                        label = new Label(j, i, String.valueOf(dateTimeDocListTmpTypeOneReduced.get(i - 1)).replaceAll("-", ",")); //Дата продажи
+                        label = new Label(j, i, (dateTimeDocListTmpTypeOneReduced.get(i - 1)).replaceAll("-", ".")); //Дата продажи
                         k += 1;
                     }
                     sheet.addCell(label);
                     CellView cell = sheet.getColumnView(j);
                     cell.setAutosize(true);
                     sheet.setColumnView(j, cell);
+                    cellWritable.setCellFormat(cfm);
+                }
+
+                for (int i = 0; i < invoiceNumberListTmpTypeTwoReduced.size() + 1; i++) {
+                    WritableCell cellWritable  = sheetTwo.getWritableCell(j, i);
+                    CellFormat cfm = cellWritable.getCellFormat();
+                    Cell readCell = sheetTwo.getCell(j, i);
+                    Label label = new Label(j, i, readCell.getContents());
+
+                    if (j == 0 && i == 1) {
+                        label = new Label(j, i, String.valueOf(k)); //Номер строчки
+                        k += 1;
+                    }
+                    if (j == 0 && i > 1) {
+                        label = new Label(j, i, String.valueOf(k)); //Номер строчки
+                        k += 1;
+                    }
+                    if (j == 1 && i > 0) {
+                        label = new Label(j, i, String.valueOf(0)); //Номер подстроки
+                        k += 1;
+                    }
+                    if (j == 2 && i > 0) {
+                        label = new Label(j, i, String.valueOf(invoiceNumberListTmpTypeTwoReduced.get(i - 1))); //Номер накладной
+                        k += 1;
+                    }
+                    if (j == 3 && i > 0) {
+                        label = new Label(j, i, String.valueOf(agentIDListTmpTypeTwoReduced.get(i - 1))); //Номер района
+                        k += 1;
+                    }
+                    if (j == 4 && i > 0) {
+                        label = new Label(j, i, String.valueOf(salesPartnerNameListTmpTypeTwoReduced.get(i - 1))); //Название магазина
+                        k += 1;
+                    }
+                    if (j == 5 && i > 0) {
+                        label = new Label(j, i, spTINListTmpTypeTwoReduced.get(i - 1)); //ИНН
+                        k += 1;
+                    }
+                    if (j == 6 && i > 0) {
+                        label = new Label(j, i, String.valueOf(itemNameListTmpTypeTwoReduced.get(i - 1))); //Номенклатура
+                        k += 1;
+                    }
+                    if (j == 7 && i > 0) {
+                        label = new Label(j, i, String.valueOf(itemIDBuhgalterListTmpTypeTwoReduced.get(i - 1))); //Артикул_1С
+                        k += 1;
+                    }
+                    if (j == 8 && i > 0) {
+                        label = new Label(j, i, String.valueOf(priceListTmpTypeTwoReduced.get(i - 1)).replace(".", ",")); //Цена
+                        k += 1;
+                    }
+                    if (j == 9 && i > 0) {
+                        label = new Label(j, i, String.valueOf(quantityListTmpTypeTwoReduced.get(i - 1)).replace(".", ",")); //Кол-во
+                        k += 1;
+                    }
+                    if (j == 10 && i > 0) {
+                        label = new Label(j, i, String.valueOf(totalListTmpTypeTwoReduced.get(i - 1)).replace(".", ",")); //Сумма
+                        k += 1;
+                    }
+                    if (j == 11 && i > 0) {
+                        label = new Label(j, i, String.valueOf(invoiceSumListTmpTypeTwoReduced.get(i - 1)).replace(".", ",")); //Всего
+                        k += 1;
+                    }
+                    if (j == 12 && i > 0) {
+                        label = new Label(j, i, (dateTimeDocListTmpTypeTwoReduced.get(i - 1)).replaceAll("-", ".")); //Дата продажи
+                        k += 1;
+                    }
+                    sheetTwo.addCell(label);
+                    CellView cell = sheetTwo.getColumnView(j);
+                    cell.setAutosize(true);
+                    sheetTwo.setColumnView(j, cell);
                     cellWritable.setCellFormat(cfm);
                 }
             }
