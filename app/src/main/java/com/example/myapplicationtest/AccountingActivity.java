@@ -1479,7 +1479,7 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
             ArrayList<Double> invoiceSumListTmpTypeTwoReduced = new ArrayList<>();
             ArrayList<String> dateTimeDocListTmpTypeOneReduced = new ArrayList<>();
             ArrayList<String> dateTimeDocListTmpTypeTwoReduced = new ArrayList<>();
-            for (int i = 0; i < invoiceNumberListTmp.size() + 1; i++) {
+            for (int i = 0; i < invoiceNumberListTmp.size(); i++) {
                 if (salesPartnerIDListTmp.get(i - 1).equals(66) || salesPartnerIDListTmp.get(i - 1).equals(1057)
                         || salesPartnerIDListTmp.get(i - 1).equals(1059) || salesPartnerIDListTmp.get(i - 1).equals(1080)
                         || (salesPartnerIDListTmp.get(i - 1) > 99 && salesPartnerIDListTmp.get(i - 1) < 106)) {
