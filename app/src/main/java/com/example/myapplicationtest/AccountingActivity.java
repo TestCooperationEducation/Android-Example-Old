@@ -44,6 +44,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.DoubleToLongFunction;
 
 import jxl.Cell;
 import jxl.CellType;
@@ -63,7 +64,7 @@ import jxl.write.biff.RowsExceededException;
 
 public class AccountingActivity extends AppCompatActivity implements View.OnClickListener {
 
-    String csvFile, folder_name, csvFileCopy;
+    String csvFile, folder_name, csvFileCopy, csvFileCopyTwo;
     Button btnOptions, btnExecute;
     TextView textViewAgentName, textViewAccountingType;
     EditText editTextDateStart, editTextDateEnd;
@@ -1434,7 +1435,8 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
 
     public void read() throws IOException  {
         File sd = Environment.getExternalStorageDirectory();
-        csvFileCopy = "accountant_" + output + ".xls";
+        csvFileCopy = "накладные_Че_" + output + "_" + invoiceNumberListTmp.size() + ".xls";
+        csvFileCopyTwo = "накладные_Ли_" + output + "_" + invoiceNumberListTmp.size() + ".xls";
 
         File directory = new File(sd.getAbsolutePath() + File.separator + "Download" +
                 File.separator + "Excel" + File.separator + "Accountant_отчет");
@@ -1443,18 +1445,73 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
         }
 
         File file = new File(directory, csvFileCopy);
+        File fileTwo = new File(directory, csvFileCopyTwo);
         File inputWorkbook = new File(inputFile);
         Workbook w;
 
         try {
             w = Workbook.getWorkbook(inputWorkbook);
+
             WritableWorkbook copy = Workbook.createWorkbook(file, w);
             WritableSheet sheet = copy.getSheet(0);
+            WritableWorkbook copyTwo = Workbook.createWorkbook(fileTwo, w);
+            WritableSheet sheetTwo = copyTwo.getSheet(0);
 
+            ArrayList<Integer> invoiceNumberListTmpTypeOneReduced = new ArrayList<>();
+            ArrayList<Integer> invoiceNumberListTmpTypeTwoReduced = new ArrayList<>();
+            ArrayList<Integer> agentIDListTmpTypeOneReduced = new ArrayList<>();
+            ArrayList<Integer> agentIDListTmpTypeTwoReduced = new ArrayList<>();
+            ArrayList<String> salesPartnerNameListTmpTypeOneReduced = new ArrayList<>();
+            ArrayList<String> salesPartnerNameListTmpTypeTwoReduced = new ArrayList<>();
+            ArrayList<String> spTINListTmpTypeOneReduced = new ArrayList<>();
+            ArrayList<String> spTINListTmpTypeTwoReduced = new ArrayList<>();
+            ArrayList<String> itemNameListTmpTypeOneReduced = new ArrayList<>();
+            ArrayList<String> itemNameListTmpTypeTwoReduced = new ArrayList<>();
+            ArrayList<Integer> itemIDBuhgalterListTmpTypeOneReduced = new ArrayList<>();
+            ArrayList<Integer> itemIDBuhgalterListTmpTypeTwoReduced = new ArrayList<>();
+            ArrayList<Double> priceListTmpTypeOneReduced = new ArrayList<>();
+            ArrayList<Double> priceListTmpTypeTwoReduced = new ArrayList<>();
+            ArrayList<Double> quantityListTmpTypeOneReduced = new ArrayList<>();
+            ArrayList<Double> quantityListTmpTypeTwoReduced = new ArrayList<>();
+            ArrayList<Double> totalListTmpTypeOneReduced = new ArrayList<>();
+            ArrayList<Double> totalListTmpTypeTwoReduced = new ArrayList<>();
+            ArrayList<Double> invoiceSumListTmpTypeOneReduced = new ArrayList<>();
+            ArrayList<Double> invoiceSumListTmpTypeTwoReduced = new ArrayList<>();
+            ArrayList<String> dateTimeDocListTmpTypeOneReduced = new ArrayList<>();
+            ArrayList<String> dateTimeDocListTmpTypeTwoReduced = new ArrayList<>();
+            for (int i = 0; i < invoiceNumberListTmp.size() + 1; i++) {
+                if (salesPartnerIDListTmp.get(i - 1).equals(66) || salesPartnerIDListTmp.get(i - 1).equals(1057)
+                        || salesPartnerIDListTmp.get(i - 1).equals(1059) || salesPartnerIDListTmp.get(i - 1).equals(1080)
+                        || (salesPartnerIDListTmp.get(i - 1) > 99 && salesPartnerIDListTmp.get(i - 1) < 106)) {
+                    invoiceNumberListTmpTypeTwoReduced.add(invoiceNumberListTmp.get(i));
+                    agentIDListTmpTypeTwoReduced.add(agentIDListTmp.get(i));
+                    salesPartnerNameListTmpTypeTwoReduced.add(salesPartnerNameListTmp.get(i));
+                    spTINListTmpTypeTwoReduced.add(spTINListTmp.get(i));
+                    itemNameListTmpTypeTwoReduced.add(itemsNameListTmp.get(i));
+                    itemIDBuhgalterListTmpTypeTwoReduced.add(itemIDBuhgalterListTmp.get(i));
+                    priceListTmpTypeTwoReduced.add(priceListTmp.get(i));
+                    quantityListTmpTypeTwoReduced.add(quantityListTmp.get(i));
+                    totalListTmpTypeTwoReduced.add(totalListTmp.get(i));
+                    invoiceSumListTmpTypeTwoReduced.add(invoiceSumListTmp.get(i));
+                    dateTimeDocListTmpTypeTwoReduced.add(dateTimeDocListTmp.get(i));
+                } else {
+                    invoiceNumberListTmpTypeOneReduced.add(invoiceNumberListTmp.get(i));
+                    agentIDListTmpTypeOneReduced.add(agentIDListTmp.get(i));
+                    salesPartnerNameListTmpTypeOneReduced.add(salesPartnerNameListTmp.get(i));
+                    spTINListTmpTypeOneReduced.add(spTINListTmp.get(i));
+                    itemNameListTmpTypeOneReduced.add(itemsNameListTmp.get(i));
+                    itemIDBuhgalterListTmpTypeOneReduced.add(itemIDBuhgalterListTmp.get(i));
+                    priceListTmpTypeOneReduced.add(priceListTmp.get(i));
+                    quantityListTmpTypeOneReduced.add(quantityListTmp.get(i));
+                    totalListTmpTypeOneReduced.add(totalListTmp.get(i));
+                    invoiceSumListTmpTypeOneReduced.add(invoiceSumListTmp.get(i));
+                    dateTimeDocListTmpTypeOneReduced.add(dateTimeDocListTmp.get(i));
+                }
+            }
             Integer k = 1;
             for (int j = 0; j < 12; j++) {
-                for (int i = 0; i < invoiceNumberListTmp.size() + 1; i++) {
-                    WritableCell cellWritable = sheet.getWritableCell(j, i);
+                for (int i = 0; i < invoiceNumberListTmpTypeOneReduced.size() + 1; i++) {
+                    WritableCell cellWritable  = sheet.getWritableCell(j, i);
                     CellFormat cfm = cellWritable.getCellFormat();
                     Cell readCell = sheet.getCell(j, i);
                     Label label = new Label(j, i, readCell.getContents());
@@ -1472,47 +1529,47 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
                         k += 1;
                     }
                     if (j == 2 && i > 0) {
-                        label = new Label(j, i, String.valueOf(invoiceNumberListTmp.get(i - 1))); //Номер накладной
+                        label = new Label(j, i, String.valueOf(invoiceNumberListTmpTypeOneReduced.get(i - 1))); //Номер накладной
                         k += 1;
                     }
                     if (j == 3 && i > 0) {
-                        label = new Label(j, i, String.valueOf(agentIDListTmp.get(i - 1))); //Номер района
+                        label = new Label(j, i, String.valueOf(agentIDListTmpTypeOneReduced.get(i - 1))); //Номер района
                         k += 1;
                     }
                     if (j == 4 && i > 0) {
-                        label = new Label(j, i, String.valueOf(salesPartnerNameListTmp.get(i - 1))); //Название магазина
+                        label = new Label(j, i, String.valueOf(salesPartnerNameListTmpTypeOneReduced.get(i - 1))); //Название магазина
                         k += 1;
                     }
                     if (j == 5 && i > 0) {
-                        label = new Label(j, i, spTINListTmp.get(i - 1)); //ИНН
+                        label = new Label(j, i, spTINListTmpTypeOneReduced.get(i - 1)); //ИНН
                         k += 1;
                     }
                     if (j == 6 && i > 0) {
-                        label = new Label(j, i, String.valueOf(itemsNameListTmp.get(i - 1))); //Номенклатура
+                        label = new Label(j, i, String.valueOf(itemNameListTmpTypeOneReduced.get(i - 1))); //Номенклатура
                         k += 1;
                     }
                     if (j == 7 && i > 0) {
-                        label = new Label(j, i, String.valueOf(itemIDBuhgalterListTmp.get(i - 1))); //Артикул_1С
+                        label = new Label(j, i, String.valueOf(itemIDBuhgalterListTmpTypeOneReduced.get(i - 1))); //Артикул_1С
                         k += 1;
                     }
                     if (j == 8 && i > 0) {
-                        label = new Label(j, i, String.valueOf(priceListTmp.get(i - 1)).replace(".", ",")); //Цена
+                        label = new Label(j, i, String.valueOf(priceListTmpTypeOneReduced.get(i - 1)).replace(".", ",")); //Цена
                         k += 1;
                     }
                     if (j == 9 && i > 0) {
-                        label = new Label(j, i, String.valueOf(quantityListTmp.get(i - 1)).replace(".", ",")); //Кол-во
+                        label = new Label(j, i, String.valueOf(quantityListTmpTypeOneReduced.get(i - 1)).replace(".", ",")); //Кол-во
                         k += 1;
                     }
                     if (j == 10 && i > 0) {
-                        label = new Label(j, i, String.valueOf(totalListTmp.get(i - 1)).replace(".", ",")); //Сумма
+                        label = new Label(j, i, String.valueOf(totalListTmpTypeOneReduced.get(i - 1)).replace(".", ",")); //Сумма
                         k += 1;
                     }
                     if (j == 11 && i > 0) {
-                        label = new Label(j, i, String.valueOf(invoiceSumListTmp.get(i - 1)).replace(".", ",")); //Всего
+                        label = new Label(j, i, String.valueOf(invoiceSumListTmpTypeOneReduced.get(i - 1)).replace(".", ",")); //Всего
                         k += 1;
                     }
                     if (j == 12 && i > 0) {
-                        label = new Label(j, i, String.valueOf(dateTimeDocListTmp.get(i - 1)).replaceAll("-", ",")); //Дата продажи
+                        label = new Label(j, i, String.valueOf(dateTimeDocListTmpTypeOneReduced.get(i - 1)).replaceAll("-", ",")); //Дата продажи
                         k += 1;
                     }
                     sheet.addCell(label);
@@ -1524,6 +1581,8 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
             }
             copy.write();
             copy.close();
+            copyTwo.write();
+            copyTwo.close();
             w.close();
         } catch (BiffException e) {
             e.printStackTrace();
