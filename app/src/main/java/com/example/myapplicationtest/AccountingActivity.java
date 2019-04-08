@@ -11,6 +11,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Environment;
+import android.support.v4.content.FileProvider;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -42,6 +43,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.DoubleToLongFunction;
@@ -89,17 +91,42 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
     private String inputFile;
     Integer g = 1;
     boolean mChecked = false;
+    ArrayList<Integer> invoiceNumberListTmpTypeOneReduced;
+    ArrayList<Integer> invoiceNumberListTmpTypeTwoReduced;
+    ArrayList<Integer> agentIDListTmpTypeOneReduced;
+    ArrayList<Integer> agentIDListTmpTypeTwoReduced;
+    ArrayList<String> salesPartnerNameListTmpTypeOneReduced;
+    ArrayList<String> salesPartnerNameListTmpTypeTwoReduced;
+    ArrayList<String> spTINListTmpTypeOneReduced;
+    ArrayList<String> spTINListTmpTypeTwoReduced;
+    ArrayList<String> itemNameListTmpTypeOneReduced;
+    ArrayList<String> itemNameListTmpTypeTwoReduced;
+    ArrayList<Integer> itemIDBuhgalterListTmpTypeOneReduced;
+    ArrayList<Integer> itemIDBuhgalterListTmpTypeTwoReduced;
+    ArrayList<Double> priceListTmpTypeOneReduced;
+    ArrayList<Double> priceListTmpTypeTwoReduced;
+    ArrayList<Double> quantityListTmpTypeOneReduced;
+    ArrayList<Double> quantityListTmpTypeTwoReduced;
+    ArrayList<Double> totalListTmpTypeOneReduced;
+    ArrayList<Double> totalListTmpTypeTwoReduced;
+    ArrayList<Double> invoiceSumListTmpTypeOneReduced;
+    ArrayList<Double> invoiceSumListTmpTypeTwoReduced;
+    ArrayList<String> dateTimeDocListTmpTypeOneReduced;
+    ArrayList<String> dateTimeDocListTmpTypeTwoReduced;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_accounting);
 
-        Instant instant = Instant.now();
-        ZoneId zoneId = ZoneId.of( "Asia/Sakhalin" );
-        ZonedDateTime zdt = ZonedDateTime.ofInstant( instant , zoneId );
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern( "dd.MM.yyyy" );
-        output = zdt.format( formatter );
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            Instant instant = Instant.now();
+            ZoneId zoneId = ZoneId.of("Asia/Sakhalin");
+            ZonedDateTime zdt = ZonedDateTime.ofInstant(instant, zoneId);
+            DateTimeFormatter formatter = null;
+            formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+            output = zdt.format(formatter);
+        }
 
         dbHelper = new DBHelper(this);
         db = dbHelper.getWritableDatabase();
@@ -565,6 +592,28 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
     }
 
     private void executeChoice(){
+        invoiceNumberListTmpTypeOneReduced = new ArrayList<>();
+        invoiceNumberListTmpTypeTwoReduced = new ArrayList<>();
+        agentIDListTmpTypeOneReduced = new ArrayList<>();
+        agentIDListTmpTypeTwoReduced = new ArrayList<>();
+        salesPartnerNameListTmpTypeOneReduced = new ArrayList<>();
+        salesPartnerNameListTmpTypeTwoReduced = new ArrayList<>();
+        spTINListTmpTypeOneReduced = new ArrayList<>();
+        spTINListTmpTypeTwoReduced = new ArrayList<>();
+        itemNameListTmpTypeOneReduced = new ArrayList<>();
+        itemNameListTmpTypeTwoReduced = new ArrayList<>();
+        itemIDBuhgalterListTmpTypeOneReduced = new ArrayList<>();
+        itemIDBuhgalterListTmpTypeTwoReduced = new ArrayList<>();
+        priceListTmpTypeOneReduced = new ArrayList<>();
+        priceListTmpTypeTwoReduced = new ArrayList<>();
+        quantityListTmpTypeOneReduced = new ArrayList<>();
+        quantityListTmpTypeTwoReduced = new ArrayList<>();
+        totalListTmpTypeOneReduced = new ArrayList<>();
+        totalListTmpTypeTwoReduced = new ArrayList<>();
+        invoiceSumListTmpTypeOneReduced = new ArrayList<>();
+        invoiceSumListTmpTypeTwoReduced = new ArrayList<>();
+        dateTimeDocListTmpTypeOneReduced = new ArrayList<>();
+        dateTimeDocListTmpTypeTwoReduced = new ArrayList<>();
         if (tableExists(db, "invoiceAggregate")) {
             Cursor c;
             if (chosenArea.equals("любой") &&
@@ -786,6 +835,38 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
                             }
                             c.close();
                         }
+                    }
+                }
+            }
+
+            for (int i = 0; i < invoiceNumberListTmp.size(); i++) {
+                if (invoiceSumListTmp.get(i) > 0) {
+                    if (salesPartnerIDListTmp.get(i).equals(66) || salesPartnerIDListTmp.get(i).equals(1057)
+                            || salesPartnerIDListTmp.get(i).equals(1059) || salesPartnerIDListTmp.get(i).equals(1080)
+                            || (salesPartnerIDListTmp.get(i) > 99 && salesPartnerIDListTmp.get(i) < 106)) {
+                        invoiceNumberListTmpTypeTwoReduced.add(invoiceNumberListTmp.get(i));
+                        agentIDListTmpTypeTwoReduced.add(agentIDListTmp.get(i));
+                        salesPartnerNameListTmpTypeTwoReduced.add(salesPartnerNameListTmp.get(i));
+                        spTINListTmpTypeTwoReduced.add(spTINListTmp.get(i));
+                        itemNameListTmpTypeTwoReduced.add(itemsNameListTmp.get(i));
+                        itemIDBuhgalterListTmpTypeTwoReduced.add(itemIDBuhgalterListTmp.get(i));
+                        priceListTmpTypeTwoReduced.add(priceListTmp.get(i));
+                        quantityListTmpTypeTwoReduced.add(quantityListTmp.get(i));
+                        totalListTmpTypeTwoReduced.add(totalListTmp.get(i));
+                        invoiceSumListTmpTypeTwoReduced.add(invoiceSumListTmp.get(i));
+                        dateTimeDocListTmpTypeTwoReduced.add(dateTimeDocListTmp.get(i));
+                    } else {
+                        invoiceNumberListTmpTypeOneReduced.add(invoiceNumberListTmp.get(i));
+                        agentIDListTmpTypeOneReduced.add(agentIDListTmp.get(i));
+                        salesPartnerNameListTmpTypeOneReduced.add(salesPartnerNameListTmp.get(i));
+                        spTINListTmpTypeOneReduced.add(spTINListTmp.get(i));
+                        itemNameListTmpTypeOneReduced.add(itemsNameListTmp.get(i));
+                        itemIDBuhgalterListTmpTypeOneReduced.add(itemIDBuhgalterListTmp.get(i));
+                        priceListTmpTypeOneReduced.add(priceListTmp.get(i));
+                        quantityListTmpTypeOneReduced.add(quantityListTmp.get(i));
+                        totalListTmpTypeOneReduced.add(totalListTmp.get(i));
+                        invoiceSumListTmpTypeOneReduced.add(invoiceSumListTmp.get(i));
+                        dateTimeDocListTmpTypeOneReduced.add(dateTimeDocListTmp.get(i));
                     }
                 }
             }
@@ -1435,22 +1516,30 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
 
     public void read() throws IOException  {
         File sd = Environment.getExternalStorageDirectory();
-        csvFileCopy = "накладные_Че_" + output + "_" + invoiceNumberListTmp.size() + ".xls";
-        csvFileCopyTwo = "накладные_Ли_" + output + "_" + invoiceNumberListTmp.size() + ".xls";
-
-        Toast.makeText(getApplicationContext(), dateTimeDocListTmp.get(0), Toast.LENGTH_SHORT).show();
+        csvFileCopy = "накладные_Че_" + output + "_" + (invoiceNumberListTmpTypeOneReduced.size() + 1) + ".xls";
+        csvFileCopyTwo = "накладные_Ли_" + output + "_" + (invoiceNumberListTmpTypeTwoReduced.size() + 1) + ".xls";
 
         File directory = new File(sd.getAbsolutePath() + File.separator + "Download" +
                 File.separator + "Excel" + File.separator + "Accountant_отчет");
         if (!directory.isDirectory()) {
             directory.mkdirs();
         }
+        String fileLocationOne = sd.getAbsolutePath() + File.separator + "Download" +
+                File.separator + "Excel" + File.separator + "Accountant_отчет" + File.separator + csvFileCopy;
+        String fileLocationTwo = sd.getAbsolutePath() + File.separator + "Download" +
+                File.separator + "Excel" + File.separator + "Accountant_отчет" + File.separator + csvFileCopyTwo;
+        List<String> filesForEmail = new ArrayList<>();
+        filesForEmail.add(fileLocationOne);
+        filesForEmail.add(fileLocationTwo);
 
         File file = new File(directory, csvFileCopy);
         File fileTwo = new File(directory, csvFileCopyTwo);
         File inputWorkbook = new File(inputFile);
         Workbook w;
 
+//        Toast.makeText(getApplicationContext(), String.valueOf(Environment.getExternalStorageDirectory()), Toast.LENGTH_SHORT).show();
+
+        Integer k = 1;
         try {
             w = Workbook.getWorkbook(inputWorkbook);
 
@@ -1459,61 +1548,6 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
             WritableWorkbook copyTwo = Workbook.createWorkbook(fileTwo, w);
             WritableSheet sheetTwo = copyTwo.getSheet(0);
 
-            ArrayList<Integer> invoiceNumberListTmpTypeOneReduced = new ArrayList<>();
-            ArrayList<Integer> invoiceNumberListTmpTypeTwoReduced = new ArrayList<>();
-            ArrayList<Integer> agentIDListTmpTypeOneReduced = new ArrayList<>();
-            ArrayList<Integer> agentIDListTmpTypeTwoReduced = new ArrayList<>();
-            ArrayList<String> salesPartnerNameListTmpTypeOneReduced = new ArrayList<>();
-            ArrayList<String> salesPartnerNameListTmpTypeTwoReduced = new ArrayList<>();
-            ArrayList<String> spTINListTmpTypeOneReduced = new ArrayList<>();
-            ArrayList<String> spTINListTmpTypeTwoReduced = new ArrayList<>();
-            ArrayList<String> itemNameListTmpTypeOneReduced = new ArrayList<>();
-            ArrayList<String> itemNameListTmpTypeTwoReduced = new ArrayList<>();
-            ArrayList<Integer> itemIDBuhgalterListTmpTypeOneReduced = new ArrayList<>();
-            ArrayList<Integer> itemIDBuhgalterListTmpTypeTwoReduced = new ArrayList<>();
-            ArrayList<Double> priceListTmpTypeOneReduced = new ArrayList<>();
-            ArrayList<Double> priceListTmpTypeTwoReduced = new ArrayList<>();
-            ArrayList<Double> quantityListTmpTypeOneReduced = new ArrayList<>();
-            ArrayList<Double> quantityListTmpTypeTwoReduced = new ArrayList<>();
-            ArrayList<Double> totalListTmpTypeOneReduced = new ArrayList<>();
-            ArrayList<Double> totalListTmpTypeTwoReduced = new ArrayList<>();
-            ArrayList<Double> invoiceSumListTmpTypeOneReduced = new ArrayList<>();
-            ArrayList<Double> invoiceSumListTmpTypeTwoReduced = new ArrayList<>();
-            ArrayList<String> dateTimeDocListTmpTypeOneReduced = new ArrayList<>();
-            ArrayList<String> dateTimeDocListTmpTypeTwoReduced = new ArrayList<>();
-            for (int i = 0; i < invoiceNumberListTmp.size(); i++) {
-                if (invoiceSumListTmp.get(i) > 0) {
-                    if (salesPartnerIDListTmp.get(i).equals(66) || salesPartnerIDListTmp.get(i).equals(1057)
-                            || salesPartnerIDListTmp.get(i).equals(1059) || salesPartnerIDListTmp.get(i).equals(1080)
-                            || (salesPartnerIDListTmp.get(i) > 99 && salesPartnerIDListTmp.get(i) < 106)) {
-                        invoiceNumberListTmpTypeTwoReduced.add(invoiceNumberListTmp.get(i));
-                        agentIDListTmpTypeTwoReduced.add(agentIDListTmp.get(i));
-                        salesPartnerNameListTmpTypeTwoReduced.add(salesPartnerNameListTmp.get(i));
-                        spTINListTmpTypeTwoReduced.add(spTINListTmp.get(i));
-                        itemNameListTmpTypeTwoReduced.add(itemsNameListTmp.get(i));
-                        itemIDBuhgalterListTmpTypeTwoReduced.add(itemIDBuhgalterListTmp.get(i));
-                        priceListTmpTypeTwoReduced.add(priceListTmp.get(i));
-                        quantityListTmpTypeTwoReduced.add(quantityListTmp.get(i));
-                        totalListTmpTypeTwoReduced.add(totalListTmp.get(i));
-                        invoiceSumListTmpTypeTwoReduced.add(invoiceSumListTmp.get(i));
-                        dateTimeDocListTmpTypeTwoReduced.add(dateTimeDocListTmp.get(i));
-                    } else {
-                        invoiceNumberListTmpTypeOneReduced.add(invoiceNumberListTmp.get(i));
-                        agentIDListTmpTypeOneReduced.add(agentIDListTmp.get(i));
-                        salesPartnerNameListTmpTypeOneReduced.add(salesPartnerNameListTmp.get(i));
-                        spTINListTmpTypeOneReduced.add(spTINListTmp.get(i));
-                        itemNameListTmpTypeOneReduced.add(itemsNameListTmp.get(i));
-                        itemIDBuhgalterListTmpTypeOneReduced.add(itemIDBuhgalterListTmp.get(i));
-                        priceListTmpTypeOneReduced.add(priceListTmp.get(i));
-                        quantityListTmpTypeOneReduced.add(quantityListTmp.get(i));
-                        totalListTmpTypeOneReduced.add(totalListTmp.get(i));
-                        invoiceSumListTmpTypeOneReduced.add(invoiceSumListTmp.get(i));
-                        dateTimeDocListTmpTypeOneReduced.add(dateTimeDocListTmp.get(i));
-                    }
-                }
-            }
-//            Toast.makeText(getApplicationContext(), String.valueOf(dateTimeDocListTmpTypeOneReduced.size()), Toast.LENGTH_SHORT).show();
-            Integer k = 1;
             for (int j = 0; j < 13; j++) {
                 for (int i = 0; i < invoiceNumberListTmpTypeOneReduced.size() + 1; i++) {
                     WritableCell cellWritable  = sheet.getWritableCell(j, i);
@@ -1663,6 +1697,8 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
         } catch (WriteException e) {
             e.printStackTrace();
         }
+        sendViaEmailMultipleAttachments(this, "deadprofessor@hotmail.com",
+                "iamcomputers@mail.ru", "Накладные", "Накладные для бухгалтерии", filesForEmail);
     }
 
     private void makeExcel(){
@@ -1695,6 +1731,39 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
         } catch(Exception e)  {
             System.out.println("is exception raises during sending mail" + e);
         }
+    }
+
+    public void sendViaEmailMultipleAttachments(Context context, String emailTo, String emailCC,
+                             String subject, String emailText, List<String> filePaths)
+    {
+        //need to "send multiple" to get more than one attachment
+        final Intent emailIntent = new Intent(Intent.ACTION_SEND_MULTIPLE);
+        emailIntent.setType("text/plain");
+        emailIntent.putExtra(android.content.Intent.EXTRA_EMAIL,
+                new String[]{emailTo});
+        emailIntent.putExtra(android.content.Intent.EXTRA_CC,
+                new String[]{emailCC});
+        emailIntent.putExtra(Intent.EXTRA_SUBJECT, subject);
+        emailIntent.putExtra(Intent.EXTRA_TEXT, emailText);
+        emailIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        //has to be an ArrayList
+        ArrayList<Uri> uris = new ArrayList<>();
+        //convert from paths to Android friendly Parcelable Uri's
+        for (String file : filePaths)
+        {
+            File fileIn = new File(file);
+            fileIn.setReadable(true, false);
+            Uri u = FileProvider.getUriForFile(this,"com.example.myapplicationtest.fileprovider", fileIn);
+            uris.add(u);
+        }
+
+//        Uri u = Uri.parse("file://" + filePaths[0]);
+//        uris.add(u);
+//        u = Uri.parse("file://" + filePaths[1]);
+//        uris.add(u);
+        emailIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
+        context.startActivity(Intent.createChooser(emailIntent, "Send mail..."));
+//        startActivity(emailIntent);
     }
 
     class DBHelper extends SQLiteOpenHelper {
