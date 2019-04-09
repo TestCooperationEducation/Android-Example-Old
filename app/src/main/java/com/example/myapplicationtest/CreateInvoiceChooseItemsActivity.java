@@ -204,7 +204,7 @@ public class CreateInvoiceChooseItemsActivity extends AppCompatActivity implemen
     private void receiveItemsListFromLocalDB(){
         db = dbHelper.getReadableDatabase();
         String sql;
-        sql = "SELECT Наименование FROM items";
+        sql = "SELECT Наименование FROM items ORDER BY Артикул_1С";
         Cursor c = db.rawQuery(sql, null);
         if (c.moveToFirst()) {
             int idColIndex = c.getColumnIndex("Наименование");

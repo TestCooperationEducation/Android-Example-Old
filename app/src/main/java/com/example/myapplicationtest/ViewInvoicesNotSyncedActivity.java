@@ -1052,7 +1052,7 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
             c.close();
         }
 
-        Toast.makeText(getApplicationContext(), String.valueOf(summaryListTmp.size()), Toast.LENGTH_SHORT).show();
+//        Toast.makeText(getApplicationContext(), String.valueOf(summaryListTmp.size()), Toast.LENGTH_SHORT).show();
 
         summaryList = new String[summaryListTmp.size()];
         for (int i = 0; i < summaryListTmp.size(); i++) {
@@ -1102,16 +1102,32 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
             public void onResponse(String response) {
                 try{
                     JSONArray jsonArray = new JSONArray(response);
-                    requestMessage = new String[jsonArray.length()];
+//                    requestMessage = new String[jsonArray.length()];
+                    Integer[] invoiceNumbersCheck = new Integer[jsonArray.length()];
 
                     if (jsonArray.length() > 0){
                         for (int i = 0; i < jsonArray.length(); i++) {
                             JSONObject obj = jsonArray.getJSONObject(i);
-                            requestMessage[i] = obj.getString("requestMessage");
+//                            requestMessage[i] = obj.getString("requestMessage");
+                            invoiceNumbersCheck[i] = obj.getInt("InvoiceNumber");
                         }
-                        if (requestMessage[0].equals("New record created successfully")){
+                        Integer tmp = 0;
+                        if (invoiceNumbersCheck.length == invoiceNumbersList.size()){
+                            for (int i = 0; i < invoiceNumbersCheck.length; i++){
+                                for (int j = 0; j < invoiceNumbersList.size(); j++){
+                                    if (invoiceNumbersCheck[i].equals(invoiceNumbersList.get(j))){
+                                        tmp += 1;
+                                    }
+                                }
+                            }
+                            Toast.makeText(getApplicationContext(), String.valueOf(invoiceNumbersCheck.length), Toast.LENGTH_SHORT).show();
+                        }
+                        if (tmp.equals(invoiceNumbersCheck.length)){
+
+//                        }
+//                        if (requestMessage[0].equals("New record created successfully")){
                             builder.setTitle("Поздравляю")
-                                    .setMessage("Синхронизировано успешно")
+                                    .setMessage("Успешно синхронизировано " + invoiceNumbersList.size() + " накладных")
                                     .setCancelable(false)
                                     .setNegativeButton("Круто",
                                             new DialogInterface.OnClickListener() {

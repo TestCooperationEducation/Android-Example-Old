@@ -412,13 +412,14 @@ public class ViewPaymentsNotSyncedActivity extends AppCompatActivity implements 
 //                            Log.d(LOG_TAG, "row inserted, ID = " + rowID);
                         }
                         if (tmpStatus.equals("Yes")){
-                            Toast.makeText(getApplicationContext(), response, Toast.LENGTH_SHORT).show();
+//                            Toast.makeText(getApplicationContext(), response, Toast.LENGTH_SHORT).show();
                             builder.setTitle("Успешно синхронизировано")
                                     .setMessage("Деньги внесены и синхронизированы с сервером")
                                     .setCancelable(false)
                                     .setPositiveButton("Назад",
                                             new DialogInterface.OnClickListener() {
                                                 public void onClick(DialogInterface dialog, int id) {
+                                                    clearTable("payments");
                                                     finish();
                                                     dialog.cancel();
                                                 }
@@ -426,7 +427,6 @@ public class ViewPaymentsNotSyncedActivity extends AppCompatActivity implements 
                             AlertDialog alert = builder.create();
                             alert.show();
                         }
-                        clearTable("payments");
                         Toast.makeText(getApplicationContext(), "<<< Платеж Синхронизирован >>>", Toast.LENGTH_SHORT).show();
                     }else{
                         Toast.makeText(getApplicationContext(), "Ошибка загрузки. Проверьте Интернет или Учётку", Toast.LENGTH_SHORT).show();

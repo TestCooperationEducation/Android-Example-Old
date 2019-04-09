@@ -482,7 +482,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
 
 //            String output = "2019-03-13 07:00:00";
 
-            ArrayList<String> itemNameListDefault;
+//            ArrayList<String> itemNameListDefault;
             Double quantity;
             Double exchange;
             Double returnQuantity;
@@ -493,21 +493,21 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
             arrayMapExchangeReduced = new ArrayMap<>();
             arrayMapReturnReduced = new ArrayMap<>();
 
-            String sql = "SELECT items.Наименование FROM items ";
-            Cursor c = db.rawQuery(sql, null);
-            if (c.moveToFirst()) {
-                int itemNameTmp = c.getColumnIndex("Наименование");
-                itemNameListDefault = new ArrayList<>();
-                do {
-                    itemNameListDefault.add(c.getString(itemNameTmp));
-                } while (c.moveToNext());
-            }
+//            String sql = "SELECT items.Наименование FROM items ";
+//            Cursor c = db.rawQuery(sql, null);
+//            if (c.moveToFirst()) {
+//                int itemNameTmp = c.getColumnIndex("Наименование");
+//                itemNameListDefault = new ArrayList<>();
+//                do {
+//                    itemNameListDefault.add(c.getString(itemNameTmp));
+//                } while (c.moveToNext());
+//            }
 
-            sql = "SELECT items.Наименование, invoice.Quantity, invoice.ExchangeQuantity," +
+            String sql = "SELECT items.Наименование, invoice.Quantity, invoice.ExchangeQuantity," +
                     "invoice.ReturnQuantity FROM invoice INNER JOIN items " +
                     "ON invoice.ItemID LIKE items.Артикул " +
                     "WHERE invoice.DateTimeDoc > ?";
-            c = db.rawQuery(sql, new String[]{output});
+            Cursor c = db.rawQuery(sql, new String[]{output});
             if (c.moveToFirst()) {
                 int itemNameTmp = c.getColumnIndex("Наименование");
                 int quantityInvoiceTmp = c.getColumnIndex("Quantity");
@@ -1155,17 +1155,20 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                     String[] itemName = new String[jsonArray.length()];
                     Integer[] itemPrice = new Integer[jsonArray.length()];
                     String[] itemDescription = new String[jsonArray.length()];
+                    Integer[] itemNumberBuhgalter = new Integer[jsonArray.length()];
 
                     if (jsonArray.length() > 0){
                         for (int i = 0; i < jsonArray.length(); i++) {
                             JSONObject obj = jsonArray.getJSONObject(i);
                             itemNumber[i] = obj.getInt("Артикул");
+                            itemNumberBuhgalter[i] = obj.getInt("Артикул_1С");
                             itemName[i] = obj.getString("Наименование");
                             itemDescription[i] = obj.getString("Описание");
                             itemPrice[i] = obj.getInt("Цена");
                             ContentValues cv = new ContentValues();
                             Log.d(LOG_TAG, "--- Insert in items: ---");
                             cv.put("Артикул", itemNumber[i]);
+                            cv.put("Артикул_1С", itemNumberBuhgalter[i]);
                             cv.put("Наименование", itemName[i]);
                             cv.put("Описание", itemDescription[i]);
                             cv.put("Цена", itemPrice[i]);
@@ -1705,6 +1708,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                 db.execSQL("create table items ("
                         + "id integer primary key autoincrement,"
                         + "Артикул integer UNIQUE ON CONFLICT REPLACE,"
+                        + "Артикул_1С integer,"
                         + "Наименование text,"
                         + "Описание text,"
                         + "Цена integer" + ");");
