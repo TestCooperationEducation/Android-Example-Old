@@ -840,7 +840,7 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
             }
 
             for (int i = 0; i < invoiceNumberListTmp.size(); i++) {
-                if (invoiceSumListTmp.get(i) > 0) {
+                if (quantityListTmp.get(i) > 0) {
                     if (salesPartnerIDListTmp.get(i).equals(1127) || salesPartnerIDListTmp.get(i).equals(357)
                             || salesPartnerIDListTmp.get(i).equals(82) || salesPartnerIDListTmp.get(i).equals(505)
                             || salesPartnerIDListTmp.get(i).equals(512) || salesPartnerIDListTmp.get(i).equals(1057)
@@ -1533,8 +1533,9 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
                 File.separator + "Excel" + File.separator + "Accountant_отчет" + File.separator + csvFileCopyTwo;
         List<String> filesForEmail = new ArrayList<>();
         filesForEmail.add(fileLocationOne);
-        filesForEmail.add(fileLocationTwo);
-
+        if (invoiceNumberListTmpTypeTwoReduced.size() > 0) {
+            filesForEmail.add(fileLocationTwo);
+        }
         File file = new File(directory, csvFileCopy);
         File fileTwo = new File(directory, csvFileCopyTwo);
         File inputWorkbook = new File(inputFile);
@@ -1620,74 +1621,75 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
                     sheet.setColumnView(j, cell);
                     cellWritable.setCellFormat(cfm);
                 }
+                if (invoiceNumberListTmpTypeTwoReduced.size() > 0) {
+                    for (int i = 0; i < invoiceNumberListTmpTypeTwoReduced.size() + 1; i++) {
+                        WritableCell cellWritable = sheetTwo.getWritableCell(j, i);
+                        CellFormat cfm = cellWritable.getCellFormat();
+                        Cell readCell = sheetTwo.getCell(j, i);
+                        Label label = new Label(j, i, readCell.getContents());
 
-                for (int i = 0; i < invoiceNumberListTmpTypeTwoReduced.size() + 1; i++) {
-                    WritableCell cellWritable  = sheetTwo.getWritableCell(j, i);
-                    CellFormat cfm = cellWritable.getCellFormat();
-                    Cell readCell = sheetTwo.getCell(j, i);
-                    Label label = new Label(j, i, readCell.getContents());
-
-                    if (j == 0 && i == 1) {
-                        label = new Label(j, i, String.valueOf(k)); //Номер строчки
-                        k += 1;
+                        if (j == 0 && i == 1) {
+                            label = new Label(j, i, String.valueOf(k)); //Номер строчки
+                            k += 1;
+                        }
+                        if (j == 0 && i > 1) {
+                            label = new Label(j, i, String.valueOf(k)); //Номер строчки
+                            k += 1;
+                        }
+                        if (j == 1 && i > 0) {
+                            label = new Label(j, i, String.valueOf(0)); //Номер подстроки
+                            k += 1;
+                        }
+                        if (j == 2 && i > 0) {
+                            label = new Label(j, i, String.valueOf(invoiceNumberListTmpTypeTwoReduced.get(i - 1))); //Номер накладной
+                            k += 1;
+                        }
+                        if (j == 3 && i > 0) {
+                            label = new Label(j, i, String.valueOf(agentIDListTmpTypeTwoReduced.get(i - 1))); //Номер района
+                            k += 1;
+                        }
+                        if (j == 4 && i > 0) {
+                            label = new Label(j, i, String.valueOf(salesPartnerNameListTmpTypeTwoReduced.get(i - 1))); //Название магазина
+                            k += 1;
+                        }
+                        if (j == 5 && i > 0) {
+                            label = new Label(j, i, spTINListTmpTypeTwoReduced.get(i - 1)); //ИНН
+                            k += 1;
+                        }
+                        if (j == 6 && i > 0) {
+                            label = new Label(j, i, String.valueOf(itemNameListTmpTypeTwoReduced.get(i - 1))); //Номенклатура
+                            k += 1;
+                        }
+                        if (j == 7 && i > 0) {
+                            label = new Label(j, i, String.valueOf(itemIDBuhgalterListTmpTypeTwoReduced.get(i - 1))); //Артикул_1С
+                            k += 1;
+                        }
+                        if (j == 8 && i > 0) {
+                            label = new Label(j, i, String.valueOf(priceListTmpTypeTwoReduced.get(i - 1)).replace(".", ",")); //Цена
+                            k += 1;
+                        }
+                        if (j == 9 && i > 0) {
+                            label = new Label(j, i, String.valueOf(quantityListTmpTypeTwoReduced.get(i - 1)).replace(".", ",")); //Кол-во
+                            k += 1;
+                        }
+                        if (j == 10 && i > 0) {
+                            label = new Label(j, i, String.valueOf(totalListTmpTypeTwoReduced.get(i - 1)).replace(".", ",")); //Сумма
+                            k += 1;
+                        }
+                        if (j == 11 && i > 0) {
+                            label = new Label(j, i, String.valueOf(invoiceSumListTmpTypeTwoReduced.get(i - 1)).replace(".", ",")); //Всего
+                            k += 1;
+                        }
+                        if (j == 12 && i > 0) {
+                            label = new Label(j, i, (dateTimeDocListTmpTypeTwoReduced.get(i - 1)).replaceAll("-", ".")); //Дата продажи
+                            k += 1;
+                        }
+                        sheetTwo.addCell(label);
+                        CellView cell = sheetTwo.getColumnView(j);
+                        cell.setAutosize(true);
+                        sheetTwo.setColumnView(j, cell);
+                        cellWritable.setCellFormat(cfm);
                     }
-                    if (j == 0 && i > 1) {
-                        label = new Label(j, i, String.valueOf(k)); //Номер строчки
-                        k += 1;
-                    }
-                    if (j == 1 && i > 0) {
-                        label = new Label(j, i, String.valueOf(0)); //Номер подстроки
-                        k += 1;
-                    }
-                    if (j == 2 && i > 0) {
-                        label = new Label(j, i, String.valueOf(invoiceNumberListTmpTypeTwoReduced.get(i - 1))); //Номер накладной
-                        k += 1;
-                    }
-                    if (j == 3 && i > 0) {
-                        label = new Label(j, i, String.valueOf(agentIDListTmpTypeTwoReduced.get(i - 1))); //Номер района
-                        k += 1;
-                    }
-                    if (j == 4 && i > 0) {
-                        label = new Label(j, i, String.valueOf(salesPartnerNameListTmpTypeTwoReduced.get(i - 1))); //Название магазина
-                        k += 1;
-                    }
-                    if (j == 5 && i > 0) {
-                        label = new Label(j, i, spTINListTmpTypeTwoReduced.get(i - 1)); //ИНН
-                        k += 1;
-                    }
-                    if (j == 6 && i > 0) {
-                        label = new Label(j, i, String.valueOf(itemNameListTmpTypeTwoReduced.get(i - 1))); //Номенклатура
-                        k += 1;
-                    }
-                    if (j == 7 && i > 0) {
-                        label = new Label(j, i, String.valueOf(itemIDBuhgalterListTmpTypeTwoReduced.get(i - 1))); //Артикул_1С
-                        k += 1;
-                    }
-                    if (j == 8 && i > 0) {
-                        label = new Label(j, i, String.valueOf(priceListTmpTypeTwoReduced.get(i - 1)).replace(".", ",")); //Цена
-                        k += 1;
-                    }
-                    if (j == 9 && i > 0) {
-                        label = new Label(j, i, String.valueOf(quantityListTmpTypeTwoReduced.get(i - 1)).replace(".", ",")); //Кол-во
-                        k += 1;
-                    }
-                    if (j == 10 && i > 0) {
-                        label = new Label(j, i, String.valueOf(totalListTmpTypeTwoReduced.get(i - 1)).replace(".", ",")); //Сумма
-                        k += 1;
-                    }
-                    if (j == 11 && i > 0) {
-                        label = new Label(j, i, String.valueOf(invoiceSumListTmpTypeTwoReduced.get(i - 1)).replace(".", ",")); //Всего
-                        k += 1;
-                    }
-                    if (j == 12 && i > 0) {
-                        label = new Label(j, i, (dateTimeDocListTmpTypeTwoReduced.get(i - 1)).replaceAll("-", ".")); //Дата продажи
-                        k += 1;
-                    }
-                    sheetTwo.addCell(label);
-                    CellView cell = sheetTwo.getColumnView(j);
-                    cell.setAutosize(true);
-                    sheetTwo.setColumnView(j, cell);
-                    cellWritable.setCellFormat(cfm);
                 }
             }
             copy.write();

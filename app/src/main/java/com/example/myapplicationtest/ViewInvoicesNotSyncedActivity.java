@@ -42,7 +42,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.itextpdf.text.Anchor;
 import com.itextpdf.text.BaseColor;
+import com.itextpdf.text.Chapter;
 import com.itextpdf.text.Chunk;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
@@ -51,6 +53,7 @@ import com.itextpdf.text.Font;
 import com.itextpdf.text.PageSize;
 import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.Phrase;
+import com.itextpdf.text.Section;
 import com.itextpdf.text.pdf.BaseFont;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
@@ -401,11 +404,16 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
         try {
             PdfWriter.getInstance(iText_xls_7_pdf, new FileOutputStream(fileTypeOnePDF));
             iText_xls_7_pdf.open();
-            PdfPTable my_table = new PdfPTable(7);
-            PdfPCell table_cell;
-            iText_xls_7_pdf.add(new Chunk("kdjafhaslkj"));
 
-//            table_cell=new PdfPCell(new Phrase(cell.getStringCellValue()));
+            Anchor anchor = new Anchor("First Chapter");
+            anchor.setName("First Chapter");
+            Chapter catPart = new Chapter(new Paragraph(anchor), 1);
+            Paragraph para = new Paragraph("hi");
+//            iText_xls_7_pdf.add(new Chunk("kdjafhaslkj"));
+            Section subCatPart = catPart.addSection(para);
+            PdfPTable my_table = new PdfPTable(5);
+
+//            table_cell = new PdfPCell();
             //feel free to move the code below to suit to your needs
 //            my_table.addCell(table_cell);
 
@@ -472,6 +480,14 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
                         if (cellTypeOne.getType() == CellType.LABEL) {
                             Label lTypeOne = (Label) cellTypeOne;
                             lTypeOne.setString("Дата: " + output2); //Дата
+
+                            String data = "Дата: " + output2;
+                            PdfPCell table_cell = new PdfPCell(new Phrase(output2));
+                            table_cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+                            my_table.addCell(table_cell);
+                            my_table.setHeaderRows(1);
+//                            para = new Paragraph("Дата: " + output2);
+//                            iText_xls_7_pdf.add(para);
                         }
                     }
                     if (j == 0 && i == 1) {
@@ -902,7 +918,7 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
 //            PrintManager printManager = (PrintManager) this.getSystemService(Context.PRINT_SERVICE);
 //            String jobName = this.getString(R.string.app_name) + " Document";
 //            printManager.print(jobName, pda, null);
-
+//        subCatPart.add(my_table);
         iText_xls_7_pdf.add(my_table);
 
         } catch (BiffException e) {
