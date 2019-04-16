@@ -149,6 +149,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         sPrefChangeInvoiceNumberNotSynced = getSharedPreferences(SAVED_ChangeInvoiceNumberNotSynced, Context.MODE_PRIVATE);
         sPrefAccountingTypeDoc = getSharedPreferences(SAVED_AccountingTypeDoc, Context.MODE_PRIVATE);
         sPrefLastReceiveDate = getSharedPreferences(SAVED_LastReceiveDate, Context.MODE_PRIVATE);
+        sPrefConnectionStatus = getSharedPreferences(SAVED_CONNSTATUS, Context.MODE_PRIVATE);
 
         dbName = sPrefDBName.getString(SAVED_DBName, "");
         dbUser = sPrefDBUser.getString(SAVED_DBUser, "");
@@ -176,6 +177,13 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
 
         arrayMapReceive = new ArrayMap<>();
 
+        String dayOfTheWeekTmp = sPrefDayOfTheWeekDefault.getString(SAVED_DAYOFTHEWEEKDEFAULT, "");
+        if (sPrefConnectionStatus.getString(SAVED_CONNSTATUS, "").equals("failed")){
+            Toast.makeText(getApplicationContext(), "<<< Оффлайн >>>", Toast.LENGTH_SHORT).show();
+        } else {
+            loadDateFromServer();
+            Toast.makeText(getApplicationContext(), "Маршрут: " + dayOfTheWeekTmp, Toast.LENGTH_SHORT).show();
+        }
 
 //        db.execSQL("DROP TABLE IF EXISTS invoiceLocalDB");
 //        db.execSQL("DROP TABLE IF EXISTS syncedInvoice");
@@ -1050,7 +1058,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                         e = sPrefDayOfTheWeekDefault.edit();
                         e.putString(SAVED_DAYOFTHEWEEKDEFAULT, dayOfTheWeek[0]);
                         e.apply();
-                        Toast.makeText(getApplicationContext(), "Идет загрузка...", Toast.LENGTH_SHORT).show();
+//                        Toast.makeText(getApplicationContext(), "Идет загрузка...", Toast.LENGTH_SHORT).show();
                         one = true;
                     }else{
                         Toast.makeText(getApplicationContext(), "Ошибка Входа. Проверьте Интернет или Учётку", Toast.LENGTH_SHORT).show();
