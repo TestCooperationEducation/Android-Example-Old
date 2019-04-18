@@ -3,6 +3,7 @@ package com.example.myapplicationtest;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -60,12 +61,15 @@ import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
 import com.itextpdf.text.pdf.draw.LineSeparator;
 
+import java.io.BufferedReader;
+import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
@@ -96,6 +100,10 @@ import jxl.write.WritableCellFormat;
 import jxl.write.WritableSheet;
 import jxl.write.WritableWorkbook;
 import jxl.write.WriteException;
+
+import java.util.*;
+import com.grapecity.documents.excel.*;
+import com.grapecity.documents.excel.drawing.*;
 
 import static org.apache.poi.ss.usermodel.Cell.CELL_TYPE_STRING;
 
@@ -341,7 +349,8 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
                 Toast.makeText(getApplicationContext(), "Накладная №: " + invoiceNumberChosen, Toast.LENGTH_SHORT).show();
                 makeExcel();
                 try {
-                    read();
+//                    read();
+                    makePDF();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -401,17 +410,22 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
 
         Document iText_xls_7_pdf = new Document();
 
+        FileInputStream fis = null;
+        DataInputStream in = null;
+        InputStreamReader isr = null;
+        BufferedReader br = null;
+
         try {
             PdfWriter.getInstance(iText_xls_7_pdf, new FileOutputStream(fileTypeOnePDF));
             iText_xls_7_pdf.open();
 
-            Anchor anchor = new Anchor("First Chapter");
-            anchor.setName("First Chapter");
-            Chapter catPart = new Chapter(new Paragraph(anchor), 1);
-            Paragraph para = new Paragraph("hi");
-//            iText_xls_7_pdf.add(new Chunk("kdjafhaslkj"));
-            Section subCatPart = catPart.addSection(para);
-            PdfPTable my_table = new PdfPTable(5);
+//            Anchor anchor = new Anchor("First Chapter");
+//            anchor.setName("First Chapter");
+//            Chapter catPart = new Chapter(new Paragraph(anchor), 1);
+//            Paragraph para = new Paragraph("hi");
+////            iText_xls_7_pdf.add(new Chunk("kdjafhaslkj"));
+//            Section subCatPart = catPart.addSection(para);
+//            PdfPTable my_table = new PdfPTable(5);
 
 //            table_cell = new PdfPCell();
             //feel free to move the code below to suit to your needs
@@ -481,13 +495,13 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
                             Label lTypeOne = (Label) cellTypeOne;
                             lTypeOne.setString("Дата: " + output2); //Дата
 
-                            String data = "Дата: " + output2;
-                            PdfPCell table_cell = new PdfPCell(new Phrase(output2));
-                            table_cell.setHorizontalAlignment(Element.ALIGN_CENTER);
-                            my_table.addCell(table_cell);
-                            my_table.setHeaderRows(1);
-//                            para = new Paragraph("Дата: " + output2);
-//                            iText_xls_7_pdf.add(para);
+//                            String data = "Дата: " + output2;
+//                            PdfPCell table_cell = new PdfPCell(new Phrase(output2));
+//                            table_cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+//                            my_table.addCell(table_cell);
+//                            my_table.setHeaderRows(1);
+////                            para = new Paragraph("Дата: " + output2);
+////                            iText_xls_7_pdf.add(para);
                         }
                     }
                     if (j == 0 && i == 1) {
@@ -918,8 +932,19 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
 //            PrintManager printManager = (PrintManager) this.getSystemService(Context.PRINT_SERVICE);
 //            String jobName = this.getString(R.string.app_name) + " Document";
 //            printManager.print(jobName, pda, null);
-//        subCatPart.add(my_table);
-        iText_xls_7_pdf.add(my_table);
+//            subCatPart.add(my_table);
+//            iText_xls_7_pdf.add(my_table);
+
+            fis = new FileInputStream(fileTypeOneXLS);
+            in = new DataInputStream(fis);
+            isr = new InputStreamReader(in);
+            br = new BufferedReader(isr);
+            String strLine;
+            while ((strLine = br.readLine()) != null) {
+                Paragraph para = new Paragraph(strLine + "\n");
+                para.setAlignment(Element.ALIGN_JUSTIFIED);
+                iText_xls_7_pdf.add(para);
+            }
 
         } catch (BiffException e) {
             e.printStackTrace();
@@ -930,6 +955,58 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
         }
         iText_xls_7_pdf.close();
 //        officeTool();
+    }
+
+    public void makePDF() throws IOException {
+//        Instant instant = Instant.now();
+//        ZoneId zoneId = ZoneId.of( "Asia/Sakhalin" );
+//        ZonedDateTime zdt = ZonedDateTime.ofInstant( instant , zoneId );
+//        DateTimeFormatter formatter = DateTimeFormatter.ofPattern( "dd.MM.yyyy" );
+//        String output = zdt.format( formatter );
+//
+//        File sd = Environment.getExternalStorageDirectory();
+//        csvFileTypeOneFormCopy = "inv_typeone_" + invoiceNumberChosen + "_" + output + ".xls";
+//        csvFileTypeTwoFormCopy = "inv_typetwo_" + invoiceNumberChosen + "_" + output + ".xls";
+//
+//        csvFileTypeOneFormCopyPDF = "inv_typeone_" + invoiceNumberChosen + "_" + output + ".pdf";
+//
+//        File directoryTypeOne = new File(sd.getAbsolutePath() + File.separator + "Download"
+//                + File.separator + "Excel" + File.separator + "Накладная_отчет");
+//        File directoryTypeTwo = new File(sd.getAbsolutePath() + File.separator + "Download"
+//                + File.separator + "Excel" + File.separator + "Фактура_отчет");
+//        fileTypeOneXLS = new File(directoryTypeOne, csvFileTypeOneFormCopy);
+//        fileTypeTwoXLS = new File(directoryTypeTwo, csvFileTypeTwoFormCopy);
+//        fileTypeOnePDF = new File(directoryTypeOne, csvFileTypeOneFormCopyPDF);
+//        Document iText_xls_7_pdf = new Document();
+//
+//        FileInputStream fis = null;
+//        DataInputStream in = null;
+//        InputStreamReader isr = null;
+//        BufferedReader br = null;
+
+//        try {
+//            PdfWriter.getInstance(iText_xls_7_pdf, new FileOutputStream(fileTypeOnePDF));
+//            iText_xls_7_pdf.open();
+//            if (fileTypeOneXLS.exists()) {
+//                fis = new FileInputStream(fileTypeOneXLS);
+//                in = new DataInputStream(fis);
+//                isr = new InputStreamReader(in);
+//                br = new BufferedReader(isr);
+//                String strLine;
+//                while ((strLine = br.readLine()) != null) {
+//                    Paragraph para = new Paragraph(strLine + "\n");
+//                    para.setAlignment(Element.ALIGN_JUSTIFIED);
+//                    iText_xls_7_pdf.add(para);
+//                }
+//            }
+//            iText_xls_7_pdf.close();
+
+//
+//        } catch (DocumentException e) {
+//            e.printStackTrace();
+//        }
+//        Intent intent = new Intent(getApplicationContext(), pdfActivity.class);
+//        startActivity(intent);
     }
 
     private void makeExcel(){

@@ -13,12 +13,11 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-
         <provider
             android:name="android.support.v4.content.FileProvider"
             android:authorities="com.example.myapplicationtest.fileprovider"
-            android:grantUriPermissions="true"
-            android:exported="false">
+            android:exported="false"
+            android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/filepaths" />
@@ -83,7 +82,8 @@
         <activity android:name=".ReceiveNewActivity" />
         <activity android:name=".AccountingActivity" />
         <activity android:name=".AgentReportActivity" />
-        <activity android:name=".StatsAnalyticsActivity"></activity>
+        <activity android:name=".StatsAnalyticsActivity" />
+        <activity android:name=".pdfActivity"></activity>
     </application>
 
 </manifest>
