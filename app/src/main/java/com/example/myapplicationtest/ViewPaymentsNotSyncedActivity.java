@@ -400,9 +400,6 @@ public class ViewPaymentsNotSyncedActivity extends AppCompatActivity implements 
                             invoiceNumberFromRequest[i] = obj.getString("invoiceNumber");
 //                            paymentIDFromRequest[i] = obj.getString("paymentID");
                             status[i] = obj.getString("status");
-                            if (status[i].equals("Бабло внесено")) {
-                                tmpStatus = "Yes";
-                            }
 
 //                            cv.put("invoiceNumber", Integer.parseInt(invoiceNumberFromRequest[i]));
 //                            cv.put("paymentID", paymentIDFromRequest[i]);
@@ -411,10 +408,14 @@ public class ViewPaymentsNotSyncedActivity extends AppCompatActivity implements 
 //                            long rowID = db.insert("syncedPayments", null, cv);
 //                            Log.d(LOG_TAG, "row inserted, ID = " + rowID);
                         }
+                        if (listTmp.size() == invoiceNumberFromRequest.length) {
+                            tmpStatus = "Yes";
+                        } else {
+                            Toast.makeText(getApplicationContext(), "Что-то не то, блин", Toast.LENGTH_SHORT).show();
+                        }
                         if (tmpStatus.equals("Yes")){
-//                            Toast.makeText(getApplicationContext(), response, Toast.LENGTH_SHORT).show();
                             builder.setTitle("Успешно синхронизировано")
-                                    .setMessage("Деньги внесены и синхронизированы с сервером")
+                                    .setMessage("Внесено " + invoiceNumberFromRequest.length + " платежей")
                                     .setCancelable(false)
                                     .setPositiveButton("Назад",
                                             new DialogInterface.OnClickListener() {
