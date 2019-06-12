@@ -255,8 +255,9 @@ public class AgentReportActivity extends AppCompatActivity implements View.OnCli
             Cursor c = db.rawQuery(sql, new String[]{dateStart, dateEnd});
             if (c.moveToFirst()) {
                 int dateTimeDocTmp = c.getColumnIndex("dateTimeDoc");
-                receiveDateTmp = c.getString(dateTimeDocTmp);
+//                receiveDateTmp = c.getString(dateTimeDocTmp);
                 do {
+                    receiveDateTmp = c.getString(dateTimeDocTmp);
                     receiveDateListTmp.add(receiveDateTmp);
                 } while (c.moveToNext());
                 receiveDateList = new String[receiveDateListTmp.size()];
