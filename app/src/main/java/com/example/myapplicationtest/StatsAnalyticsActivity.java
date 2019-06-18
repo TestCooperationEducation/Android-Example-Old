@@ -377,26 +377,69 @@ public class StatsAnalyticsActivity extends AppCompatActivity implements View.On
                 arrayMapReturnExtended.put(itemNamePrice, returnQuantityExtended);
                 arrayMapTotalExtended.put(itemNamePrice, totalExtended);
                 arrayMapPriceExtended.put(itemNamePrice, priceExtended);
-                totalSalesSum += c.getDouble((totalTmp));
-                totalExchangeSum += c.getInt(priceTmp) * c.getDouble(exchangeQuantityTmp);
-                totalReturnSum += c.getInt(priceTmp) * c.getDouble(returnQuantityTmp);
+//                totalSalesSum += c.getDouble((totalTmp));
+//                totalExchangeSum += c.getInt(priceTmp) * c.getDouble(exchangeQuantityTmp);
+//                totalReturnSum += c.getInt(priceTmp) * c.getDouble(returnQuantityTmp);
                 if (!itemName.equals("Ким-ча 700 гр особая цена 1") && !itemName.equals("Ким-ча 700 гр особая цена 2")
                         && !itemName.equals("Редька по-восточному 500гр особая цена 1") &&
                         !itemName.equals("Редька по-восточному 500гр особая цена 2") &&
                         !itemName.equals("Ким-ча весовая") && !itemName.equals("Редька по-восточному весовая")){
-                    totalSalesQuantity += c.getDouble(quantityInvoiceTmp);
                     totalExchangeQuantity += c.getDouble(exchangeQuantityTmp);
-                    totalReturnQuantity += c.getDouble(returnQuantityTmp);
-                    totalSalesQuantitySum += c.getDouble((totalTmp));
                     totalExchangeQuantitySum += c.getInt(priceTmp) * c.getDouble(exchangeQuantityTmp);
+
+                    totalReturnQuantity += c.getDouble(returnQuantityTmp);
                     totalReturnQuantitySum += c.getInt(priceTmp) * c.getDouble(returnQuantityTmp);
+
+                    totalSalesQuantity += c.getDouble(quantityInvoiceTmp);
+                    totalSalesQuantitySum += c.getDouble((totalTmp));
+
+                    totalExchangeSum += c.getInt(priceTmp) * c.getDouble(exchangeQuantityTmp);
+                    totalReturnSum += c.getInt(priceTmp) * c.getDouble(returnQuantityTmp);
+                    totalSalesSum += c.getDouble((totalTmp));
                 } else {
-                    totalSalesWeight += c.getDouble(quantityInvoiceTmp);
-                    totalExchangeWeight += c.getDouble(exchangeQuantityTmp);
-                    totalReturnWeight += c.getDouble(returnQuantityTmp);
-                    totalSalesWeightSum += c.getDouble((totalTmp));
-                    totalExchangeWeightSum += c.getInt(priceTmp) * c.getDouble(exchangeQuantityTmp);
-                    totalReturnWeightSum += c.getInt(priceTmp) * c.getDouble(returnQuantityTmp);
+                    if (itemName.equals("Ким-ча 700 гр особая цена 1") || itemName.equals("Ким-ча 700 гр особая цена 2")){
+                        totalExchangeWeight += c.getDouble(exchangeQuantityTmp) * 0.7d;
+                        totalExchangeWeightSum += c.getDouble((priceTmp)) * c.getDouble(exchangeQuantityTmp);
+
+                        totalReturnWeight += c.getDouble(returnQuantityTmp) * 0.7d;
+                        totalReturnWeightSum += c.getInt(priceTmp) * c.getDouble(returnQuantityTmp);
+
+                        totalSalesWeight += c.getDouble(quantityInvoiceTmp) * 0.7d;
+                        totalSalesWeightSum += c.getDouble((totalTmp));
+
+                        totalExchangeSum += c.getInt(priceTmp) * c.getDouble(exchangeQuantityTmp);
+                        totalReturnSum += c.getInt(priceTmp) * c.getDouble(returnQuantityTmp);
+                        totalSalesSum += c.getDouble((totalTmp));
+                    }
+                    if (itemName.equals("Редька по-восточному 500гр особая цена 1") ||
+                            itemName.equals("Редька по-восточному 500гр особая цена 2")){
+                        totalExchangeWeight += c.getDouble(exchangeQuantityTmp) * 0.5d;
+                        totalExchangeWeightSum += c.getDouble((priceTmp)) * c.getDouble(exchangeQuantityTmp);
+
+                        totalReturnWeight += c.getDouble(returnQuantityTmp) * 0.5d;
+                        totalReturnWeightSum += c.getInt(priceTmp) * c.getDouble(returnQuantityTmp);
+
+                        totalSalesWeight += c.getDouble(quantityInvoiceTmp) * 0.5d;
+                        totalSalesWeightSum += c.getDouble((totalTmp));
+
+                        totalExchangeSum += c.getInt(priceTmp) * c.getDouble(exchangeQuantityTmp);
+                        totalReturnSum += c.getInt(priceTmp) * c.getDouble(returnQuantityTmp);
+                        totalSalesSum += c.getDouble((totalTmp));
+                    }
+                    if (itemName.equals("Ким-ча весовая") || itemName.equals("Редька по-восточному весовая")){
+                        totalExchangeWeight += c.getDouble(exchangeQuantityTmp);
+                        totalExchangeWeightSum += c.getDouble((priceTmp)) * c.getDouble(exchangeQuantityTmp);
+
+                        totalReturnWeight += c.getDouble(returnQuantityTmp);
+                        totalReturnWeightSum += c.getInt(priceTmp) * c.getDouble(returnQuantityTmp);
+
+                        totalSalesWeight += c.getDouble(quantityInvoiceTmp);
+                        totalSalesWeightSum += c.getDouble((totalTmp));
+
+                        totalExchangeSum += c.getInt(priceTmp) * c.getDouble(exchangeQuantityTmp);
+                        totalReturnSum += c.getInt(priceTmp) * c.getDouble(returnQuantityTmp);
+                        totalSalesSum += c.getDouble((totalTmp));
+                    }
                 }
 
                 if (arrayMapQuantity.containsKey(itemName)) {
