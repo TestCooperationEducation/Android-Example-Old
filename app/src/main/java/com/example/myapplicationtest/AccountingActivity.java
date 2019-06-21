@@ -844,7 +844,7 @@ public class AccountingActivity extends AppCompatActivity implements View.OnClic
                     if (salesPartnerIDListTmp.get(i).equals(1127) || salesPartnerIDListTmp.get(i).equals(357)
                             || salesPartnerIDListTmp.get(i).equals(505)
                             || salesPartnerIDListTmp.get(i).equals(512) || salesPartnerIDListTmp.get(i).equals(1057)
-                            || salesPartnerIDListTmp.get(i).equals(226) || salesPartnerIDListTmp.get(i).equals(1059)
+                            || salesPartnerIDListTmp.get(i).equals(1059)
                             || salesPartnerIDListTmp.get(i).equals(339) || salesPartnerIDListTmp.get(i).equals(351)
                             || (salesPartnerIDListTmp.get(i) > 99 && salesPartnerIDListTmp.get(i) < 106)) {
                         invoiceNumberListTmpTypeTwoReduced.add(invoiceNumberListTmp.get(i));
