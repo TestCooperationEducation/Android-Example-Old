@@ -2071,7 +2071,7 @@ public class StatsAnalyticsActivity extends AppCompatActivity implements View.On
     }
 
     private void chooseArea(){
-        final String[] choice ={"Район 1", "Район 2", "Район 3", "Район 4", "Район 5"};
+        final String[] choice ={"Район 1", "Район 2", "Район 3", "Район 4", "Район 5", "Район 7"};
         AlertDialog.Builder builder;
         builder = new AlertDialog.Builder(this);
         builder.setTitle("Выбрать район для загрузки");
@@ -2100,6 +2100,11 @@ public class StatsAnalyticsActivity extends AppCompatActivity implements View.On
                 }
                 if (choice[item].equals("Район 5")){
                     g = 5;
+                    Toast.makeText(getApplicationContext(), "Вы выбрали район № " + g, Toast.LENGTH_SHORT).show();
+                    dialog.cancel();
+                }
+                if (choice[item].equals("Район 7")){
+                    g = 7;
                     Toast.makeText(getApplicationContext(), "Вы выбрали район № " + g, Toast.LENGTH_SHORT).show();
                     dialog.cancel();
                 }
