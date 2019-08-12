@@ -787,8 +787,8 @@ public class AgentReportActivity extends AppCompatActivity implements View.OnCli
                         }
 
                     }
-
-                    if (i > 6 && i < 28 && i < (arrayMapExchangeReduced.size() + 7)) {
+                    if (!weeklyReport) {
+                        if (i > 6 && i < 28 && i < (arrayMapExchangeReduced.size() + 7)) {
 //                        for (int a = 0; a < arrayMapQuantityReduced.size(); a++) {
                             for (int b = 0; b < arrayMapReceive.size(); b++) {
                                 if (arrayMapQuantityReduced.keyAt(i - 7).equals(arrayMapReceive.keyAt(b))) {
@@ -832,8 +832,57 @@ public class AgentReportActivity extends AppCompatActivity implements View.OnCli
                                     }
                                 }
 //                            }
+                            }
+                        }
+                    } else {
+                        if (i > 6 && i < 28 && i < (arrayMapExchangeReduced.size() + 7)) {
+                            for (int b = 0; b < arrayMapQuantityReduced.size(); b++) {
+//                            for (int b = 0; b < arrayMapReceive.size(); b++) {
+//                                if (arrayMapQuantityReduced.keyAt(i - 7).equals(arrayMapReceive.keyAt(b))) {
+                                    if (j == 0) {
+                                        if (cell.getType() == CellType.LABEL) {
+                                            Label l = (Label) cell;
+                                            l.setString(String.valueOf(arrayMapExchangeReduced.valueAt(i - 7))); //Обмен
+                                        }
+                                    }
+                                    if (j == 1) {
+                                        if (cell.getType() == CellType.LABEL) {
+                                            Label l = (Label) cell;
+                                            l.setString(String.valueOf(arrayMapExchangeReduced.keyAt(i - 7))); //Наименование
+                                        }
+                                    }
+                                    if (j == 2 && !weeklyReport) {
+                                        Double tmp = arrayMapReceive.valueAt(b) - arrayMapQuantityReduced.valueAt(i - 7)
+                                                - arrayMapExchangeReduced.valueAt(i - 7);
+                                        if (cell.getType() == CellType.LABEL) {
+                                            Label l = (Label) cell;
+                                            l.setString(String.valueOf(roundUp(tmp, 2))); //Остаток
+                                        }
+                                    }
+                                    if (j == 3) {
+                                        if (cell.getType() == CellType.LABEL) {
+                                            Label l = (Label) cell;
+                                            l.setString(String.valueOf(arrayMapQuantityReduced.valueAt(i - 7))); //Продажа
+                                        }
+                                    }
+                                    if (j == 4 && !weeklyReport) {
+                                        if (cell.getType() == CellType.LABEL) {
+                                            Label l = (Label) cell;
+                                            l.setString(String.valueOf(arrayMapReceive.valueAt(b))); //Загрузка
+                                        }
+                                    }
+                                    if (j == 5) {
+                                        if (cell.getType() == CellType.LABEL) {
+                                            Label l = (Label) cell;
+                                            l.setString(String.valueOf(0)); //Сумма
+                                        }
+                                    }
+//                                }
+//                            }
+                            }
                         }
                     }
+
                     if (j != 2 && i != 2) {
                         cell.setCellFormat(cfm);
                     }
