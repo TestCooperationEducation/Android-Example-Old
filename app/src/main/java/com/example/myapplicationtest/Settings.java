@@ -10,7 +10,8 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 public class Settings extends AppCompatActivity implements View.OnClickListener{
-    EditText dbName, dbUser, dbPassword, login, password;
+    EditText login;
+    String dbName, dbUser, dbPassword, password;
     Button btnSaveDBSettings, btnSaveLoginPassword;
     SharedPreferences sPrefLogin, sPrefPassword, sPrefDBName, sPrefDBPassword, sPrefDBUser;
     final String SAVED_LOGIN = "Login";
@@ -25,16 +26,20 @@ public class Settings extends AppCompatActivity implements View.OnClickListener{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
 
-        dbName = findViewById((R.id.editTextDBName));
+        /*dbName = findViewById((R.id.editTextDBName));
         dbPassword = findViewById((R.id.editTextDBPassword));
-        dbUser = findViewById(R.id.editTextDBUser);
+        dbUser = findViewById(R.id.editTextDBUser);*/
+        dbName = "u0582840_test";
+        dbUser = "u0582_cevladimir";
+        dbPassword = "oiftop@1984";
         btnSaveDBSettings = findViewById(R.id.buttonSaveDBSettings);
         btnSaveDBSettings.setOnClickListener(this);
         btnSaveLoginPassword = findViewById(R.id.buttonSaveLoginPassword);
         btnSaveLoginPassword.setOnClickListener(this);
 
         login = findViewById((R.id.editTextLogin));
-        password = findViewById((R.id.editTextPassword));
+        /*password = findViewById((R.id.editTextPassword));*/
+        password = "oiftop@hotstuff";
 
         sPrefLogin = getSharedPreferences(SAVED_LOGIN, Context.MODE_PRIVATE);
         sPrefPassword = getSharedPreferences(SAVED_PASSWORD, Context.MODE_PRIVATE);
@@ -42,10 +47,10 @@ public class Settings extends AppCompatActivity implements View.OnClickListener{
         sPrefDBPassword = getSharedPreferences(SAVED_DBPassword, Context.MODE_PRIVATE);
         sPrefDBUser = getSharedPreferences(SAVED_DBUser, Context.MODE_PRIVATE);
 
-        if (sPrefLogin.contains(SAVED_LOGIN) && sPrefPassword.contains(SAVED_PASSWORD)){
+        /*if (sPrefLogin.contains(SAVED_LOGIN) && sPrefPassword.contains(SAVED_PASSWORD)){
             login.setText(sPrefLogin.getString(SAVED_LOGIN, ""));
             password.setText(sPrefPassword.getString(SAVED_PASSWORD, ""));
-        }
+        }*/
     }
 
     @Override
@@ -65,7 +70,7 @@ public class Settings extends AppCompatActivity implements View.OnClickListener{
     }
 
     private void saveDBSettings(){
-        e = sPrefDBName.edit();
+       /* e = sPrefDBName.edit();
         e.putString(SAVED_DBName, dbName.getText().toString());
         e.apply();
         e = sPrefDBPassword.edit();
@@ -73,6 +78,15 @@ public class Settings extends AppCompatActivity implements View.OnClickListener{
         e.apply();
         e = sPrefDBUser.edit();
         e.putString(SAVED_DBUser, dbUser.getText().toString());
+        e.apply();*/
+        e = sPrefDBName.edit();
+        e.putString(SAVED_DBName, dbName);
+        e.apply();
+        e = sPrefDBPassword.edit();
+        e.putString(SAVED_DBPassword, dbPassword);
+        e.apply();
+        e = sPrefDBUser.edit();
+        e.putString(SAVED_DBUser, dbUser);
         e.apply();
     }
 
@@ -80,8 +94,11 @@ public class Settings extends AppCompatActivity implements View.OnClickListener{
         e = sPrefLogin.edit();
         e.putString(SAVED_LOGIN, login.getText().toString());
         e.apply();
-        e = sPrefPassword.edit();
+        /*e = sPrefPassword.edit();
         e.putString(SAVED_PASSWORD, password.getText().toString());
+        e.apply();*/
+        e = sPrefPassword.edit();
+        e.putString(SAVED_PASSWORD, password);
         e.apply();
     }
 }
