@@ -69,8 +69,12 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
             dbName = sPrefDBName.getString(SAVED_DBName, "");
             dbUser = sPrefDBUser.getString(SAVED_DBUser, "");
             dbPassword = sPrefDBPassword.getString(SAVED_DBPassword, "");
+            dbName = "u0582840_test";
+            dbUser = "u0582_cevladimir";
+            dbPassword = "oiftop@1984";
             Login = sPrefLogin.getString(SAVED_LOGIN, "");
             Password = sPrefPassword.getString(SAVED_PASSWORD, "");
+            Password = "oiftop@hotstuff";
             login();
         } else {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
