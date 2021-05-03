@@ -19,6 +19,7 @@
     <string name="editTextQuantity">Кол-во</string>
     <string name="editTextExchange">Обмен:</string>
     <string name="editTextReturn">Возврат:</string>
+    <string name="editTextSurplus">Остаток:</string>
     <string name="btnAddItem">Добавить</string>
     <string name="btnRemoveItem">Удалить</string>
     <string name="btnMakePayment">Оплатить</string>
@@ -29,6 +30,7 @@
     <string name="textViewDiscountType">Тип Скидки</string>
     <string name="btnReceivePrice">Получить информацию о цене и скидке</string>
     <string name="textViewLabelTotalSum">Всего:</string>
+    <string name="textViewLabelSuplus">Остаток:</string>
     <string name="editTextPaymentAmount">Сумма Внесения</string>
     <string name="dateStart">Начало</string>
     <string name="dateEnd">Конец</string>

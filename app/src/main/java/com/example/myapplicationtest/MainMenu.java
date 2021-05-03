@@ -1757,6 +1757,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                         + "ReturnQuantity  real,"
                         + "DateTimeDoc text,"
                         + "InvoiceSum real,"
+                        + "Surplus real,"
                         + "Comment text" + ");");
             }
 
@@ -1789,6 +1790,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                         + "Количество real,"
                         + "Обмен real,"
                         + "Возврат real,"
+                        + "Остаток real,"
                         + "Итого real" + ");");
             }
 
@@ -1809,6 +1811,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                         + "returnQuantity real,"
                         + "comment text DEFAULT 'none',"
                         + "dateTimeDocLocal text,"
+                        + "surplus real,"
                         + "invoiceSum text" + ");");
             }
 

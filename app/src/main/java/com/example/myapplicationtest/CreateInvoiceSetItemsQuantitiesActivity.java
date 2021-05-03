@@ -59,11 +59,11 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
     final String SAVED_ITEMNAME = "itemName";
     final String SAVED_ChangeInvoiceNotSynced = "changeInvoiceNotSynced";
     final String SAVED_AccountingTypeDoc = "accountingTypeDoc";
-    Double finalPrice, priceChanged, tmpQuantityOnStart, tmpExchangeOnStart, tmpReturnOnStart;
+    Double finalPrice, priceChanged, tmpQuantityOnStart, tmpExchangeOnStart, tmpReturnOnStart, tmpSurplusOnStart;
 //    ArrayList<String> myList;
     ArrayList<DataPrice> dataArray;
     TextView textViewSalesPartner, textViewItemName, textViewAccountingType, textViewTotal;
-    EditText editTextQuantity, editTextExchange, editTextReturn, editTextPrice;
+    EditText editTextQuantity, editTextExchange, editTextReturn, editTextPrice, editTextSurplus;
     Button btnChangePrice,btnSaveTmp;
     final String LOG_TAG = "myLogs";
     DBHelper dbHelper;
@@ -102,6 +102,7 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
         editTextQuantity = findViewById(R.id.editTextQuantity);
         editTextExchange = findViewById(R.id.editTextExchange);
         editTextReturn = findViewById(R.id.editTextReturn);
+        editTextSurplus = findViewById(R.id.editTextSurplus);
         textViewTotal = findViewById(R.id.textViewTotal);
 
         editTextQuantity.requestFocus();
@@ -180,6 +181,11 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
             tmpReturnOnStart = 0d;
         } else {
             tmpReturnOnStart = Double.parseDouble(editTextReturn.getText().toString());
+        }
+        if (editTextSurplus.getText().toString().trim().length() == 0) {
+            tmpSurplusOnStart = 0d;
+        } else {
+            tmpSurplusOnStart = Double.parseDouble(editTextSurplus.getText().toString());
         }
         onChangeListener();
     }
@@ -345,12 +351,14 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
                 int quantity = c.getColumnIndex("Количество");
                 int exchangeQuantity = c.getColumnIndex("Обмен");
                 int returnQuantity = c.getColumnIndex("Возврат");
+                int surplusQuantity = c.getColumnIndex("Остаток");
                 int total = c.getColumnIndex("Итого");
                 do {
                     if (c.getString(itemName).equals(item)){
                         editTextQuantity.setText(c.getString(quantity));
                         editTextExchange.setText(c.getString(exchangeQuantity));
                         editTextReturn.setText(c.getString(returnQuantity));
+                        editTextSurplus.setText(c.getString(surplusQuantity));
                         priceChanged = Double.parseDouble(c.getString(priceChangedTmp));
                         if (!c.getString(price).equals(c.getString(priceChangedTmp))){
 //                            editTextPrice.setText(c.getString(price));
@@ -369,12 +377,13 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
                 tmpQuantityOnStart = Double.parseDouble(editTextQuantity.getText().toString());
                 tmpExchangeOnStart = Double.parseDouble(editTextExchange.getText().toString());
                 tmpReturnOnStart = Double.parseDouble(editTextReturn.getText().toString());
+                tmpSurplusOnStart = Double.parseDouble(editTextSurplus.getText().toString());
             }
         }
     }
 
     private void saveTmp(){
-        Double tmpSum, tmpQuantity, tmpExchange, tmpReturn;
+        Double tmpSum, tmpQuantity, tmpExchange, tmpReturn, tmpSurplus;
         if (editTextPrice.getText().toString().trim().length() == 0){
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle("Ошибка")
@@ -424,6 +433,11 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
             } else {
                 tmpReturn = Double.parseDouble(editTextReturn.getText().toString());
             }
+            if (editTextSurplus.getText().toString().trim().length() == 0){
+                tmpSurplus = 0d;
+            } else {
+                tmpSurplus = Double.parseDouble(editTextSurplus.getText().toString());
+            }
 
             if (tmpQuantity == 0d && tmpExchange == 0d && tmpReturn == 0d){
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -451,6 +465,7 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
                     cv.put("Количество", tmpQuantity);
                     cv.put("Обмен", tmpExchange);
                     cv.put("Возврат", tmpReturn);
+                    cv.put("Остаток", tmpSurplus);
                     cv.put("Итого", tmpSum);
                     long rowID = db.insert("itemsToInvoiceTmp", null, cv);
                     Log.d(LOG_TAG, "row inserted, ID = " + rowID);
@@ -458,6 +473,7 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
                     tmpQuantityOnStart = tmpQuantity;
                     tmpExchangeOnStart = tmpExchange;
                     tmpReturnOnStart = tmpReturn;
+                    tmpSurplusOnStart = tmpSurplus;
                     finish();
                 } else {
                     ContentValues cv = new ContentValues();
@@ -467,6 +483,7 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
                     cv.put("Количество", tmpQuantity);
                     cv.put("Обмен", tmpExchange);
                     cv.put("Возврат", tmpReturn);
+                    cv.put("Остаток", tmpSurplus);
                     cv.put("Итого", tmpSum);
                     long rowID = db.update("itemsToInvoiceTmp", cv, "Наименование = ?",
                             new String[]{item});
@@ -644,6 +661,42 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
                                 if (tmpD > 0) {
                                     Toast.makeText(getApplicationContext(), "<<< Этот товар в пачках >>>", Toast.LENGTH_SHORT).show();
                                     editTextExchange.setText("");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        editTextSurplus.addTextChangedListener(new TextWatcher() {
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                // текст только что изменили
+            }
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                // текст будет изменен
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                if (editTextSurplus.getText().toString().trim().length() > 0d){
+                    if (!item.equals("Ким-ча весовая") && !item.equals("Редька по-восточному весовая")){
+                        if ((Double.parseDouble(editTextSurplus.getText().toString()) > 0d &&
+                                Double.parseDouble(editTextSurplus.getText().toString()) < 1d)){
+                            Toast.makeText(getApplicationContext(), "<<< Этот товар в пачках >>>", Toast.LENGTH_SHORT).show();
+                            editTextSurplus.setText("");
+                        }
+                        if (editTextSurplus.getText().toString().trim().length() > 0d) {
+                            if (Double.parseDouble(editTextSurplus.getText().toString()) >= 1) {
+                                Double tmpD = Double.parseDouble(editTextSurplus.getText().toString()) %
+                                        Math.floor(Double.parseDouble(editTextSurplus.getText().toString()));
+                                if (tmpD > 0) {
+                                    Toast.makeText(getApplicationContext(), "<<< Этот товар в пачках >>>", Toast.LENGTH_SHORT).show();
+                                    editTextSurplus.setText("");
                                 }
                             }
                         }
@@ -837,15 +890,18 @@ public class CreateInvoiceSetItemsQuantitiesActivity extends AppCompatActivity i
     public void onBackPressed() {
         if (editTextQuantity.getText().toString().trim().length() > 0 &&
                 editTextExchange.getText().toString().trim().length() > 0 &&
-                editTextReturn.getText().toString().trim().length() > 0){
+                editTextReturn.getText().toString().trim().length() > 0 &&
+                editTextSurplus.getText().toString().trim().length() > 0){
             if (tmpQuantityOnStart != Double.parseDouble(editTextQuantity.getText().toString()) ||
                     tmpExchangeOnStart != Double.parseDouble(editTextExchange.getText().toString()) ||
-                    tmpReturnOnStart != Double.parseDouble(editTextReturn.getText().toString())){
+                    tmpReturnOnStart != Double.parseDouble(editTextReturn.getText().toString()) ||
+                    tmpSurplusOnStart != Double.parseDouble(editTextSurplus.getText().toString())){
                 openQuitDialog();
             }
             if (tmpQuantityOnStart == Double.parseDouble(editTextQuantity.getText().toString()) &&
                     tmpExchangeOnStart == Double.parseDouble(editTextExchange.getText().toString()) &&
-                    tmpReturnOnStart == Double.parseDouble(editTextReturn.getText().toString())) {
+                    tmpReturnOnStart == Double.parseDouble(editTextReturn.getText().toString()) ||
+                    tmpSurplusOnStart == Double.parseDouble(editTextSurplus.getText().toString())) {
                 finish();
             }
         } else {
