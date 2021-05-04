@@ -6,14 +6,16 @@ public class DataItemsListTmp {
     private String itemName;
     private Integer price;
     private Double quantity;
+    private Double surplus;
     private Double total;
     private Double returnQuantity;
 
-    public DataItemsListTmp(Double exchange, String itemName, Integer price, Double quantity, Double total, Double returnQuantity) {
+    public DataItemsListTmp(Double exchange, String itemName, Integer price, Double quantity, Double surplus, Double total, Double returnQuantity) {
         this.exchange = exchange;
         this.itemName = itemName;
         this.price = price;
         this.quantity = quantity;
+        this.surplus = surplus;
         this.total = total;
         this.returnQuantity = returnQuantity;
     }
@@ -48,6 +50,14 @@ public class DataItemsListTmp {
 
     public void setQuantity(Double quantity) {
         this.quantity = quantity;
+    }
+
+    public Double getSurplus() {
+        return surplus;
+    }
+
+    public void setSurplus(Double surplus) {
+        this.surplus = surplus;
     }
 
     public Double getTotal() {
