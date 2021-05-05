@@ -48,6 +48,16 @@
         app:layout_constraintTop_toBottomOf="@+id/dateTimeDocLocalLabel" />
 
     <TextView
+        android:id="@+id/surplusLabel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:text="@string/editTextSurplus"
+        app:layout_constraintEnd_toStartOf="@+id/surplusLocal"
+        app:layout_constraintTop_toBottomOf="@+id/invoiceSumLabel" />
+
+    <TextView
         android:id="@+id/dateTimeDocLocalLabel"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -75,7 +85,7 @@
         android:layout_marginEnd="8dp"
         android:text="@string/textViewPaymentStatusLabel"
         app:layout_constraintEnd_toStartOf="@+id/paymentStatus"
-        app:layout_constraintTop_toBottomOf="@+id/invoiceSumLabel" />
+        app:layout_constraintTop_toBottomOf="@+id/surplusLabel" />
 
     <TextView
         android:id="@+id/salesPartner"
@@ -126,11 +136,19 @@
         app:layout_constraintTop_toBottomOf="@+id/dateTimeDocLocal" />
 
     <TextView
-        android:id="@+id/paymentStatus"
+        android:id="@+id/surplusLocal"
         android:layout_width="210dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/invoiceSum" />
+
+    <TextView
+        android:id="@+id/paymentStatus"
+        android:layout_width="210dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/surplusLocal" />
 
 </android.support.constraint.ConstraintLayout>

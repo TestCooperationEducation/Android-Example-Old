@@ -3,7 +3,7 @@ package com.example.myapplicationtest;
 public class DataInvoice {
     private String accountingTypeDoc, accountingTypeSP, itemName, dateTimeDocLocal, comment;
     private Integer salesPartnerID, invoiceNumber, agentID, areaSP;
-    private Double price, quantity, totalCost, exchange, returns, invoiceSum;
+    private Double price, quantity, totalCost, exchange, returns, surplus, invoiceSum;
 
     public String getAccountingTypeDoc() {
         return accountingTypeDoc;
@@ -117,6 +117,14 @@ public class DataInvoice {
         this.returns = returns;
     }
 
+    public Double getSurplus() {
+        return surplus;
+    }
+
+    public void setSurplus(Double surplus) {
+        this.surplus = surplus;
+    }
+
     public Double getInvoiceSum() {
         return invoiceSum;
     }
@@ -128,7 +136,7 @@ public class DataInvoice {
     public DataInvoice(String accountingTypeDoc, String accountingTypeSP, String itemName, String dateTimeDocLocal,
                        String comment, Integer salesPartnerID, Integer invoiceNumber, Integer agentID,
                        Integer areaSP, Double price, Double quantity, Double totalCost, Double exchange,
-                       Double returns, Double invoiceSum) {
+                       Double returns, Double surplus, Double invoiceSum) {
         this.accountingTypeDoc = accountingTypeDoc;
         this.accountingTypeSP = accountingTypeSP;
         this.itemName = itemName;
@@ -143,6 +151,7 @@ public class DataInvoice {
         this.totalCost = totalCost;
         this.exchange = exchange;
         this.returns = returns;
+        this.surplus = surplus;
         this.invoiceSum = invoiceSum;
 
     }

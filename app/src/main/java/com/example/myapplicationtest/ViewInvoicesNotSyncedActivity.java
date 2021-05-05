@@ -289,14 +289,16 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
                 int accountingTypeDocTmp = c.getColumnIndex("accountingTypeDoc");
                 int dateTimeDocLocalTmp = c.getColumnIndex("dateTimeDocLocal");
                 int invoiceSumTmp = c.getColumnIndex("invoiceSum");
+                int surplusTmp = c.getColumnIndex("surplus");
                 String salesPartnerName = c.getString(salesPartnerNameTmp);
                 String accountingTypeDoc = c.getString(accountingTypeDocTmp);
                 String dateTimeDocLocal = c.getString(dateTimeDocLocalTmp);
                 Double invoiceSum = Double.parseDouble(c.getString(invoiceSumTmp));
+                Double surplus = Double.parseDouble(c.getString(surplusTmp));
                 paymentStatus = "";
                 listTmp.add(new DataInvoiceLocal(salesPartnerName, accountingTypeDoc,
                         Integer.parseInt(invoiceNumberServerTmp.get(0)), dateTimeDocServer.get(0), dateTimeDocLocal,
-                        invoiceSum, paymentStatus));
+                        invoiceSum, surplus, paymentStatus));
                 c.moveToNext();
             }
             c.close();
@@ -1107,6 +1109,7 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
                     int totalCostTmp = c.getColumnIndex("totalCost");
                     int exchangeTmp = c.getColumnIndex("exchangeQuantity");
                     int returnTmp = c.getColumnIndex("returnQuantity");
+                    int surplusTmp = c.getColumnIndex("surplus");
                     int dateTimeDocLocalTmp = c.getColumnIndex("dateTimeDocLocal");
                     int invoiceSumTmp = c.getColumnIndex("invoiceSum");
                     int commentTmp = c.getColumnIndex("comment");
@@ -1130,6 +1133,7 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
                         Double totalCost = Double.parseDouble(c.getString(totalCostTmp));
                         Double exchangeQuantity = Double.parseDouble(c.getString(exchangeTmp));
                         Double returnQuantity = Double.parseDouble(c.getString(returnTmp));
+                        Double surplus = Double.parseDouble(c.getString(surplusTmp));
                         String dateTimeDocLocal = c.getString(dateTimeDocLocalTmp);
                         Double invoiceSum = Double.parseDouble(c.getString(invoiceSumTmp));
                         String comment = c.getString(commentTmp);
@@ -1138,7 +1142,7 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
 
                         DataInvoice dt = new DataInvoice(accountingTypeDoc, accountingTypeSP,
                                 itemName, dateTimeDocLocal, comment, salesPartnerID, invoiceNumberLocal, agentID, areaSP, price,
-                                quantity, totalCost, exchangeQuantity, returnQuantity, invoiceSum);
+                                quantity, totalCost, exchangeQuantity, returnQuantity, surplus, invoiceSum);
                         dataArray.add(dt);
                     } while (c.moveToNext());
                 }

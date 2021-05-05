@@ -7,17 +7,19 @@ public class DataInvoiceLocal {
     private String dateTimeDocServer;
     private String dateTimeDocLocal;
     private Double invoiceSum;
+    private Double surplus;
     private String paymentStatus;
 
     public DataInvoiceLocal(String salesPartnerName, String accountingType,
                             Integer invoiceNumberServer, String dateTimeDocServer,
-                            String dateTimeDocLocal, Double invoiceSum, String paymentStatus) {
+                            String dateTimeDocLocal, Double invoiceSum, Double surplus, String paymentStatus) {
         this.salesPartnerName = salesPartnerName;
         this.accountingType = accountingType;
         this.invoiceNumberServer = invoiceNumberServer;
         this.dateTimeDocServer = dateTimeDocServer;
         this.dateTimeDocLocal = dateTimeDocLocal;
         this.invoiceSum = invoiceSum;
+        this.surplus = surplus;
         this.paymentStatus = paymentStatus;
     }
 
@@ -67,6 +69,14 @@ public class DataInvoiceLocal {
 
     public void setInvoiceSum(Double invoiceSum) {
         this.invoiceSum = invoiceSum;
+    }
+
+    public Double getSurplus() {
+        return surplus;
+    }
+
+    public void setSurplus(Double surplus) {
+        this.surplus = surplus;
     }
 
     public String getPaymentStatus() {

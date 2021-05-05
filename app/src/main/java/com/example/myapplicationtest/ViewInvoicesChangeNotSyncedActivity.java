@@ -173,6 +173,7 @@ public class ViewInvoicesChangeNotSyncedActivity extends AppCompatActivity imple
                                                 int quantityTmp = c.getColumnIndex("quantity");
                                                 int exchangeQuantityTmp = c.getColumnIndex("exchangeQuantity");
                                                 int returnQuantityTmp = c.getColumnIndex("returnQuantity");
+                                                int surplusTmp = c.getColumnIndex("surplus");
                                                 int totalCostTmp = c.getColumnIndex("totalCost");
 
                                                 do {
@@ -188,6 +189,7 @@ public class ViewInvoicesChangeNotSyncedActivity extends AppCompatActivity imple
                                                     String quantity = c.getString(quantityTmp);
                                                     String exchangeQuantity = c.getString(exchangeQuantityTmp);
                                                     String returnQuantity = c.getString(returnQuantityTmp);
+                                                    String surplus = c.getString(surplusTmp);
                                                     String totalCost = c.getString(totalCostTmp);
                                                     ContentValues cv = new ContentValues();
                                                     Log.d(LOG_TAG, "--- Insert in itemsToInvoiceTmp: ---");
@@ -198,6 +200,7 @@ public class ViewInvoicesChangeNotSyncedActivity extends AppCompatActivity imple
                                                     cv.put("Количество", quantity);
                                                     cv.put("Обмен", exchangeQuantity);
                                                     cv.put("Возврат", returnQuantity);
+                                                    cv.put("Остаток", surplus);
                                                     cv.put("Итого", totalCost);
                                                     long rowID = db.insert("itemsToInvoiceTmp", null, cv);
                                                     Log.d(LOG_TAG, "row inserted, ID = " + rowID);
@@ -327,7 +330,7 @@ public class ViewInvoicesChangeNotSyncedActivity extends AppCompatActivity imple
         areaSP = new String[invoiceNumbersList.size()];
 
         for (int i = 0; i < invoiceNumbersList.size(); i++){
-            String sql = "SELECT DISTINCT areaSP, salesPartnerName, accountingTypeDoc, accountingTypeSP, dateTimeDocLocal, invoiceSum" +
+            String sql = "SELECT DISTINCT areaSP, salesPartnerName, accountingTypeDoc, accountingTypeSP, dateTimeDocLocal, invoiceSum, surplus" +
                     " FROM invoiceLocalDB WHERE invoiceNumber LIKE ?";
             Cursor c = db.rawQuery(sql, new String[]{invoiceNumbersList.get(i).toString()});
             if (c.moveToFirst()) {
@@ -336,6 +339,7 @@ public class ViewInvoicesChangeNotSyncedActivity extends AppCompatActivity imple
                 int accountingTypeSPTmp = c.getColumnIndex("accountingTypeSP");
                 int dateTimeDocLocalTmp = c.getColumnIndex("dateTimeDocLocal");
                 int invoiceSumTmp = c.getColumnIndex("invoiceSum");
+                int surplusTmp = c.getColumnIndex("surplus");
                 int areaSPTmp = c.getColumnIndex("areaSP");
                 areaSPStr = c.getString(areaSPTmp);
                 salesPartnerName = c.getString(salesPartnerNameTmp);
@@ -343,10 +347,11 @@ public class ViewInvoicesChangeNotSyncedActivity extends AppCompatActivity imple
                 accountingTypeSPStr = c.getString(accountingTypeSPTmp);
                 String dateTimeDocLocal = c.getString(dateTimeDocLocalTmp);
                 Double invoiceSum = Double.parseDouble(c.getString(invoiceSumTmp));
+                Double surplus = Double.parseDouble(c.getString(surplusTmp));
                 paymentStatus = "";
                 listTmp.add(new DataInvoiceLocal(salesPartnerName, accountingTypeDocStr,
                         Integer.parseInt(invoiceNumberServerTmp.get(0)), dateTimeDocServer.get(0), dateTimeDocLocal,
-                        invoiceSum, paymentStatus));
+                        invoiceSum, surplus, paymentStatus));
                 c.moveToNext();
             }
             c.close();
