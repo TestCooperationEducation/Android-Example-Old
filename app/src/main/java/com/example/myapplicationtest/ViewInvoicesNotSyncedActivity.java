@@ -119,7 +119,7 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
     String paymentStatus, invoiceNumbers = "", dbName, dbUser, dbPassword, csvFileTypeOneReport,
             csvFileTypeOneFormCopy, csvFileTypeOneForm, csvFileTypeTwoForm, salesPartnerNameChosen,
             inputFileTypeOne, inputFileTypeTwo, csvFileTypeTwoReport, csvFileTypeTwoFormCopy, csvFileTypeOneFormCopyPDF,
-            requestUrlSaveRecord = "https://caiman.ru.com/php/saveNewInvoice_new.php",
+            requestUrlSaveRecord = "https://caiman.ru.com/php/saveNewInvoice_new_old.php",
             requestUrlCheckSyncStatus = "https://caiman.ru.com/php/checkSyncStatus.php", accTypeDoc,
             loginSecurity, statusSave = "", areaDefault, invoiceNumberLast, invoiceNumberFirst, invoiceNumberChosen, accTypeSPChosen;
     final String SAVED_DBName = "dbName";
@@ -281,7 +281,7 @@ public class ViewInvoicesNotSyncedActivity extends AppCompatActivity implements 
         }
 
         for (int i = 0; i < invoiceNumbersList.size(); i++){
-            String sql = "SELECT salesPartnerName, accountingTypeDoc, dateTimeDocLocal, invoiceSum" +
+            String sql = "SELECT salesPartnerName, accountingTypeDoc, dateTimeDocLocal, invoiceSum, surplus" +
                     " FROM invoiceLocalDB WHERE invoiceNumber LIKE ?";
             Cursor c = db.rawQuery(sql, new String[]{invoiceNumbersList.get(i).toString()});
             if (c.moveToFirst()) {

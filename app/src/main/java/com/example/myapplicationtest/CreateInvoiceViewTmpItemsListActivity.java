@@ -279,6 +279,7 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
                 cv.put("totalCost", arrSum.get(i));
                 cv.put("exchangeQuantity", arrExchange.get(i));
                 cv.put("returnQuantity", arrReturn.get(i));
+                cv.put("surplus", arrSurplus.get(i));
                 cv.put("dateTimeDocLocal", output);
                 cv.put("invoiceSum", invoiceSum);
                 cv.put("comment", comment);
@@ -342,7 +343,6 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
                     cv.put("salesPartnerName", salesPartner);
                     cv.put("accountingTypeDoc", accountingTypeDocFilter);
                     cv.put("accountingTypeSP", accountingTypeDefault);
-
                     cv.put("itemName", arrItems.get(i));
                     cv.put("quantity", arrQuantity.get(i));
                     cv.put("surplus", arrSurplus.get(i));

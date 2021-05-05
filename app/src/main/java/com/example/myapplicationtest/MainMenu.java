@@ -186,11 +186,13 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         }
 
 //        db.execSQL("DROP TABLE IF EXISTS invoiceLocalDB");
+//        db.execSQL("DROP TABLE IF EXISTS invoice");
 //        db.execSQL("DROP TABLE IF EXISTS syncedInvoice");
 //        db.execSQL("DROP TABLE IF EXISTS syncedPayments");
 //        db.execSQL("DROP TABLE IF EXISTS payments");
 //        db.execSQL("DROP TABLE IF EXISTS itemsToInvoiceTmp");
 //        db.execSQL("DROP TABLE IF EXISTS receiveLocal");
+//        dbHelper.onUpgrade(db, 1, 2);
     }
 
     @Override
@@ -1741,7 +1743,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                         + "Автор текст" + ");");
             }
 
-            if (tableExists(db, "invoice")) {
+            if (!tableExists(db, "invoice")) {
                 db.execSQL("create table invoice ("
                         + "id integer primary key autoincrement,"
                         + "serverDB_ID integer UNIQUE ON CONFLICT REPLACE,"
@@ -1780,7 +1782,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                         + "Автор text" + ");");
             }
 
-            if (tableExists(db, "itemsToInvoiceTmp")) {
+            if (!tableExists(db, "itemsToInvoiceTmp")) {
                 db.execSQL("create table itemsToInvoiceTmp ("
                         + "id integer primary key autoincrement,"
                         + "Контрагент text,"
@@ -1794,7 +1796,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                         + "Итого real" + ");");
             }
 
-            if (tableExists(db, "invoiceLocalDB")) {
+            if (!tableExists(db, "invoiceLocalDB")) {
                 db.execSQL("create table invoiceLocalDB ("
                         + "id integer primary key autoincrement,"
                         + "invoiceNumber integer,"
