@@ -131,7 +131,7 @@
     <Button
         android:id="@+id/buttonSaveTmp"
         android:layout_width="407dp"
-        android:layout_height="368dp"
+        android:layout_height="0dp"
         android:layout_marginTop="8dp"
         android:text="@string/btnSaveRecord"
         android:textSize="36sp"
@@ -163,6 +163,7 @@
         android:layout_marginTop="5dp"
         android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toEndOf="@+id/textViewTotalLabel"
         app:layout_constraintTop_toBottomOf="@+id/editTextSurplus" />
 
