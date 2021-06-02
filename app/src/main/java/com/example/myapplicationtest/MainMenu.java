@@ -186,11 +186,13 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         }
 
 //        db.execSQL("DROP TABLE IF EXISTS invoiceLocalDB");
+//        db.execSQL("DROP TABLE IF EXISTS invoice");
 //        db.execSQL("DROP TABLE IF EXISTS syncedInvoice");
 //        db.execSQL("DROP TABLE IF EXISTS syncedPayments");
 //        db.execSQL("DROP TABLE IF EXISTS payments");
 //        db.execSQL("DROP TABLE IF EXISTS itemsToInvoiceTmp");
 //        db.execSQL("DROP TABLE IF EXISTS receiveLocal");
+//        dbHelper.onUpgrade(db, 1, 2);
     }
 
     @Override
@@ -1757,6 +1759,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                         + "ReturnQuantity  real,"
                         + "DateTimeDoc text,"
                         + "InvoiceSum real,"
+                        + "Surplus real,"
                         + "Comment text" + ");");
             }
 
@@ -1789,6 +1792,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                         + "Количество real,"
                         + "Обмен real,"
                         + "Возврат real,"
+                        + "Остаток real,"
                         + "Итого real" + ");");
             }
 
@@ -1809,6 +1813,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                         + "returnQuantity real,"
                         + "comment text DEFAULT 'none',"
                         + "dateTimeDocLocal text,"
+                        + "surplus real,"
                         + "invoiceSum text" + ");");
             }
 

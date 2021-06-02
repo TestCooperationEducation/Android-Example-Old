@@ -11,14 +11,12 @@
         android:layout_width="0dp"
         android:layout_height="45dp"
         android:layout_marginStart="10dp"
-        android:layout_marginLeft="10dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginRight="8dp"
         android:hint="@string/textViewReceivedPrice"
         android:inputType="numberDecimal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/textViewPriceLabel"
-        app:layout_constraintTop_toBottomOf="@+id/textViewAccountingType" />
+        app:layout_constraintTop_toBottomOf="@+id/textViewAccountingType"
+        android:importantForAutofill="no" />
 
     <TextView
         android:id="@+id/textViewPriceLabel"
@@ -73,14 +71,14 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toEndOf="@+id/textViewQuantityLabel"
-        app:layout_constraintTop_toBottomOf="@+id/textViewPriceLabel" />
+        app:layout_constraintTop_toBottomOf="@+id/textViewPriceLabel"
+        android:importantForAutofill="no" />
 
     <EditText
         android:id="@+id/editTextExchange"
         android:layout_width="0dp"
         android:layout_height="45dp"
         android:layout_marginStart="10dp"
-        android:layout_marginLeft="10dp"
         android:layout_marginTop="5dp"
         android:hint="@string/editTextExchange"
         android:inputType="numberDecimal"
@@ -88,14 +86,14 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toEndOf="@+id/textViewExchangeLabel"
-        app:layout_constraintTop_toBottomOf="@+id/editTextQuantity" />
+        app:layout_constraintTop_toBottomOf="@+id/editTextQuantity"
+        android:importantForAutofill="no" />
 
     <EditText
         android:id="@+id/editTextReturn"
         android:layout_width="0dp"
         android:layout_height="45dp"
         android:layout_marginStart="10dp"
-        android:layout_marginLeft="10dp"
         android:layout_marginTop="5dp"
         android:hint="@string/editTextReturn"
         android:inputType="numberDecimal"
@@ -103,7 +101,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toEndOf="@+id/textViewReturnLabel"
-        app:layout_constraintTop_toBottomOf="@+id/editTextExchange" />
+        app:layout_constraintTop_toBottomOf="@+id/editTextExchange"
+        android:importantForAutofill="no" />
 
     <TextView
         android:id="@+id/textViewItemName"
@@ -131,7 +130,7 @@
 
     <Button
         android:id="@+id/buttonSaveTmp"
-        android:layout_width="0dp"
+        android:layout_width="407dp"
         android:layout_height="0dp"
         android:layout_marginTop="8dp"
         android:text="@string/btnSaveRecord"
@@ -141,6 +140,43 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textViewTotal" />
 
+    <EditText
+        android:id="@+id/editTextSurplus"
+        android:layout_width="0dp"
+        android:layout_height="45dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="5dp"
+        android:hint="@string/editTextSurplus"
+        android:inputType="numberDecimal"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toEndOf="@+id/textViewSurplusLabel"
+        app:layout_constraintTop_toBottomOf="@+id/editTextReturn"
+        android:importantForAutofill="no" />
+
+    <TextView
+        android:id="@+id/textViewTotal"
+        android:layout_width="346dp"
+        android:layout_height="45dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="5dp"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toEndOf="@+id/textViewTotalLabel"
+        app:layout_constraintTop_toBottomOf="@+id/editTextSurplus" />
+
+    <TextView
+        android:id="@+id/textViewSurplusLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="45dp"
+        android:layout_marginTop="5dp"
+        android:text="@string/textViewLabelSuplus"
+        android:textSize="18sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewReturnLabel" />
+
     <TextView
         android:id="@+id/textViewTotalLabel"
         android:layout_width="wrap_content"
@@ -149,18 +185,6 @@
         android:text="@string/textViewLabelTotalSum"
         android:textSize="18sp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textViewReturnLabel" />
-
-    <TextView
-        android:id="@+id/textViewTotal"
-        android:layout_width="0dp"
-        android:layout_height="45dp"
-        android:layout_marginStart="10dp"
-        android:layout_marginLeft="10dp"
-        android:layout_marginTop="5dp"
-        android:textSize="18sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/textViewTotalLabel"
-        app:layout_constraintTop_toBottomOf="@+id/editTextReturn" />
+        app:layout_constraintTop_toBottomOf="@+id/textViewSurplusLabel" />
 
 </android.support.constraint.ConstraintLayout>

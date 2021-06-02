@@ -33,6 +33,7 @@ public class DataAdapterViewInvoicesFromLocalDB extends RecyclerView.Adapter<Dat
         holder.dateTimeDocServerView.setText(invoiceLocal.getDateTimeDocServer());
         holder.dateTimeDocLocalView.setText(invoiceLocal.getDateTimeDocLocal());
         holder.invoiceSumView.setText(invoiceLocal.getInvoiceSum().toString());
+        holder.surplusView.setText(invoiceLocal.getSurplus().toString());
         holder.paymentStatusView.setText(invoiceLocal.getPaymentStatus());
     }
 
@@ -43,7 +44,7 @@ public class DataAdapterViewInvoicesFromLocalDB extends RecyclerView.Adapter<Dat
 
     static class ViewHolder extends RecyclerView.ViewHolder {
         final TextView salesPartnerNameView, accountingTypeView, invoiceNumberServerView, dateTimeDocServerView,
-                dateTimeDocLocalView, invoiceSumView, paymentStatusView;
+                dateTimeDocLocalView, invoiceSumView, surplusView, paymentStatusView;
         ViewHolder(View view){
             super(view);
             salesPartnerNameView = view.findViewById(R.id.salesPartner);
@@ -52,6 +53,7 @@ public class DataAdapterViewInvoicesFromLocalDB extends RecyclerView.Adapter<Dat
             dateTimeDocServerView = view.findViewById(R.id.dateTimeDocServer);
             dateTimeDocLocalView = view.findViewById(R.id.dateTimeDocLocal);
             invoiceSumView = view.findViewById(R.id.invoiceSum);
+            surplusView = view.findViewById(R.id.surplusLocal);
             paymentStatusView = view.findViewById(R.id.paymentStatus);
         }
     }

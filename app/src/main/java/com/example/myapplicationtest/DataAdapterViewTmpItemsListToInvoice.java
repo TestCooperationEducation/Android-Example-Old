@@ -36,6 +36,8 @@ public class DataAdapterViewTmpItemsListToInvoice extends RecyclerView.Adapter<D
         holder.priceView.setText(itemsListTmp.getPrice().toString());
         holder.quantityView.setText(itemsListTmp.getQuantity().toString());
         holder.quantityView.setTextColor(Color.parseColor("Black"));
+        holder.surplusView.setText(itemsListTmp.getSurplus().toString());
+        holder.surplusView.setTextColor(Color.parseColor("Black"));
         holder.totalView.setText(itemsListTmp.getTotal().toString());
         holder.returnQuantityView.setText(itemsListTmp.getReturnQuantity().toString());
     }
@@ -46,13 +48,14 @@ public class DataAdapterViewTmpItemsListToInvoice extends RecyclerView.Adapter<D
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
-        final TextView itemNameView, exchangeView, priceView, quantityView, totalView, returnQuantityView;
+        final TextView itemNameView, exchangeView, priceView, quantityView, surplusView, totalView, returnQuantityView;
         ViewHolder(View view){
             super(view);
             itemNameView = view.findViewById(R.id.itemName);
             exchangeView = view.findViewById(R.id.exchange);
             priceView = view.findViewById(R.id.price);
             quantityView = view.findViewById(R.id.quantity);
+            surplusView = view.findViewById(R.id.surplus);
             totalView = view.findViewById(R.id.total);
             returnQuantityView = view.findViewById(R.id.returnQuantity);
         }

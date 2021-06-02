@@ -62,6 +62,7 @@ public class ViewInvoicesSyncedShowMoreActivity extends AppCompatActivity {
             int salesPartnerNameTmp = c.getColumnIndex("Наименование");
             int accountingTypeDocTmp = c.getColumnIndex("AccountingType");
             int invoiceSumTmp = c.getColumnIndex("InvoiceSum");
+            int surplusTmp = c.getColumnIndex("Surplus");
             textViewSalesPartner.setText(c.getString(salesPartnerNameTmp));
             textViewAccountingType.setText(c.getString(accountingTypeDocTmp));
             textViewTotalSum.setText(c.getString(invoiceSumTmp));
@@ -69,7 +70,7 @@ public class ViewInvoicesSyncedShowMoreActivity extends AppCompatActivity {
                 listTmp.add(new DataItemsListTmp(Double.parseDouble(c.getString(exchange)),
                         c.getString(17), Integer.parseInt(c.getString(price)),
                         Double.parseDouble(c.getString(quantity)), Double.parseDouble(c.getString(total)),
-                        Double.parseDouble(c.getString(returnQuantity))));
+                        Double.parseDouble(c.getString(returnQuantity)), Double.parseDouble(c.getString(surplusTmp))));
 
 //                invoiceSum = invoiceSum + Double.parseDouble(c.getString(total));
 //                arrExchange.add(Double.parseDouble(c.getString(exchange)));

@@ -83,7 +83,7 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
     Button btnSaveInvoiceToLocalDB;
     Integer invoiceNumber, tmpCount;
     ArrayList<String> arrItems;
-    ArrayList<Double> arrQuantity, arrExchange, arrReturn, arrSum, arrPriceChanged;
+    ArrayList<Double> arrQuantity, arrExchange, arrReturn, arrSurplus, arrSum, arrPriceChanged;
     List<DataInvoice> dataArray;
     List<DataPay> dataPay;
     ArrayList<Integer> invoiceNumbersList;
@@ -103,6 +103,7 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
         arrQuantity = new ArrayList<>();
         arrExchange = new ArrayList<>();
         arrReturn = new ArrayList<>();
+        arrSurplus = new ArrayList<>();
         arrPriceChanged = new ArrayList<>();
         dataArray = new ArrayList<>();
         dataPay = new ArrayList<>();
@@ -199,12 +200,15 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
             int itemName = c.getColumnIndex("Наименование");
             int price = c.getColumnIndex("ЦенаИзмененная");
             int quantity = c.getColumnIndex("Количество");
+            int surplus = c.getColumnIndex("Остаток");
             int total = c.getColumnIndex("Итого");
             int returnQuantity = c.getColumnIndex("Возврат");
             do {
                 listTmp.add(new DataItemsListTmp(Double.parseDouble(c.getString(exchange)),
                         c.getString(itemName), Integer.parseInt(c.getString(price)),
-                        Double.parseDouble(c.getString(quantity)), Double.parseDouble(c.getString(total)),
+                        Double.parseDouble(c.getString(quantity)),
+                        Double.parseDouble(c.getString(surplus)),
+                        Double.parseDouble(c.getString(total)),
                         Double.parseDouble(c.getString(returnQuantity))));
 
                 invoiceSum = invoiceSum + Double.parseDouble(c.getString(total));
@@ -212,6 +216,7 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
                 arrItems.add(c.getString(itemName));
                 arrPriceChanged.add(Double.parseDouble(c.getString(price)));
                 arrQuantity.add(Double.parseDouble(c.getString(quantity)));
+                arrSurplus.add(Double.parseDouble(c.getString(surplus)));
                 arrSum.add(Double.parseDouble(c.getString(total)));
                 arrReturn.add(Double.parseDouble(c.getString(returnQuantity)));
 
@@ -269,10 +274,12 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
                 cv.put("accountingTypeSP", accountingTypeDefault);
                 cv.put("itemName", arrItems.get(i));
                 cv.put("quantity", arrQuantity.get(i));
+                cv.put("surplus", arrSurplus.get(i));
                 cv.put("price", arrPriceChanged.get(i));
                 cv.put("totalCost", arrSum.get(i));
                 cv.put("exchangeQuantity", arrExchange.get(i));
                 cv.put("returnQuantity", arrReturn.get(i));
+                cv.put("surplus", arrSurplus.get(i));
                 cv.put("dateTimeDocLocal", output);
                 cv.put("invoiceSum", invoiceSum);
                 cv.put("comment", comment);
@@ -320,6 +327,7 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
                     cv.put("totalCost", arrSum.get(i));
                     cv.put("exchangeQuantity", arrExchange.get(i));
                     cv.put("returnQuantity", arrReturn.get(i));
+                    cv.put("surplus", arrSurplus.get(i));
 //                    cv.put("dateTimeDocLocal", output);
                     cv.put("invoiceSum", invoiceSum);
 //                cv.put("comment", comment);
@@ -335,9 +343,9 @@ public class CreateInvoiceViewTmpItemsListActivity extends AppCompatActivity imp
                     cv.put("salesPartnerName", salesPartner);
                     cv.put("accountingTypeDoc", accountingTypeDocFilter);
                     cv.put("accountingTypeSP", accountingTypeDefault);
-
                     cv.put("itemName", arrItems.get(i));
                     cv.put("quantity", arrQuantity.get(i));
+                    cv.put("surplus", arrSurplus.get(i));
                     cv.put("price", arrPriceChanged.get(i));
                     cv.put("totalCost", arrSum.get(i));
                     cv.put("exchangeQuantity", arrExchange.get(i));
