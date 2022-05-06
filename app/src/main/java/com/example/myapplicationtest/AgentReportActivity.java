@@ -466,7 +466,7 @@ public class AgentReportActivity extends AppCompatActivity implements View.OnCli
                 if (!arrayMapQuantity.keyAt(i).equals("Ким-ча 700 гр особая цена 1") &&
                         !arrayMapQuantity.keyAt(i).equals("Ким-ча 500 гр") &&
                         !arrayMapQuantity.keyAt(i).equals("Редька по-восточному 500гр особая цена 1") &&
-                        !arrayMapQuantity.keyAt(i).equals("Редька по-восточному 500гр особая цена 2")){
+                        !arrayMapQuantity.keyAt(i).equals("Редька по-восточному 250гр")){
                     if (arrayMapQuantity.keyAt(i).equals("Ким-ча весовая")) {
                         if (arrayMapQuantityReduced.containsKey("Ким-ча весовая") &&
                                 arrayMapExchangeReduced.containsKey("Ким-ча весовая") &&
@@ -544,17 +544,17 @@ public class AgentReportActivity extends AppCompatActivity implements View.OnCli
                     }
                 }
 
-                if (arrayMapQuantity.keyAt(i).equals("Редька по-восточному 500гр особая цена 2")) {
+                if (arrayMapQuantity.keyAt(i).equals("Редька по-восточному 250гр")) {
                     if (arrayMapQuantityReduced.containsKey("Редька по-восточному весовая") &&
                             arrayMapExchangeReduced.containsKey("Редька по-восточному весовая") &&
                             arrayMapReturnReduced.containsKey("Редька по-восточному весовая")) {
-                        arrayMapQuantityReduced.put("Редька по-восточному весовая", arrayMapQuantityReduced.get("Редька по-восточному весовая") + (arrayMapQuantity.valueAt(i) * 0.5));
-                        arrayMapExchangeReduced.put("Редька по-восточному весовая", arrayMapExchangeReduced.get("Редька по-восточному весовая") + (arrayMapExchange.valueAt(i) * 0.5));
-                        arrayMapReturnReduced.put("Редька по-восточному весовая", arrayMapReturnReduced.get("Редька по-восточному весовая") + (arrayMapReturn.valueAt(i) * 0.5));
+                        arrayMapQuantityReduced.put("Редька по-восточному весовая", arrayMapQuantityReduced.get("Редька по-восточному весовая") + (arrayMapQuantity.valueAt(i) * 0.25));
+                        arrayMapExchangeReduced.put("Редька по-восточному весовая", arrayMapExchangeReduced.get("Редька по-восточному весовая") + (arrayMapExchange.valueAt(i) * 0.25));
+                        arrayMapReturnReduced.put("Редька по-восточному весовая", arrayMapReturnReduced.get("Редька по-восточному весовая") + (arrayMapReturn.valueAt(i) * 0.25));
                     } else {
-                        arrayMapQuantityReduced.put("Редька по-восточному весовая", (arrayMapQuantity.valueAt(i) * 0.5));
-                        arrayMapExchangeReduced.put("Редька по-восточному весовая", (arrayMapExchange.valueAt(i) * 0.5));
-                        arrayMapReturnReduced.put("Редька по-восточному весовая", (arrayMapReturn.valueAt(i) * 0.5));
+                        arrayMapQuantityReduced.put("Редька по-восточному весовая", (arrayMapQuantity.valueAt(i) * 0.25));
+                        arrayMapExchangeReduced.put("Редька по-восточному весовая", (arrayMapExchange.valueAt(i) * 0.25));
+                        arrayMapReturnReduced.put("Редька по-восточному весовая", (arrayMapReturn.valueAt(i) * 0.25));
                     }
                 }
             }

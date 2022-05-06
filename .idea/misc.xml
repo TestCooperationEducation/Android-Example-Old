@@ -3,7 +3,18 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
-        <entry key="..\:/Users/deadp/StudioProjects/MyApplicationTest/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" value="0.36875" />
+        <entry key="..\:/Users/deadp/StudioProjects/MyApplicationTest/app/src/main/res/drawable-v24/ic_launcher_foreground.xml" value="0.3828125" />
+        <entry key="..\:/Users/deadp/StudioProjects/MyApplicationTest/app/src/main/res/drawable/bkg.xml" value="0.3828125" />
+        <entry key="..\:/Users/deadp/StudioProjects/MyApplicationTest/app/src/main/res/drawable/customborder.xml" value="0.3828125" />
+        <entry key="..\:/Users/deadp/StudioProjects/MyApplicationTest/app/src/main/res/drawable/ic_launcher_background.xml" value="0.3828125" />
+        <entry key="..\:/Users/deadp/StudioProjects/MyApplicationTest/app/src/main/res/drawable/normal.xml" value="0.3828125" />
+        <entry key="..\:/Users/deadp/StudioProjects/MyApplicationTest/app/src/main/res/drawable/pressed.xml" value="0.3828125" />
+        <entry key="..\:/Users/deadp/StudioProjects/MyApplicationTest/app/src/main/res/layout/activity_create_invoice_choose_items.xml" value="0.32653985507246375" />
+        <entry key="..\:/Users/deadp/StudioProjects/MyApplicationTest/app/src/main/res/layout/activity_create_invoice_manage_items.xml" value="0.32653985507246375" />
+        <entry key="..\:/Users/deadp/StudioProjects/MyApplicationTest/app/src/main/res/layout/activity_create_invoice_set_items_quantities.xml" value="0.32653985507246375" />
+        <entry key="..\:/Users/deadp/StudioProjects/MyApplicationTest/app/src/main/res/layout/activity_create_invoice_view_tmp_items_list.xml" value="0.32653985507246375" />
+        <entry key="..\:/Users/deadp/StudioProjects/MyApplicationTest/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" value="0.3828125" />
+        <entry key="..\:/Users/deadp/StudioProjects/MyApplicationTest/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml" value="0.3828125" />
       </map>
     </option>
   </component>
@@ -12,7 +23,7 @@
     <option name="myDefaultNotNull" value="android.support.annotation.NonNull" />
     <option name="myNullables">
       <value>
-        <list size="15">
+        <list size="14">
           <item index="0" class="java.lang.String" itemvalue="org.jetbrains.annotations.Nullable" />
           <item index="1" class="java.lang.String" itemvalue="javax.annotation.Nullable" />
           <item index="2" class="java.lang.String" itemvalue="javax.annotation.CheckForNull" />
@@ -23,17 +34,16 @@
           <item index="7" class="java.lang.String" itemvalue="org.checkerframework.checker.nullness.qual.Nullable" />
           <item index="8" class="java.lang.String" itemvalue="org.checkerframework.checker.nullness.compatqual.NullableDecl" />
           <item index="9" class="java.lang.String" itemvalue="org.checkerframework.checker.nullness.compatqual.NullableType" />
-          <item index="10" class="java.lang.String" itemvalue="android.annotation.Nullable" />
-          <item index="11" class="java.lang.String" itemvalue="com.android.annotations.Nullable" />
-          <item index="12" class="java.lang.String" itemvalue="org.eclipse.jdt.annotation.Nullable" />
-          <item index="13" class="java.lang.String" itemvalue="io.reactivex.annotations.Nullable" />
-          <item index="14" class="java.lang.String" itemvalue="io.reactivex.rxjava3.annotations.Nullable" />
+          <item index="10" class="java.lang.String" itemvalue="com.android.annotations.Nullable" />
+          <item index="11" class="java.lang.String" itemvalue="org.eclipse.jdt.annotation.Nullable" />
+          <item index="12" class="java.lang.String" itemvalue="io.reactivex.annotations.Nullable" />
+          <item index="13" class="java.lang.String" itemvalue="io.reactivex.rxjava3.annotations.Nullable" />
         </list>
       </value>
     </option>
     <option name="myNotNulls">
       <value>
-        <list size="15">
+        <list size="14">
           <item index="0" class="java.lang.String" itemvalue="org.jetbrains.annotations.NotNull" />
           <item index="1" class="java.lang.String" itemvalue="javax.annotation.Nonnull" />
           <item index="2" class="java.lang.String" itemvalue="edu.umd.cs.findbugs.annotations.NonNull" />
@@ -43,12 +53,11 @@
           <item index="6" class="java.lang.String" itemvalue="org.checkerframework.checker.nullness.qual.NonNull" />
           <item index="7" class="java.lang.String" itemvalue="org.checkerframework.checker.nullness.compatqual.NonNullDecl" />
           <item index="8" class="java.lang.String" itemvalue="org.checkerframework.checker.nullness.compatqual.NonNullType" />
-          <item index="9" class="java.lang.String" itemvalue="android.annotation.NonNull" />
-          <item index="10" class="java.lang.String" itemvalue="com.android.annotations.NonNull" />
-          <item index="11" class="java.lang.String" itemvalue="org.eclipse.jdt.annotation.NonNull" />
-          <item index="12" class="java.lang.String" itemvalue="io.reactivex.annotations.NonNull" />
-          <item index="13" class="java.lang.String" itemvalue="io.reactivex.rxjava3.annotations.NonNull" />
-          <item index="14" class="java.lang.String" itemvalue="lombok.NonNull" />
+          <item index="9" class="java.lang.String" itemvalue="com.android.annotations.NonNull" />
+          <item index="10" class="java.lang.String" itemvalue="org.eclipse.jdt.annotation.NonNull" />
+          <item index="11" class="java.lang.String" itemvalue="io.reactivex.annotations.NonNull" />
+          <item index="12" class="java.lang.String" itemvalue="io.reactivex.rxjava3.annotations.NonNull" />
+          <item index="13" class="java.lang.String" itemvalue="lombok.NonNull" />
         </list>
       </value>
     </option>
