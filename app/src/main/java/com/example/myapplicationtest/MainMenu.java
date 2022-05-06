@@ -192,6 +192,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
 //        db.execSQL("DROP TABLE IF EXISTS payments");
 //        db.execSQL("DROP TABLE IF EXISTS itemsToInvoiceTmp");
 //        db.execSQL("DROP TABLE IF EXISTS receiveLocal");
+//        db.execSQL("DROP TABLE IF EXISTS items");
 //        dbHelper.onUpgrade(db, 1, 2);
     }
 
@@ -1166,12 +1167,14 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                     Integer[] itemPrice = new Integer[jsonArray.length()];
                     String[] itemDescription = new String[jsonArray.length()];
                     Integer[] itemNumberBuhgalter = new Integer[jsonArray.length()];
+                    Integer[] filterOrder = new Integer[jsonArray.length()];
 
                     if (jsonArray.length() > 0){
                         for (int i = 0; i < jsonArray.length(); i++) {
                             JSONObject obj = jsonArray.getJSONObject(i);
                             itemNumber[i] = obj.getInt("Артикул");
                             itemNumberBuhgalter[i] = obj.getInt("Артикул_1С");
+                            filterOrder[i] = obj.getInt("filterOrder");
                             itemName[i] = obj.getString("Наименование");
                             itemDescription[i] = obj.getString("Описание");
                             itemPrice[i] = obj.getInt("Цена");
@@ -1179,6 +1182,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                             Log.d(LOG_TAG, "--- Insert in items: ---");
                             cv.put("Артикул", itemNumber[i]);
                             cv.put("Артикул_1С", itemNumberBuhgalter[i]);
+                            cv.put("filterOrder", filterOrder[i]);
                             cv.put("Наименование", itemName[i]);
                             cv.put("Описание", itemDescription[i]);
                             cv.put("Цена", itemPrice[i]);
@@ -1719,6 +1723,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                         + "id integer primary key autoincrement,"
                         + "Артикул integer UNIQUE ON CONFLICT REPLACE,"
                         + "Артикул_1С integer,"
+                        + "filterOrder integer,"
                         + "Наименование text,"
                         + "Описание text,"
                         + "Цена integer" + ");");
