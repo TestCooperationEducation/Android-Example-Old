@@ -711,75 +711,75 @@ public class AgentReportActivity extends AppCompatActivity implements View.OnCli
                             l.setString("Район № " + areaDefault); //Район
                         }
                     }
-                    if (i > 29 && i < 37) {
-                        if (j == 2 && i == 30) {
+                    if (i > 31 && i < 38) {
+                        if (j == 2 && i == 32) {
                             if (cell.getType() == CellType.LABEL) {
                                 Label l = (Label) cell;
                                 l.setString(String.valueOf(invoiceNumberList.size())); //Всего накладных
                             }
                         }
-                        if (j == 2 && i == 31) {
+                        if (j == 2 && i == 33) {
                             if (cell.getType() == CellType.LABEL) {
                                 Label l = (Label) cell;
                                 l.setString(String.valueOf(invoiceAccTypeOneCount)); //Всего проводных
                             }
                         }
-                        if (j == 2 && i == 32) {
+                        if (j == 2 && i == 34) {
                             if (cell.getType() == CellType.LABEL) {
                                 Label l = (Label) cell;
                                 l.setString(String.valueOf(invoiceAccTypeTwoCount)); //Всего непроводных
                             }
                         }
-                        if (j == 2 && i == 33) {
+                        if (j == 2 && i == 35) {
                             if (cell.getType() == CellType.LABEL) {
                                 Label l = (Label) cell;
                                 l.setString(invoiceAccTypeOnePaymentsCount.toString()); //Всего проводных за наличные
                             }
                         }
-                        if (j == 2 && i == 34) {
+                        if (j == 2 && i == 36) {
                             if (cell.getType() == CellType.LABEL) {
                                 Label l = (Label) cell;
                                 l.setString(invoiceAccTypeTwoPaymentsCount.toString()); //Всего непроводных за наличные
                             }
                         }
-                        if (j == 2 && i == 35) {
+                        if (j == 2 && i == 37) {
                             if (cell.getType() == CellType.LABEL) {
                                 Label l = (Label) cell;
                                 l.setString(String.valueOf(invoiceAccTypeTwoCount - invoiceAccTypeTwoPaymentsCount)); //Всего непроводных на реализацию
                             }
                         }
 
-                        if (j == 4 && i == 30) {
+                        if (j == 4 && i == 32) {
                             if (cell.getType() == CellType.LABEL) {
                                 Label l = (Label) cell;
                                 l.setString(String.valueOf(invoiceSumTotal)); //Всего накладных сумма
                             }
                         }
-                        if (j == 4 && i == 31) {
+                        if (j == 4 && i == 33) {
                             if (cell.getType() == CellType.LABEL) {
                                 Label l = (Label) cell;
                                 l.setString(String.valueOf(invoiceSumTypeOneTotal)); //Всего проводных сумма
                             }
                         }
-                        if (j == 4 && i == 32) {
+                        if (j == 4 && i == 34) {
                             if (cell.getType() == CellType.LABEL) {
                                 Label l = (Label) cell;
                                 l.setString(String.valueOf(invoiceSumTypeTwoTotal)); //Всего непроводных сумма
                             }
                         }
-                        if (j == 4 && i == 33) {
+                        if (j == 4 && i == 35) {
                             if (cell.getType() == CellType.LABEL) {
                                 Label l = (Label) cell;
                                 l.setString(invoiceSumTypeOnePaymentsTotal.toString()); //Всего проводных за нал. сумма
                             }
                         }
-                        if (j == 4 && i == 34) {
+                        if (j == 4 && i == 36) {
                             if (cell.getType() == CellType.LABEL) {
                                 Label l = (Label) cell;
                                 l.setString(invoiceSumTypeTwoPaymentsTotal.toString()); //Всего непроводных за нал. сумма
                             }
                         }
-                        if (j == 4 && i == 35) {
+                        if (j == 4 && i == 37) {
                             if (cell.getType() == CellType.LABEL) {
                                 Label l = (Label) cell;
                                 l.setString(String.valueOf(invoiceSumTypeTwoTotal - invoiceSumTypeTwoPaymentsTotal)); //Всего непроводных на реал. сумма
@@ -788,7 +788,7 @@ public class AgentReportActivity extends AppCompatActivity implements View.OnCli
 
                     }
                     if (!weeklyReport) {
-                        if (i > 6 && i < 28 && i < (arrayMapExchangeReduced.size() + 7)) {
+                        if (i > 6 && i < 30 && i < (arrayMapExchangeReduced.size() + 7)) {
 //                        for (int a = 0; a < arrayMapQuantityReduced.size(); a++) {
                             for (int b = 0; b < arrayMapReceive.size(); b++) {
                                 if (arrayMapQuantityReduced.keyAt(i - 7).equals(arrayMapReceive.keyAt(b))) {
@@ -835,7 +835,7 @@ public class AgentReportActivity extends AppCompatActivity implements View.OnCli
                             }
                         }
                     } else {
-                        if (i > 6 && i < 28 && i < (arrayMapExchangeReduced.size() + 7)) {
+                        if (i > 6 && i < 30 && i < (arrayMapExchangeReduced.size() + 7)) {
                             for (int b = 0; b < arrayMapQuantityReduced.size(); b++) {
 //                            for (int b = 0; b < arrayMapReceive.size(); b++) {
 //                                if (arrayMapQuantityReduced.keyAt(i - 7).equals(arrayMapReceive.keyAt(b))) {
